@@ -86,7 +86,7 @@ $$;
 revoke all on function public.sib_save_app_state(uuid, jsonb, integer) from public, anon;
 grant execute on function public.sib_save_app_state(uuid, jsonb, integer) to authenticated;
 -- Active Realtime pour signaler les changements aux autres appareils.
-do $
+do $$
 begin
   if exists (select 1 from pg_publication where pubname = 'supabase_realtime')
      and not exists (
@@ -97,5 +97,5 @@ begin
      ) then
     execute 'alter publication supabase_realtime add table public.sib_app_state';
   end if;
-end $;
+end $$;
 commit;
