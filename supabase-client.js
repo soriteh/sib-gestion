@@ -87,6 +87,35 @@
     return client.from(table);
   }
 
+  let appStateVersion = null;
+
+  async function loadAppState() {
+    await requireSession();
+    const { data, error } = await client
+      .from("sib_app_state")
+      .select("state, version, updated_at")
+      .eq("organization_id", config.organizationId)
+      .maybeSingle();
+    if (error) throw error;
+    appStateVersion = data ? Number(data.version) : null;
+    return data ? { state: data.state, version: appStateVersion, updatedAt: data.updated_at } : null;
+  }
+
+  async function saveAppState(state) {
+    await requireSession();
+    if (!state || typeof state !== "object" || Array.isArray(state)) {
+      throw new Error("État applicatif invalide.");
+    }
+    const { data, error } = await client.rpc("sib_save_app_state", {
+      p_organization_id: config.organizationId,
+      p_state: state,
+      p_expected_version: appStateVersion
+    });
+    if (error) throw error;
+    appStateVersion = Number(data);
+    return appStateVersion;
+  }
+
   window.SIBCloud = Object.freeze({
     ready,
     config: Object.freeze({
