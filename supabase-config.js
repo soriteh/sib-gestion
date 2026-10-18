@@ -10,8 +10,8 @@
  *   d'activer le client. Les valeurs ne sont volontairement pas inventées.
  */
 window.SIB_SUPABASE_CONFIG = Object.freeze({
-  url: "REMPLACER_PAR_URL_SUPABASE",
-  publishableKey: "REMPLACER_PAR_CLE_PUBLISHABLE",
+  url: "https://iljnoaftslfjzkxlbghb.supabase.co",
+  publishableKey: "sb_publishable_A8LiFh46g9VZsYwcYir9rQ_vrXEdB4g",
   organizationId: "6070dc4b-5c5e-402c-911b-735cb754d241",
   organizationName: "Soritech Innov Business",
   organizationShortName: "SIB"
