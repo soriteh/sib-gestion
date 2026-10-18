@@ -214,9 +214,12 @@ using (public.sib_is_member(organization_id))
 with check (public.sib_is_member(organization_id));
 
 drop policy if exists sib_documents_member_all on public.sib_documents;
-create policy sib_documents_member_all on public.sib_documents
-for all to authenticated
-using (public.sib_is_member(organization_id))
+create policy sib_documents_member_read on public.sib_documents
+for select to authenticated using (public.sib_is_member(organization_id));
+create policy sib_documents_member_insert on public.sib_documents
+for insert to authenticated with check (public.sib_is_member(organization_id));
+create policy sib_documents_member_update on public.sib_documents
+for update to authenticated using (public.sib_is_member(organization_id))
 with check (public.sib_is_member(organization_id));
 
 drop policy if exists sib_lines_member_all on public.sib_document_lines;
@@ -238,15 +241,21 @@ using (public.sib_is_member(organization_id))
 with check (public.sib_is_member(organization_id));
 
 drop policy if exists sib_payments_member_all on public.sib_payments;
-create policy sib_payments_member_all on public.sib_payments
-for all to authenticated
-using (public.sib_is_member(organization_id))
+create policy sib_payments_member_read on public.sib_payments
+for select to authenticated using (public.sib_is_member(organization_id));
+create policy sib_payments_member_insert on public.sib_payments
+for insert to authenticated with check (public.sib_is_member(organization_id));
+create policy sib_payments_member_update on public.sib_payments
+for update to authenticated using (public.sib_is_member(organization_id))
 with check (public.sib_is_member(organization_id));
 
 drop policy if exists sib_expenses_member_all on public.sib_expenses;
-create policy sib_expenses_member_all on public.sib_expenses
-for all to authenticated
-using (public.sib_is_member(organization_id))
+create policy sib_expenses_member_read on public.sib_expenses
+for select to authenticated using (public.sib_is_member(organization_id));
+create policy sib_expenses_member_insert on public.sib_expenses
+for insert to authenticated with check (public.sib_is_member(organization_id));
+create policy sib_expenses_member_update on public.sib_expenses
+for update to authenticated using (public.sib_is_member(organization_id))
 with check (public.sib_is_member(organization_id));
 
 drop policy if exists sib_audit_member_read on public.sib_audit_log;
@@ -257,7 +266,8 @@ for select to authenticated using (
 
 grant select on public.sib_organizations, public.sib_memberships to authenticated;
 grant select, insert, update, delete on public.sib_clients, public.sib_services,
-  public.sib_documents, public.sib_document_lines, public.sib_financial_accounts,
+  public.sib_financial_accounts to authenticated;
+grant select, insert, update on public.sib_documents, public.sib_document_lines,
   public.sib_payments, public.sib_expenses to authenticated;
 grant select on public.sib_audit_log to authenticated;
 
