@@ -280,7 +280,11 @@ S.set={...D0().set,...S.set};S.set.pre={...D0().set.pre,...S.set.pre};S.set.rh={
 S.us.forEach(u=>{if(u.pn===undefined){const w=(u.nom||"").split(" ");u.pn=w[0]||"";u.nm=w.slice(1).join(" ");}u.mail=u.mail||"";u.tel=u.tel||"";u.ph=u.ph||""});
 const $=i=>document.getElementById(i),fm=n=>Math.round(n).toLocaleString("fr-FR").replace(/\u202f/g," ")+" "+((S.set&&S.set.sym)||"FG");
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-function save(){try{localStorage.setItem(K,JSON.stringify(S))}catch(_){}}
+let cloudSessionReady=false,cloudSaveChain=Promise.resolve(),cloudSaveErrorAt=0;
+function cloudSnapshot(){const x=JSON.parse(JSON.stringify(S));delete x.us;return x}
+function save(){try{localStorage.setItem(K,JSON.stringify(S))}catch(_){}
+ if(window.SIBCloud?.ready&&cloudSessionReady){const snapshot=cloudSnapshot();cloudSaveChain=cloudSaveChain.then(()=>window.SIBCloud.saveAppState(snapshot)).catch(err=>{const now=Date.now();if(now-cloudSaveErrorAt>8000){cloudSaveErrorAt=now;console.error("SIB cloud save failed:",err);if(typeof toast==="function")toast("Synchronisation impossible : "+(err?.message||"erreur Supabase")+". Vérifiez la connexion avant de continuer.","er");}});}
+}
 const TI={ok:"M20 6L9 17l-5-5",er:"M12 8v5M12 16h.01M12 2a10 10 0 100 20 10 10 0 000-20z",wa:"M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z",in:"M12 16v-4M12 8h.01M12 2a10 10 0 100 20 10 10 0 000-20z"};
 const ic=t=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${TI[t]}"/></svg>`;
 function kind(m){if(/requis|renseign|^(Aucun|Ajoutez|Choisissez|Saisissez)/i.test(m))return"wa";if(/enregistr|créé|créée|ajouté|ajoutée|modifié|mis à jour|supprimé|annulé|annulée|réinitialis|activé|inscrit|changé|retiré|soldée|approuvé|généré|payé|refusée|marqué|réintégré|validé|effacé|désactivé/i.test(m)&&!/impossible|invalide|pas /i.test(m))return"ok";return"er"}
@@ -548,12 +552,24 @@ let FA=0,LK=0,LM="login";
 const EYE='<svg viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12zM12 15a3 3 0 100-6 3 3 0 000 6z"/></svg>';
 const pwf=(id,l,ac)=>`<div><label for="${id}">${l}</label><div class="pwf"><input type="password" id="${id}" autocomplete="${ac}"><button type="button" class="eye" data-u="eye" data-t="${id}" aria-label="Afficher ou masquer le mot de passe">${EYE}</button></div></div>`;
 function lgv(m){LM=m;const T={setup:["Bienvenue","Créez le compte administrateur pour démarrer l'application."],login:["Connexion","Accédez à votre espace de gestion."],chg:["Nouveau mot de passe","Choisissez un mot de passe personnel pour continuer."]}[m];
- const fl=m=="setup"?F("lnm","Prénom")+F("lnm2","Nom")+F("llg","Identifiant (sans espace)")+pwf("lpw","Mot de passe","new-password")+pwf("lp2","Confirmer le mot de passe","new-password"):m=="chg"?pwf("lpw","Nouveau mot de passe","new-password")+pwf("lp2","Confirmer le mot de passe","new-password"):F("llg","Identifiant")+pwf("lpw","Mot de passe","current-password");
+ const cloud=!!window.SIBCloud?.ready;if(cloud&&m!=="login")m="login";LM=m;const fl=m=="setup"?F("lnm","Prénom")+F("lnm2","Nom")+F("llg","Identifiant (sans espace)")+pwf("lpw","Mot de passe","new-password")+pwf("lp2","Confirmer le mot de passe","new-password"):m=="chg"?pwf("lpw","Nouveau mot de passe","new-password")+pwf("lp2","Confirmer le mot de passe","new-password"):F("llg",cloud?"Adresse e-mail":"Identifiant")+pwf("lpw",cloud?"Mot de passe Supabase":"Mot de passe","current-password");
  $("lgc").innerHTML=`<h1>${T[0]}</h1><p class="sb">${T[1]}</p>${LNOTE?nb("in","",LNOTE):""}<div class="lf">${fl}</div><div id="lerr" class="lerr" role="alert" aria-live="polite"></div><button class="p lb" id="lbt" data-u="go">${m=="setup"?"Créer le compte et entrer":m=="chg"?"Enregistrer et entrer":"Se connecter"}</button>`;LNOTE="";const f=$("lnm")||$("llg")||$("lpw");if(f)f.focus()}
 const er=m=>{const x=$("lerr");x.textContent=m;x.classList.remove("sh");void x.offsetWidth;x.classList.add("sh")},bz=b=>{$("lbt").classList.toggle("ld",!!b)};
 async function doGo(){const m=LM;if($("lbt").classList.contains("ld"))return;
- if(m=="login"){if(Date.now()<LK)return er("Trop de tentatives. Réessayez dans "+Math.ceil((LK-Date.now())/1000)+" secondes.");
-  const l=V("llg").trim().toLowerCase(),p=V("lpw");if(!l||!p)return er("Saisissez votre identifiant et votre mot de passe.");bz(1);
+ if(m=="login"){
+  if(Date.now()<LK)return er("Trop de tentatives. Réessayez dans "+Math.ceil((LK-Date.now())/1000)+" secondes.");
+  const l=V("llg").trim().toLowerCase(),p=V("lpw");if(!l||!p)return er("Saisissez votre e-mail et votre mot de passe.");bz(1);
+  if(window.SIBCloud?.ready){
+   try{
+    const result=await window.SIBCloud.signIn(l,p);
+    const remote=await window.SIBCloud.loadAppState();
+    if(remote){S={...D0(),...remote.state};S.set={...D0().set,...S.set};S.set.pre={...D0().set.pre,...S.set.pre};S.set.rh={...D0().set.rh,...S.set.rh};}else{S=D0();}
+    const email=result.user.email||l,parts=(email.split("@")[0]||"Administrateur").split(/[._-]+/).filter(Boolean);
+    CU={id:result.user.id,pn:parts[0]||"Administrateur",nm:parts.slice(1).join(" "),nom:[parts[0]||"Administrateur",...parts.slice(1)].join(" "),mail:email,login:email,role:result.membership.role,actif:true,cloud:true,last:null};
+    S.us=[CU];RO=CU.role;cloudSessionReady=true;FA=0;applyLogo();bz(0);enter(true);
+    if(!remote){await cloudSaveChain;toast("Espace central SIB initialisé. Les données seront partagées après connexion sur les autres appareils.","ok",{ms:6000});}return;
+   }catch(err){bz(0);return er(err?.message||"Connexion Supabase impossible. Vérifiez la configuration et la migration SQL.");}
+  }
   const u=S.us.find(x=>x.login==l),good=(await hp(p,u?u.salt:"00"))==(u?u.hash:"x");bz(0);
   if(!u||!good){if(++FA>=5){LK=Date.now()+6e4;FA=0}return er("Identifiant ou mot de passe incorrect.")}
   if(!u.actif)return er("Ce compte est désactivé. Contactez l'administrateur.");FA=0;CU=u;RO=u.role;return u.mc?lgv("chg"):enter()}
@@ -562,8 +578,21 @@ async function doGo(){const m=LM;if($("lbt").classList.contains("ld"))return;
  bz(1);const salt=rs();CU.salt=salt;CU.hash=await hp(p,salt);CU.mc=false;save();bz(0);enter()}
 function enter(resume){const prev=CU.last;RO=CU.role;PF="mois";fDay=L(new Date());fMon=fDay.slice(0,7);fYr=new Date().getFullYear();CU.last=iso();try{sessionStorage.setItem("sib-uid",CU.id)}catch(_){}document.body.classList.remove("lo");
  lg("Connexion");save();mk();drawAm();if(!resume){const hh=new Date().getHours();toast((hh>=18||hh<5?"Bonsoir":"Bonjour")+", "+(CU.pn||CU.nom)+" ! Bienvenue sur "+(S.set.app||"SIB Gestion")+"."+(prev?" Dernière connexion : "+new Date(prev).toLocaleString("fr-FR",{weekday:"long",day:"numeric",month:"long",hour:"2-digit",minute:"2-digit"})+".":""),"ok",{ms:5500})}}
-function out(force){if(!force&&gate(()=>out()))return;const nm0=CU?(CU.pn||CU.nom):"";if(CU){lg(force?"Session expirée (inactivité)":"Déconnexion");save()}CU=null;CUR="";try{sessionStorage.removeItem("sib-uid")}catch(_){}DL=[];cart=[];drawCart();["npp","amm"].forEach(i=>$(i).classList.add("hide"));document.body.classList.add("lo");document.body.classList.remove("mo");$("mdl").classList.add("hide");lgv("login");if(!force&&nm0)toast("Au revoir, "+nm0+" ! Vous avez été déconnecté. À bientôt.","ok",{ms:4500})}
-function boot(){applyLogo();let id="";try{id=sessionStorage.getItem("sib-uid")||""}catch(_){}const u=S.us.find(x=>x.id==id&&x.actif);if(u){CU=u;enter(true)}else{document.body.classList.add("lo");lgv(S.us.length?"login":"setup")}}
+function out(force){if(!force&&gate(()=>out()))return;const nm0=CU?(CU.pn||CU.nom):"";if(CU){lg(force?"Session expirée (inactivité)":"Déconnexion");save()}const wasCloud=!!CU?.cloud;CU=null;cloudSessionReady=false;CUR="";try{sessionStorage.removeItem("sib-uid")}catch(_){}if(wasCloud&&window.SIBCloud?.ready)window.SIBCloud.signOut().catch(console.error);DL=[];cart=[];drawCart();["npp","amm"].forEach(i=>$(i).classList.add("hide"));document.body.classList.add("lo");document.body.classList.remove("mo");$("mdl").classList.add("hide");lgv("login");if(!force&&nm0)toast("Au revoir, "+nm0+" ! Vous avez été déconnecté. À bientôt.","ok",{ms:4500})}
+async function boot(){applyLogo();
+ if(window.SIBCloud?.ready){
+  cloudSessionReady=false;
+  try{
+   const current=await window.SIBCloud.currentUser(),remote=await window.SIBCloud.loadAppState();
+   if(remote){S={...D0(),...remote.state};S.set={...D0().set,...S.set};S.set.pre={...D0().set.pre,...S.set.pre};S.set.rh={...D0().set.rh,...S.set.rh};}else{S=D0();}
+   const email=current.user.email||"",parts=(email.split("@")[0]||"Administrateur").split(/[._-]+/).filter(Boolean);
+   CU={id:current.user.id,pn:parts[0]||"Administrateur",nm:parts.slice(1).join(" "),nom:[parts[0]||"Administrateur",...parts.slice(1)].join(" "),mail:email,login:email,role:current.membership.role,actif:true,cloud:true,last:null};
+   S.us=[CU];RO=CU.role;cloudSessionReady=true;applyLogo();enter(true);if(!remote)await cloudSaveChain;return;
+  }catch(err){console.warn("SIB cloud session unavailable:",err);}
+  document.body.classList.add("lo");lgv("login");return;
+ }
+ let id="";try{id=sessionStorage.getItem("sib-uid")||""}catch(_){}const u=S.us.find(x=>x.id==id&&x.actif);if(u){CU=u;enter(true)}else{document.body.classList.add("lo");lgv(S.us.length?"login":"setup")}
+}
 const info=(t,h)=>{$("mdc").innerHTML=`<h2>${t}</h2><p>${h}</p>`;$("mdl").classList.remove("hide")};
 function pwm(){$("mdc").innerHTML=`<h2>Changer mon mot de passe</h2><div class="lf">${pwf("cp0","Mot de passe actuel","current-password")}${pwf("cp1","Nouveau mot de passe","new-password")}${pwf("cp2","Confirmer le nouveau mot de passe","new-password")}</div><div id="cerr" class="lerr" role="alert"></div><button class="p" data-u="cpw" style="margin-bottom:8px">Enregistrer</button>`;$("mdl").classList.remove("hide")}
 async function cpw(){const ce=m=>$("cerr").textContent=m;if((await hp(V("cp0"),CU.salt))!=CU.hash)return ce("Le mot de passe actuel est incorrect.");const p=V("cp1");if(!pwOk(p))return ce(PWM);if(p!=V("cp2"))return ce("Les deux mots de passe ne sont pas identiques.");
