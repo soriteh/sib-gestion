@@ -65,6 +65,10 @@
       return { user: data.user, membership };
     } catch (error) {
       await client.auth.signOut();
+      const message = String(error?.message || "");
+      if (/membership|appartenance|organisation|organization/i.test(message)) {
+        throw new Error("Mot de passe accepté, mais ce compte n'a pas d'appartenance active à Soritech Innov Business. Exécutez supabase/05_fix_admin_membership.sql dans le SQL Editor Supabase, puis reconnectez-vous.");
+      }
       throw error;
     }
   }
