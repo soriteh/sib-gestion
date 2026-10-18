@@ -281,6 +281,22 @@ S.us.forEach(u=>{if(u.pn===undefined){const w=(u.nom||"").split(" ");u.pn=w[0]||
 const $=i=>document.getElementById(i),fm=n=>Math.round(n).toLocaleString("fr-FR").replace(/\u202f/g," ")+" "+((S.set&&S.set.sym)||"FG");
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let cloudSessionReady=false,cloudSaveChain=Promise.resolve(),cloudSaveErrorAt=0;
+let cloudChannel=null,cloudRemoteNoticeAt=0;
+function activateCloudRealtime(){
+ if(!window.SIBCloud?.ready||!cloudSessionReady)return;
+ try{
+  if(cloudChannel)window.SIBCloud.client()?.removeChannel(cloudChannel);
+  cloudChannel=window.SIBCloud.subscribeAppState(payload=>{
+   const remoteVersion=Number(payload?.new?.version||0);
+   setTimeout(()=>{
+    if(!cloudSessionReady||remoteVersion<=Number(window.SIBCloud.appStateVersion||0))return;
+    if(Date.now()-cloudRemoteNoticeAt<5000)return;
+    cloudRemoteNoticeAt=Date.now();
+    if(typeof toast==="function")toast("Une mise à jour a été enregistrée sur un autre appareil. Rechargez pour afficher les données actualisées; terminez d'abord toute saisie en cours.","in",{sticky:true,act:{label:"Recharger",fn:()=>window.location.reload()}});
+   },1800);
+  });
+ }catch(err){console.warn("SIB Realtime unavailable:",err)}
+}
 function cloudSnapshot(){const x=JSON.parse(JSON.stringify(S));delete x.us;return x}
 function save(){try{localStorage.setItem(K,JSON.stringify(S))}catch(_){}
  if(window.SIBCloud?.ready&&cloudSessionReady){const snapshot=cloudSnapshot();cloudSaveChain=cloudSaveChain.then(()=>window.SIBCloud.saveAppState(snapshot)).catch(err=>{const now=Date.now();if(now-cloudSaveErrorAt>8000){cloudSaveErrorAt=now;console.error("SIB cloud save failed:",err);if(typeof toast==="function")toast("Synchronisation impossible : "+(err?.message||"erreur Supabase")+". Vérifiez la connexion avant de continuer.","er");}});}
@@ -566,7 +582,7 @@ async function doGo(){const m=LM;if($("lbt").classList.contains("ld"))return;
     if(remote){S={...D0(),...remote.state};S.set={...D0().set,...S.set};S.set.pre={...D0().set.pre,...S.set.pre};S.set.rh={...D0().set.rh,...S.set.rh};}else{S=D0();}
     const email=result.user.email||l,parts=(email.split("@")[0]||"Administrateur").split(/[._-]+/).filter(Boolean);
     CU={id:result.user.id,pn:parts[0]||"Administrateur",nm:parts.slice(1).join(" "),nom:[parts[0]||"Administrateur",...parts.slice(1)].join(" "),mail:email,login:email,role:result.membership.role,actif:true,cloud:true,last:null};
-    S.us=[CU];RO=CU.role;cloudSessionReady=true;FA=0;applyLogo();bz(0);enter(true);
+    S.us=[CU];RO=CU.role;cloudSessionReady=true;FA=0;applyLogo();activateCloudRealtime();bz(0);enter(true);
     if(!remote){await cloudSaveChain;toast("Espace central SIB initialisé. Les données seront partagées après connexion sur les autres appareils.","ok",{ms:6000});}return;
    }catch(err){bz(0);return er(err?.message||"Connexion Supabase impossible. Vérifiez la configuration et la migration SQL.");}
   }
@@ -587,7 +603,7 @@ async function boot(){applyLogo();
    if(remote){S={...D0(),...remote.state};S.set={...D0().set,...S.set};S.set.pre={...D0().set.pre,...S.set.pre};S.set.rh={...D0().set.rh,...S.set.rh};}else{S=D0();}
    const email=current.user.email||"",parts=(email.split("@")[0]||"Administrateur").split(/[._-]+/).filter(Boolean);
    CU={id:current.user.id,pn:parts[0]||"Administrateur",nm:parts.slice(1).join(" "),nom:[parts[0]||"Administrateur",...parts.slice(1)].join(" "),mail:email,login:email,role:current.membership.role,actif:true,cloud:true,last:null};
-   S.us=[CU];RO=CU.role;cloudSessionReady=true;applyLogo();enter(true);if(!remote)await cloudSaveChain;return;
+   S.us=[CU];RO=CU.role;cloudSessionReady=true;applyLogo();activateCloudRealtime();enter(true);if(!remote)await cloudSaveChain;return;
   }catch(err){console.warn("SIB cloud session unavailable:",err);}
   document.body.classList.add("lo");lgv("login");return;
  }
