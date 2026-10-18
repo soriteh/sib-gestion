@@ -116,6 +116,20 @@
     return appStateVersion;
   }
 
+  function subscribeAppState(onChange) {
+    if (!client) throw new Error("Supabase n'est pas configuré.");
+    return client.channel("sib-app-state-" + config.organizationId)
+      .on("postgres_changes", {
+        event: "*",
+        schema: "public",
+        table: "sib_app_state",
+        filter: "organization_id=eq." + config.organizationId
+      }, payload => {
+        if (typeof onChange === "function") onChange(payload);
+      })
+      .subscribe();
+  }
+
   window.SIBCloud = Object.freeze({
     ready,
     config: Object.freeze({
