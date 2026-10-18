@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SIB Gestion — Test Supabase</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;max-width:760px;margin:40px auto;padding:0 18px;color:#172033;background:#f6f8fb}
+    main{background:#fff;border:1px solid #dce3ec;border-radius:16px;padding:24px;box-shadow:0 8px 28px #1720330d}
+    h1{margin-top:0} label{display:block;font-weight:600;margin:14px 0 6px} input{box-sizing:border-box;width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font:inherit}
+    button{margin:12px 8px 0 0;padding:11px 15px;border:0;border-radius:8px;background:#0757b8;color:#fff;font-weight:600;cursor:pointer}button.secondary{background:#475569}
+    #status{white-space:pre-wrap;background:#f1f5f9;border-radius:8px;padding:14px;margin-top:18px;overflow-wrap:anywhere} .hint{color:#475569;font-size:.94rem}
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<main>
+  <h1>Test de connexion — SIB Gestion</h1>
+  <p class="hint">Cette page teste l'authentification et l'accès autorisé à l'organisation. Elle ne crée, ne modifie et ne supprime aucune donnée métier.</p>
+  <label for="projectUrl">Project URL</label>
+  <input id="projectUrl" type="url" placeholder="https://votre-projet.supabase.co" autocomplete="url">
+  <label for="publishableKey">Clé publique (publishable key / ancienne anon key)</label>
+  <input id="publishableKey" type="text" placeholder="sb_publishable_…" autocomplete="off" spellcheck="false">
+  <label for="email">Email du compte administrateur</label>
+  <input id="email" type="email" autocomplete="username" placeholder="administrateur@exemple.com">
+  <label for="password">Mot de passe Supabase Auth</label>
+  <input id="password" type="password" autocomplete="current-password">
+  <button id="testBtn">Se connecter et tester</button>
+  <button id="logoutBtn" class="secondary" type="button">Se déconnecter</button>
+  <div id="status" role="status" aria-live="polite">En attente du test.</div>
+</main>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  let client = null;
+  const show = (message) => { $('status').textContent = message; };
+
+  $('testBtn').addEventListener('click', async () => {
+    const url = $('projectUrl').value.trim();
+    const key = $('publishableKey').value.trim();
+    const email = $('email').value.trim();
+    const password = $('password').value;
+    if (!url || !key || !email || !password) {
+      show('Complète les quatre champs. Ne publie jamais un mot de passe ou une clé secrète.'); return;
+    }
+    if (!window.supabase?.createClient) { show('La bibliothèque Supabase JS n’a pas pu être chargée. Vérifie ta connexion Internet.'); return; }
+    try {
+      client = window.supabase.createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
+      show('Connexion en cours…');
+      const { data: authData, error: authError } = await client.auth.signInWithPassword({ email, password });
+      if (authError) throw authError;
+      const user = authData.user;
+      const { data: memberships, error: membershipError } = await client
+        .from('organization_memberships')
+        .select('role, active, organization_id, organizations(name, short_name)')
+        .eq('user_id', user.id);
+      if (membershipError) {
+        show('AUTHENTIFICATION RÉUSSIE, MAIS LECTURE DES DROITS EN ÉCHEC.\nUtilisateur : ' + user.email + '\nErreur : ' + membershipError.message + '\nVérifie les politiques RLS et l’existence de l’organisation.');
+      } else if (!memberships || memberships.length === 0) {
+        show('AUTHENTIFICATION RÉUSSIE.\nUtilisateur : ' + user.email + '\nAucune appartenance à une organisation trouvée. Il faut vérifier que l’organisation SIB et son rôle Administrateur ont bien été créés.');
+      } else {
+        show('CONNEXION SUPABASE RÉUSSIE.\nUtilisateur : ' + user.email + '\nAppartenances trouvées :\n' + JSON.stringify(memberships, null, 2) + '\n\nAucune donnée métier n’a été modifiée.');
+      }
+      await client.auth.signOut();
+      $('password').value = '';
+    } catch (err) {
+      show('ÉCHEC DU TEST.\n' + (err?.message || String(err)) + '\n\nVérifie l’URL, la clé publique, le mot de passe, la confirmation de l’email et la configuration Supabase.');
+    }
+  });
+
+  $('logoutBtn').addEventListener('click', async () => {
+    if (client) await client.auth.signOut();
+    $('password').value = '';
+    show('Déconnecté.');
+  });
+})();
+</script>
+</body>
+</html>
