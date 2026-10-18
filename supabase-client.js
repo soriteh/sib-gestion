@@ -134,6 +134,26 @@
       .subscribe();
   }
 
+  async function signUpFirstAdmin(email, password, fullName) {
+    if (!client) throw new Error("Supabase n'est pas configuré.");
+    const { data, error } = await client.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: fullName || "" } }
+    });
+    if (error) throw error;
+    if (!data.session || !data.user) {
+      throw new Error("Compte créé, mais Supabase exige une confirmation par e-mail avant l'activation. Confirmez l'e-mail, puis revenez vous connecter.");
+    }
+    const { error: bootstrapError } = await client.rpc("sib_bootstrap_first_admin", {
+      p_organization_id: config.organizationId,
+      p_full_name: fullName || ""
+    });
+    if (bootstrapError) throw new Error(bootstrapError.message || "Impossible d'activer le premier administrateur.");
+    const membership = await getMembership(data.user.id);
+    return { user: data.user, membership };
+  }
+
   window.SIBCloud = Object.freeze({
     ready,
     config: Object.freeze({
@@ -142,10 +162,15 @@
     }),
     client: () => client,
     signIn,
+    signUpFirstAdmin,
     signOut,
     currentUser,
     getMembership,
     requireSession,
-    query
+    query,
+    loadAppState,
+    saveAppState,
+    subscribeAppState,
+    get appStateVersion() { return appStateVersion; }
   });
 })();
