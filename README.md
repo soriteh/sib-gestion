@@ -21,6 +21,18 @@ La version publiée est une démonstration HTML autonome.
 - Pour éviter une deuxième installation sur chaque appareil, l'initialisation de l'entreprise doit rester dans la base centrale. Chaque appareil doit uniquement ouvrir le même site et se connecter avec un compte existant. Ne pas créer automatiquement une nouvelle organisation au chargement.
 - Ne jamais ajouter une clé `service_role` au frontend. La clé publique est sûre uniquement avec des politiques RLS correctement configurées.
 
+### Activation de la synchronisation multi-appareils
+
+La version courante ajoute un stockage central partagé pour l'état métier de l'application. Il s'agit d'une étape de transition : les modules utilisent encore un état applicatif JSON centralisé, plutôt que des tables relationnelles séparées par module.
+
+1. Dans `supabase-config.js`, remplacer `REMPLACER_PAR_URL_SUPABASE` et `REMPLACER_PAR_CLE_PUBLISHABLE` par l'URL du projet Supabase SIB et sa clé publique (publishable/anon). Ne jamais utiliser une clé `service_role`.
+2. Dans le SQL Editor du projet Supabase existant, exécuter `supabase/04_shared_app_state.sql`. Le script utilise l'organisation déjà connue `6070dc4b-5c5e-402c-911b-735cb754d241` et les appartenances `organization_memberships`; il ne crée pas d'organisation.
+3. Publier les fichiers sur la branche `main`, puis ouvrir le même site sur chaque appareil et se connecter avec le même compte Supabase Auth.
+4. Le premier accès crée l'état applicatif central s'il n'existe pas encore. Les modifications sont enregistrées par version, et une modification concurrente est refusée plutôt que d'écraser silencieusement les changements d'un autre appareil.
+5. Quand un autre appareil modifie les données, l'application signale la mise à jour et propose de recharger pour afficher la version centrale.
+
+**Limites de cette première synchronisation :** les identifiants et mots de passe des comptes locaux ne sont pas copiés dans l'état partagé. L'authentification principale est Supabase Auth et le rôle est lu depuis `organization_memberships`. La gestion complète des utilisateurs/permissions doit ensuite être reliée aux adhésions Supabase. Les règles métier doivent encore être migrées vers des tables relationnelles dédiées pour bénéficier de validations par module. L'application doit être testée après activation avant usage opérationnel.
+
 ## Scripts Supabase
 
 ### `supabase/00_audit_schema.sql` — lecture seule
