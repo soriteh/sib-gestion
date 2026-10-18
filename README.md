@@ -28,6 +28,10 @@ Prépare un ensemble initial de tables isolées préfixées `sib_` pour organisa
 - Avant exécution sur une base réelle, exécuter l'audit en lecture seule, vérifier les noms de tables existants et tester les scripts sur un projet de développement ou une sauvegarde.
 - Ne jamais partager de mot de passe, clé `service_role`, jeton d'accès ou données personnelles réelles.
 
+### `supabase/02_integrity_audit.sql` — garde-fous et audit, pas encore exécuté
+
+Ajoute des déclencheurs PostgreSQL pour journaliser les insertions/modifications et verrouiller les documents, paiements et dépenses dès qu'ils ne sont plus au statut brouillon. Les suppressions directes de ces écritures sont bloquées. Cette migration dépend de `01_core_schema.sql` et doit être testée d'abord dans un projet de développement : les corrections et annulations devront ensuite être réalisées par un flux explicite de contre-écriture.
+
 ## Parcours de travail
 
 1. Auditer le schéma Supabase actuel.
