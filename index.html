@@ -607,6 +607,7 @@ async function boot(){applyLogo();
   }catch(err){console.warn("SIB cloud session unavailable:",err);}
   document.body.classList.add("lo");lgv("login");return;
  }
+ if(!window.SIBCloud?.ready){document.body.classList.add("lo");LNOTE="Connexion centrale non configurée. Pour éviter de créer un compte local différent sur chaque appareil, renseignez l’URL du projet et la clé publique dans supabase-config.js, puis exécutez supabase/04_shared_app_state.sql dans Supabase.";lgv("login");const b=$("lbt");if(b)b.disabled=true;const a=$("llg"),p=$("lpw");if(a)a.disabled=true;if(p)p.disabled=true;return;}
  let id="";try{id=sessionStorage.getItem("sib-uid")||""}catch(_){}const u=S.us.find(x=>x.id==id&&x.actif);if(u){CU=u;enter(true)}else{document.body.classList.add("lo");lgv(S.us.length?"login":"setup")}
 }
 const info=(t,h)=>{$("mdc").innerHTML=`<h2>${t}</h2><p>${h}</p>`;$("mdl").classList.remove("hide")};
