@@ -12,6 +12,14 @@ La version publiée est une démonstration HTML autonome.
 - `supabase-test.html` teste l'authentification Supabase et l'appartenance à une organisation, mais ne connecte pas à lui seul les modules métier à PostgreSQL.
 - Ne pas utiliser la version de démonstration pour des données réelles confidentielles (clients, paie, finances) avant intégration et vérification de la sécurité côté serveur.
 
+## Connexion centrale et multi-appareils
+
+- `supabase-config.js` centralise l'URL et la clé publique Supabase, ainsi que l'UUID connu de l'organisation SIB. Remplacer les deux valeurs `REMPLACER_...` par les valeurs du projet. Ce sont les seules valeurs de configuration à déployer; elles ne doivent pas être ressaisies sur chaque appareil.
+- `supabase-client.js` prépare un client partagé avec session Supabase persistante, connexion, déconnexion et contrôle de l'appartenance active à l'organisation `6070dc4b-5c5e-402c-911b-735cb754d241`. Il s'appuie sur les tables `organization_memberships` et `organizations` utilisées par le test de connexion existant.
+- Ces fichiers sont une fondation technique, pas une intégration terminée des modules. La page principale utilise encore son stockage local et son système de connexion local; le client Supabase n'est pas encore branché à tous les formulaires. Ne pas annoncer la synchronisation des données métier avant cette intégration.
+- Pour éviter une deuxième installation sur chaque appareil, l'initialisation de l'entreprise doit rester dans la base centrale. Chaque appareil doit uniquement ouvrir le même site et se connecter avec un compte existant. Ne pas créer automatiquement une nouvelle organisation au chargement.
+- Ne jamais ajouter une clé `service_role` au frontend. La clé publique est sûre uniquement avec des politiques RLS correctement configurées.
+
 ## Scripts Supabase
 
 ### `supabase/00_audit_schema.sql` — lecture seule
