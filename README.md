@@ -7,6 +7,7 @@ Application de gestion de Soritech Innov Business (SIB) : encaissements, caisse 
 La version publiée est une démonstration HTML autonome.
 
 - Les données métier de `index.html` sont enregistrées dans le stockage local du navigateur (`localStorage`) : elles ne sont pas partagées entre les appareils.
+- La branche de correction ajoute un export complet JSON depuis l'historique, réservé au rôle Administrateur. Cet export est une sauvegarde manuelle, pas une synchronisation ni une sauvegarde automatique ; le fichier contient des données sensibles et doit être conservé dans un emplacement sécurisé.
 - Le formulaire de connexion de cette démonstration ne constitue pas une authentification serveur sécurisée.
 - `supabase-test.html` teste l'authentification Supabase et l'appartenance à une organisation, mais ne connecte pas à lui seul les modules métier à PostgreSQL.
 - Ne pas utiliser la version de démonstration pour des données réelles confidentielles (clients, paie, finances) avant intégration et vérification de la sécurité côté serveur.
