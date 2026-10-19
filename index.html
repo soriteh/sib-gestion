@@ -17,8 +17,14 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .app{min-height:100vh}
 nav{background:var(--nv);color:#cdd7ea;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;padding:18px 12px;overflow:auto;z-index:20}
 .br{display:flex;gap:11px;align-items:center;padding:2px 8px 14px}
-.mk{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,var(--ac),#1b4fa8);display:grid;place-items:center;color:#fff;font-weight:800;font-size:13px;position:relative;flex:none}
-.mk::after{content:"";position:absolute;right:-3px;top:-3px;width:11px;height:11px;border-radius:50%;background:var(--or);border:2px solid var(--nv)}
+.mk{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,var(--ac),#1b4fa8);background-size:180% 180%;display:grid;place-items:center;color:#fff;font-weight:800;font-size:13px;position:relative;flex:none;isolation:isolate;box-shadow:0 0 0 1px color-mix(in srgb,var(--ac) 45%,transparent);animation:sibLogoGradient 5s ease-in-out infinite,sibLogoFloat 3s ease-in-out infinite;transition:transform .25s ease,box-shadow .25s ease;cursor:default}
+.mk::before{content:"";position:absolute;inset:-5px;border-radius:15px;border:1px solid color-mix(in srgb,var(--or) 75%,transparent);opacity:0;transform:scale(.8);z-index:-1;animation:sibLogoRing 2.8s ease-out infinite}
+.mk::after{content:"";position:absolute;right:-3px;top:-3px;width:11px;height:11px;border-radius:50%;background:var(--or);border:2px solid var(--nv);box-shadow:0 0 0 0 color-mix(in srgb,var(--or) 60%,transparent);animation:sibLogoDot 2s ease-out infinite}
+.br:hover .mk{transform:translateY(-2px) rotate(-4deg) scale(1.06);box-shadow:0 7px 22px color-mix(in srgb,var(--ac) 40%,transparent),0 0 18px color-mix(in srgb,var(--or) 22%,transparent)}
+@keyframes sibLogoGradient{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+@keyframes sibLogoFloat{0%,100%{translate:0 0}50%{translate:0 -2px}}
+@keyframes sibLogoRing{0%{opacity:.55;transform:scale(.82)}75%,100%{opacity:0;transform:scale(1.28)}}
+@keyframes sibLogoDot{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--or) 60%,transparent)}70%,100%{box-shadow:0 0 0 7px transparent}}
 .br b{display:block;color:#fff;font-size:15px;line-height:1.2}.br small{color:#8d9bb5;font-size:11px}
 .gt{margin:14px 10px 4px;color:#7d8ba6;font-size:12px}
 #nv button{display:flex;gap:11px;align-items:center;width:100%;background:none;border:0;color:#cdd7ea;padding:9px 10px;border-radius:10px;font:inherit;cursor:pointer;position:relative;transition:background .2s,color .2s,transform .2s}
