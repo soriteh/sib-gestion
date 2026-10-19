@@ -21,6 +21,7 @@ nav{background:var(--nv);color:#cdd7ea;display:flex;flex-direction:column;positi
 .mk::before{content:"";position:absolute;inset:-5px;border-radius:15px;border:1px solid color-mix(in srgb,var(--or) 75%,transparent);opacity:0;transform:scale(.8);z-index:-1;animation:sibLogoRing 2.8s ease-out infinite}
 .mk::after{content:"";position:absolute;right:-3px;top:-3px;width:11px;height:11px;border-radius:50%;background:var(--or);border:2px solid var(--nv);box-shadow:0 0 0 0 color-mix(in srgb,var(--or) 60%,transparent);animation:sibLogoDot 2s ease-out infinite}
 .br:hover .mk{transform:translateY(-2px) rotate(-4deg) scale(1.06);box-shadow:0 7px 22px color-mix(in srgb,var(--ac) 40%,transparent),0 0 18px color-mix(in srgb,var(--or) 22%,transparent)}
+@keyframes sibCardIn{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes sibLogoGradient{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
 @keyframes sibLogoFloat{0%,100%{translate:0 0}50%{translate:0 -2px}}
 @keyframes sibLogoRing{0%{opacity:.55;transform:scale(.82)}75%,100%{opacity:0;transform:scale(1.28)}}
@@ -45,7 +46,12 @@ main>section>h2{display:none}
 h2{margin:0 0 14px;font-size:19px}
 .row{display:flex;gap:12px;flex-wrap:wrap}.row>*{flex:1 1 150px}
 .k,.box{background:var(--sf);border:1px solid var(--ln);border-radius:14px;box-shadow:var(--sh)}
-.k{padding:14px 16px}.k b{display:block;font-size:20px;margin-top:3px;letter-spacing:-.01em}.k span{color:var(--mu);font-size:13px}
+.k{padding:14px 16px;position:relative;overflow:hidden;isolation:isolate;transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease;animation:sibCardIn .55s cubic-bezier(.2,.7,.2,1) both;animation-delay:var(--card-delay,0ms)}
+.k::before{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 15%,color-mix(in srgb,var(--ac) 9%,transparent) 45%,color-mix(in srgb,var(--or) 8%,transparent) 55%,transparent 85%);transform:translateX(-120%);transition:transform .65s ease;pointer-events:none;z-index:-1}
+.k::after{content:"";position:absolute;left:14px;right:14px;bottom:0;height:2px;border-radius:2px;background:linear-gradient(90deg,var(--ac),var(--or));transform:scaleX(.12);transform-origin:left;opacity:.55;transition:transform .3s ease,opacity .3s ease}
+.k:hover{transform:translateY(-4px);border-color:color-mix(in srgb,var(--ac) 48%,var(--ln));box-shadow:0 12px 28px color-mix(in srgb,var(--ac) 12%,transparent),var(--sh)}
+.k:hover::before{transform:translateX(120%)}.k:hover::after{transform:scaleX(1);opacity:1}
+.k b{display:block;font-size:20px;margin-top:3px;letter-spacing:-.01em;transition:color .25s ease,transform .25s ease}.k:hover b{transform:translateX(2px)}.k span{color:var(--mu);font-size:13px}
 .box{padding:16px;margin-bottom:14px}.box>b{font-weight:700}
 label{display:block;font-size:13px;color:var(--mu);margin-bottom:4px;font-weight:500}
 input,select{width:100%;padding:9px 10px;border:1px solid var(--ln);border-radius:9px;background:var(--bg);color:var(--tx);font:inherit;transition:border-color .2s,box-shadow .2s}
@@ -395,8 +401,8 @@ function draw(){
  const R=live.filter(e=>e.t=="recette"),D=live.filter(e=>e.t=="depense"),sm=a=>a.reduce((s,e)=>s+e.m,0),inM=a=>a.filter(e=>e.d.slice(0,7)==mo);
  const rM=sm(inM(R)),dM=sm(inM(D)),top={};R.forEach(e=>e.lines.forEach(l=>top[l.s]=(top[l.s]||0)+l.q*l.p));
  const tp=Object.entries(top).sort((x,y)=>y[1]-x[1]).slice(0,5);
- $("dash").innerHTML=`<h2>Tableau de bord</h2><div class="row" style="margin-bottom:14px">${AC.map(a=>`<div class="k"><span>${a}</span><b>${fm(b[a])}</b></div>`).join("")}<div class="k"><span>Total disponible</span><b>${fm(b.Caisse+b.Banque+b["Mobile Money"])}</b></div></div>
- <div class="row" style="margin-bottom:14px"><div class="k"><span>Recettes du mois</span><b class="in">${fm(rM)}</b></div><div class="k"><span>Dépenses du mois</span><b class="out">${fm(dM)}</b></div><div class="k"><span>Résultat du mois</span><b>${fm(rM-dM)}</b></div></div>
+ $("dash").innerHTML=`<h2>Tableau de bord</h2><div class="row" style="margin-bottom:14px">${AC.map((a,i)=>`<div class="k" style="--card-delay:${i*70}ms"><span>${a}</span><b>${fm(b[a])}</b></div>`).join("")}<div class="k" style="--card-delay:210ms"><span>Total disponible</span><b>${fm(b.Caisse+b.Banque+b["Mobile Money"])}</b></div></div>
+ <div class="row" style="margin-bottom:14px">${[["Recettes du mois",rM,"in"],["Dépenses du mois",dM,"out"],["Résultat du mois",rM-dM,""]].map(([label,value,cls],i)=>`<div class="k" style="--card-delay:${(i+4)*70}ms"><span>${label}</span><b class="${cls}">${fm(value)}</b></div>`).join("")}</div>
  <div class="box"><b>Services les plus vendus (montant enregistré)</b><div class="tw"><table><tbody>${tp.map(([n,v])=>`<tr><td>${esc(n)}</td><td class="r">${fm(v)}</td></tr>`).join("")||`<tr><td style="color:var(--mu)">Aucune vente pour l'instant. Commencez par « Encaisser ».</td></tr>`}</tbody></table></div></div>`;
  $("soldes").innerHTML=AC.map(a=>`<div class="k"><span>${a}</span><b>${fm(b[a])}</b></div>`).join("");
  $("hb").innerHTML=[...S.e].reverse().map(e=>{const g=gone(e),o=ctx(e);
