@@ -408,7 +408,7 @@ const PM={Administrateur:0,Direction:P.map(p=>p[0]).filter(x=>x!="usr"&&x!="set"
 const CN=()=>["Administrateur","Direction","Comptable"].includes(RO);
 const PJS=["Devis","En cours","Livré","Clôturé"],dt=x=>new Date(x).toLocaleDateString("fr-FR");
 const F=(id,l,t="text",o=0,v="")=>`<div><label for="${id}">${l}</label>${o?`<select id="${id}">${o.map(x=>`<option>${esc(x)}</option>`).join("")}</select>`:`<input id="${id}" type="${t}"${t=="number"?' min="0"':""} value="${v}">`}</div>`;
-const T=(h,r)=>`<div class="tw"><table><thead><tr>${h.map(x=>`<th>${x}</th>`).join("")}</tr></thead><tbody>${r.join("")||`<tr><td colspan="${h.length}" style="color:var(--mu)">Rien à afficher pour l'instant.</td></tr>`}</tbody></table></div>`;
+const T=(h,r)=>`<div class="tw"><table><thead><tr><th class="r">N°</th>${h.map(x=>`<th>${x}</th>`).join("")}</tr></thead><tbody>${r.length?r.map((row,i)=>`<tr><td class="r" style="color:var(--mu);font-weight:600">${i+1}</td>${row.replace(/^\s*<tr[^>]*>/i,"").replace(/<\/tr>\s*$/i,"")}</tr>`).join(""):`<tr><td colspan="${h.length+1}" style="color:var(--mu)">Rien à afficher pour l'instant.</td></tr>`}</tbody></table></div>`;
 const bx=(t,f,b)=>`<div class="box"><b>${t}</b><div class="row" style="margin-top:8px">${f}<div style="flex:0 0 auto;align-self:end">${b}</div></div></div>`;
 const V=i=>$(i).value,tot=l=>l.reduce((s,x)=>s+x.q*x.p,0),AM=a=>S.c.map(c=>c.n);
 const cnm=id=>(S.c.find(x=>x.id==id)||{}).n||"—",cid=n=>(S.c.find(x=>x.n==n)||{}).id;
