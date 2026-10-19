@@ -284,6 +284,20 @@ main::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:-1
 @media(prefers-reduced-motion:reduce){body::after{animation:none!important}main::before{opacity:.12}}
 @media print{body::after,main::before{display:none!important}}
 
+
+/* Petites cellules lumineuses en mouvement */
+.sib-cell-field{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0;contain:strict;opacity:.62}
+.sib-cell{position:absolute;left:var(--x);top:var(--y);width:var(--size);height:var(--size);border:1px solid color-mix(in srgb,var(--ac) 42%,transparent);border-radius:42% 58% 57% 43% / 46% 42% 58% 54%;background:radial-gradient(circle at 32% 28%,color-mix(in srgb,var(--ac) 10%,transparent),transparent 72%);box-shadow:inset 0 0 12px color-mix(in srgb,var(--ac) 7%,transparent),0 0 9px color-mix(in srgb,var(--ac) 6%,transparent);animation:sibCellFloat var(--duration) ease-in-out var(--delay) infinite alternate}
+.sib-cell:nth-child(3n){border-color:color-mix(in srgb,var(--or) 45%,transparent);border-radius:50%;animation-name:sibCellFloatRound}
+.sib-cell:nth-child(4n)::after{content:"";position:absolute;width:3px;height:3px;border-radius:50%;background:color-mix(in srgb,var(--or) 60%,transparent);top:20%;left:22%;box-shadow:0 0 8px color-mix(in srgb,var(--or) 35%,transparent)}
+@keyframes sibCellFloat{0%{transform:translate3d(-8px,-12px,0) rotate(0deg);border-radius:42% 58% 57% 43% / 46% 42% 58% 54%}50%{border-radius:58% 42% 39% 61% / 53% 58% 42% 47%}100%{transform:translate3d(14px,20px,0) rotate(35deg);border-radius:50% 50% 62% 38% / 40% 55% 45% 60%}}
+@keyframes sibCellFloatRound{0%{transform:translate3d(10px,-10px,0) scale(.85)}100%{transform:translate3d(-12px,18px,0) scale(1.12)}}
+.sib-cell-field{z-index:0}
+.app{z-index:1}
+body::after{z-index:0}
+@media(prefers-reduced-motion:reduce){.sib-cell{animation:none!important}}
+@media print{.sib-cell-field{display:none!important}}
+
 </style></head><body>
 <div class="app">
 <nav aria-label="Menu principal"><div class="br"><div class="mk">SIB</div><div><b id="bnm">SIB Gestion</b><small>Innover • Connecter • Développer</small></div></div><div id="nv"></div><div class="ft"><div class="me" data-go="prof" title="Mon profil"><span class="av2" id="unm0"></span><div><b id="unm"></b><small id="urr"></small></div></div><button class="lob" data-u="out">Se déconnecter</button></div></nav>
@@ -884,6 +898,16 @@ Object.assign(ACT,{ugen(){$("up").value=gp()},
 document.addEventListener("click",e=>{const b=e.target.closest("[data-u]");if(!b)return;const a=b.dataset.u;
  if(a=="go")doGo();if(a=="out")out();if(a=="pw"){$("amm").classList.add("hide");pwm()}if(a=="cpw")cpw();if(a=="eye"){const i=$(b.dataset.t);i.type=i.type=="password"?"text":"password"}});
 $("lgc").addEventListener("keydown",e=>{if(e.key=="Enter")doGo()});
+
+
+// Génère un champ de petites cellules flottantes, sans interférer avec les clics.
+(function sibInitCellField(){
+ if(document.querySelector(".sib-cell-field"))return;
+ const field=document.createElement("div");field.className="sib-cell-field";field.setAttribute("aria-hidden","true");
+ const cells=window.matchMedia("(max-width:720px)").matches?14:24;
+ for(let i=0;i<cells;i++){const el=document.createElement("span");el.className="sib-cell";el.style.setProperty("--x",(3+Math.random()*94).toFixed(2)+"%");el.style.setProperty("--y",(3+Math.random()*94).toFixed(2)+"%");el.style.setProperty("--size",(12+Math.random()*30).toFixed(0)+"px");el.style.setProperty("--duration",(9+Math.random()*15).toFixed(1)+"s");el.style.setProperty("--delay",(-Math.random()*18).toFixed(1)+"s");field.appendChild(el)}
+ document.body.appendChild(field);
+})();
 
 drawCart();boot();
 </script></body></html>
