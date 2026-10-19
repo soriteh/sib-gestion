@@ -446,10 +446,23 @@ const CN=()=>["Administrateur","Direction","Comptable"].includes(RO);
 const PJS=["Devis","En cours","Livré","Clôturé"],dt=x=>new Date(x).toLocaleDateString("fr-FR");
 const F=(id,l,t="text",o=0,v="")=>`<div><label for="${id}">${l}</label>${o?`<select id="${id}">${o.map(x=>`<option>${esc(x)}</option>`).join("")}</select>`:`<input id="${id}" type="${t}"${t=="number"?' min="0"':""} value="${v}">`}</div>`;
 const _sibTables={};let _sibTableSeq=0;
-function _sibHasNumberColumn(headers){if(!headers||!headers.length)return false;const first=String(headers[0]??"").trim().normalize("NFC").toLowerCase().replace(/[\u00a0\s]/g,"");return first==="n°"||first==="nº"||first==="no"||first==="no."||first==="numéro"||first==="numero"||first==="#"||/^n[°º.]?$/.test(first)}
-function _sibTableDraw(id){const o=_sibTables[id];if(!o)return;const body=document.getElementById(id+"-body"),pager=document.getElementById(id+"-pager");if(!body||!pager)return;const pages=Math.max(1,Math.ceil(o.rows.length/10)),start=o.page*10;body.innerHTML=o.rows.slice(start,start+10).map((row,i)=>{const cells=row.replace(/^\s*<tr[^>]*>/i,"").replace(/<\/tr>\s*$/i,"");return o.numbered?cells:`<tr><td class="r" style="color:var(--mu);font-weight:600">${start+i+1}</td>${cells}</tr>`}).join("")||`<tr><td colspan="${o.headers.length+(o.numbered?0:1)}" style="color:var(--mu)">Rien à afficher pour l'instant.</td></tr>`;pager.innerHTML=o.rows.length>10?`<div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:10px 2px;flex-wrap:wrap"><span style="color:var(--mu);font-size:12px">Page ${o.page+1} / ${pages} · ${o.rows.length} lignes</span><button type="button" class="s" ${o.page===0?"disabled":""} onclick="sibTablePage('${id}',-1)">Précédent</button><button type="button" class="s" ${o.page>=pages-1?"disabled":""} onclick="sibTablePage('${id}',1)">Suivante</button></div>":"")}
+function _sibHasNumberColumn(headers){if(!headers||!headers.length)return false;const first=String(headers[0]).trim().toLowerCase().replace(/\s/g,"");return first==="n°"||first==="nº"||first==="no"||first==="no."||first==="numero"||first==="numéro"||first==="#"||first==="n"}
+function _sibTableDraw(id){
+ const o=_sibTables[id];if(!o)return;
+ const body=document.getElementById(id+"-body"),pager=document.getElementById(id+"-pager");if(!body||!pager)return;
+ const pages=Math.max(1,Math.ceil(o.rows.length/10)),start=o.page*10;
+ body.innerHTML=o.rows.slice(start,start+10).map(function(row,i){
+  const cells=row.replace(/^\s*<tr[^>]*>/i,"").replace(/<\/tr>\s*$/i,"");
+  if(o.numbered)return cells;
+  return '<tr><td class="r" style="color:var(--mu);font-weight:600">'+(start+i+1)+'</td>'+cells+'</tr>';
+ }).join("");
+ if(!o.rows.length)body.innerHTML='<tr><td colspan="'+(o.headers.length+(o.numbered?0:1))+'" style="color:var(--mu)">Rien à afficher pour l’instant.</td></tr>';
+ if(o.rows.length>10){
+  pager.innerHTML='<div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:10px 2px;flex-wrap:wrap"><span style="color:var(--mu);font-size:12px">Page '+(o.page+1)+' / '+pages+' · '+o.rows.length+' lignes</span><button type="button" class="s" '+(o.page===0?'disabled':'')+' onclick="sibTablePage(\''+id+'\',-1)">Précédent</button><button type="button" class="s" '+(o.page>=pages-1?'disabled':'')+' onclick="sibTablePage(\''+id+'\',1)">Suivante</button></div>';
+ }else{pager.innerHTML="";}
+}
 function sibTablePage(id,delta){const o=_sibTables[id];if(!o)return;o.page=Math.max(0,Math.min(Math.ceil(o.rows.length/10)-1,o.page+delta));_sibTableDraw(id)}
-const T=(h,r)=>{const id="sibtab"+(++_sibTableSeq),numbered=_sibHasNumberColumn(h);_sibTables[id]={headers:h,rows:r,page:0,numbered};setTimeout(()=>_sibTableDraw(id),0);return `<div class="tw"><table><thead><tr>${numbered?"":'<th class="r">N°</th>'}${h.map(x=>`<th>${x}</th>`).join("")}</tr></thead><tbody id="${id}-body"></tbody></table><div id="${id}-pager"></div></div>`};
+const T=(h,r)=>{const id="sibtab"+(++_sibTableSeq),numbered=_sibHasNumberColumn(h);_sibTables[id]={headers:h,rows:r,page:0,numbered:numbered};setTimeout(function(){_sibTableDraw(id)},0);const head=numbered?"":'<th class="r">N°</th>';return '<div class="tw"><table><thead><tr>'+head+h.map(function(x){return '<th>'+x+'</th>'}).join("")+'</tr></thead><tbody id="'+id+'-body"></tbody></table><div id="'+id+'-pager"></div></div>'};
 const bx=(t,f,b)=>`<div class="box"><b>${t}</b><div class="row" style="margin-top:8px">${f}<div style="flex:0 0 auto;align-self:end">${b}</div></div></div>`;
 const V=i=>$(i).value,tot=l=>l.reduce((s,x)=>s+x.q*x.p,0),AM=a=>S.c.map(c=>c.n);
 const cnm=id=>(S.c.find(x=>x.id==id)||{}).n||"—",cid=n=>(S.c.find(x=>x.n==n)||{}).id;
