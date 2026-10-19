@@ -87,7 +87,23 @@ nav{position:fixed;inset:0 auto 0 0;width:270px;height:100%;padding-top:calc(18p
 #mb{display:grid;place-items:center}.top{padding:10px 14px}main{padding:16px 14px 40px}.top #dd{display:none}}
 
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
-@media print{#dev>.box:not(:last-child),#fac>.box:not(:last-child),#dev h2,#fac h2{display:none}nav,.top,.noprint,#bk{display:none!important}.app{display:block}}
+@media print{
+ @page{margin:8mm}
+ body.print-receipt *{visibility:hidden!important}
+ body.print-receipt #rc,body.print-receipt #rc *{visibility:visible!important}
+ body.print-receipt #rc{display:block!important;position:fixed!important;left:0!important;top:0!important;width:80mm!important;max-width:100%!important;margin:0!important;padding:0!important;background:#fff!important;color:#111!important;z-index:999999!important}
+ body.print-receipt #rc .box{width:100%!important;max-width:100%!important;margin:0!important;padding:4mm!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:#fff!important;color:#111!important;overflow:visible!important}
+ body.print-receipt #rc h2{font-size:16pt!important;margin:0 0 4mm!important;color:#111!important}
+ body.print-receipt #rc p{font-size:9pt!important;margin:0 0 4mm!important}
+ body.print-receipt #rc .tw{overflow:visible!important}
+ body.print-receipt #rc table{width:100%!important;border-collapse:collapse!important;font-size:8pt!important}
+ body.print-receipt #rc th,body.print-receipt #rc td{padding:2mm 1mm!important;border-bottom:1px solid #ddd!important;color:#111!important}
+ body.print-receipt #rc .tot{margin-top:4mm!important;padding-top:3mm!important;border-top:2px solid #111!important;font-size:12pt!important;font-weight:800!important;color:#111!important}
+ body.print-receipt #rc .noprint{display:none!important}
+ nav,.top,#bk{display:none!important}
+ body:not(.print-receipt) #dev>.box:not(:last-child),body:not(.print-receipt) #fac>.box:not(:last-child),body:not(.print-receipt) #dev h2,body:not(.print-receipt) #fac h2{display:none}
+ .app{display:block}
+}
 .ib{width:38px;height:38px;border-radius:10px;border:0;background:var(--ac2);color:var(--ac);display:grid;place-items:center;cursor:pointer;position:relative;flex:none;transition:transform .15s,background .2s}
 .ib:hover{transform:translateY(-1px)}.ib:active{transform:scale(.94)}.ib svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .bg{position:absolute;top:-5px;right:-5px;background:var(--or);color:#fff;font:700 11px/1 "Plus Jakarta Sans",sans-serif;min-width:18px;height:18px;border-radius:9px;display:grid;place-items:center;font-style:normal;padding:0 4px;animation:pl 2s infinite}.bg.hide{display:none}
@@ -336,7 +352,8 @@ const gone=e=>S.e.some(x=>x.rev==e.id);
 function bal(){const b={Caisse:0,Banque:0,"Mobile Money":0};S.e.forEach(e=>eff(e).forEach(([a,d])=>b[a]+=d));return b}
 function add(e){e.id=Date.now()+Math.random();e.d=new Date().toISOString();S.e.push(e);lg(e.no+" · "+e.t+" · "+fm(e.m));save()}
 function ctx(e){const r=S.e.find(x=>x.id==e.rev);return r}
-function nav(v){if(v!==CUR&&gate(()=>nav(v)))return;document.querySelectorAll("main section").forEach(s=>{const on=s.id==v;s.classList.toggle("hide",!on);if(on){s.classList.remove("in2");void s.offsetWidth;s.classList.add("in2");setTimeout(()=>s.classList.remove("in2"),1500)}});document.querySelectorAll("#nv button").forEach(b=>b.classList.toggle("on",b.dataset.v==v));$("pt").textContent=(P.find(p=>p[0]==v)||[])[1]||"";if(v=="dash")for(const k in PV)delete PV[k];document.body.classList.remove("mo");CUR=v;draw()}
+function renderClients(){const invoicesFor=c=>S.fa.filter(f=>f.c==c.id&&!f.x);$("cli").innerHTML="<h2>Clients</h2>"+bx("Nouveau client",F("cn","Nom")+F("ct","Téléphone")+F("ca","Adresse"),'<button class="p" data-a="cadd">Ajouter</button>')+'<div class="box">'+T(["Client","Téléphone","Adresse","Facturé","Reste dû"],S.c.map(c=>{const fs=invoicesFor(c),billed=fs.reduce((sum,f)=>sum+f.m,0),due=fs.reduce((sum,f)=>sum+f.m-paid(f),0);return "<tr><td>"+esc(c.n)+"</td><td>"+esc(c.t||"")+"</td><td>"+esc(c.a||"")+"</td><td class="r">"+fm(billed)+"</td><td class="r">"+fm(due)+"</td></tr>"}))+"</div>"}
+function nav(v){if(v!==CUR&&gate(()=>nav(v)))return;document.querySelectorAll("main section").forEach(s=>{const on=s.id==v;s.classList.toggle("hide",!on);if(on){s.classList.remove("in2");void s.offsetWidth;s.classList.add("in2");setTimeout(()=>s.classList.remove("in2"),1500)}});document.querySelectorAll("#nv button").forEach(b=>b.classList.toggle("on",b.dataset.v==v));$("pt").textContent=(P.find(p=>p[0]==v)||[])[1]||"";if(v=="dash")for(const k in PV)delete PV[k];document.body.classList.remove("mo");CUR=v;if(v==="cli")renderClients();try{draw()}catch(err){console.error("SIB interface draw error:",err);if(v==="cli")toast("La page Clients est affichée, mais une autre partie de l’interface a rencontré une erreur.","wa")}}
 
 refreshServiceSelects();$("sv").onchange=()=>$("pu").value=SV[$("sv").value]?.[1]??"";$("sv").onchange();
 ["fr","tt2","da"].forEach(i=>$(i).innerHTML=AC.map(a=>`<option>${a}</option>`).join(""));
@@ -348,9 +365,10 @@ $("add").onclick=()=>{const q=+$("qt").value,p=+$("pu").value;if(!(q>0)||!(p>=0)
 $("ok").onclick=()=>{if(!cart.length)return toast("Aucun service ajouté");
  const no=num("REC"),m=cart.reduce((s,l)=>s+l.q*l.p,0),a=$("pm").value,c=$("cl").value.trim()||"Client comptant";
  add({t:"recette",no,m,a,lines:cart,c});showReceipt(S.e[S.e.length-1]);cart=[];drawCart();$("cl").value="";toast("Encaissement enregistré")};
+function printReceipt(){document.body.classList.add("print-receipt");const cleanup=()=>document.body.classList.remove("print-receipt");window.addEventListener("afterprint",cleanup,{once:true});window.print();setTimeout(cleanup,1200)}
 function showReceipt(e){$("rc").innerHTML=`<div class="box"><h2>Reçu ${e.no}</h2><p>${new Date(e.d).toLocaleString("fr-FR")}<br>Client : ${esc(e.c)}<br>Paiement : ${esc(e.a)}</p>
 <div class="tw"><table><tbody>${e.lines.map(l=>`<tr><td>${esc(l.s)}</td><td class="r">${l.q} × ${fm(l.p)}</td><td class="r">${fm(l.q*l.p)}</td></tr>`).join("")}</tbody></table></div>
-<div class="tot">Total : ${fm(e.m)}</div><button class="s noprint" onclick="print()">Imprimer le reçu</button></div>`}
+<div class="tot">Total : ${fm(e.m)}</div><button class="s noprint" onclick="printReceipt()">Imprimer le reçu</button></div>`}
 $("to").onchange=()=>{const v=$("to").value=="Virement";$("vf").classList.toggle("hide",!v);$("vt").classList.toggle("hide",!v)};$("to").onchange();
 $("tok").onclick=()=>{const m=+$("ta").value,k=$("to").value;if(!(m>0))return toast("Montant invalide");
  let a="Caisse",b="Banque";if(k=="Retrait banque")[a,b]=[b,a];if(k=="Virement"){a=$("fr").value;b=$("tt2").value;if(a==b)return toast("Choisissez deux comptes différents")}
