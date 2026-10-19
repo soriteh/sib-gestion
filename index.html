@@ -273,6 +273,17 @@ nav{overflow:hidden}#nv{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;sc
 @media(max-width:820px){.lgb .mk{width:72px;height:72px;border-radius:18px;font-size:22px;margin-bottom:12px}.lgl{place-items:center}}
 .md.wide>.box{width:min(700px,100%);max-height:92vh;overflow:auto}.md.wide .sg2{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}.bd.in2{background:color-mix(in srgb,var(--ac) 16%,transparent);color:var(--ac)}
 @media print{#pa>.box:not(:last-child),#pa h2,#pa .nb,#pa .row,#pa .k{display:none}}
+
+/* Fond animé discret sur toutes les pages */
+body{isolation:isolate;position:relative}
+body::after{content:"";position:fixed;inset:-12%;z-index:0;pointer-events:none;opacity:.7;background:radial-gradient(ellipse at 12% 18%,color-mix(in srgb,var(--ac) 13%,transparent) 0,transparent 34%),radial-gradient(ellipse at 86% 28%,color-mix(in srgb,var(--or) 10%,transparent) 0,transparent 30%),radial-gradient(ellipse at 64% 88%,color-mix(in srgb,var(--ac) 9%,transparent) 0,transparent 36%);background-size:130% 130%;animation:sibAmbientDrift 24s ease-in-out infinite alternate}
+.app{position:relative;z-index:1;background:transparent}
+@keyframes sibAmbientDrift{0%{transform:translate3d(-1.5%, -1%, 0) scale(1);background-position:0% 0%,100% 10%,55% 100%}50%{transform:translate3d(1%,1.5%,0) scale(1.025);background-position:18% 30%,80% 0%,40% 80%}100%{transform:translate3d(-.5%,1%,0) scale(1.01);background-position:5% 10%,92% 22%,70% 90%}}
+main{position:relative}
+main::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:-1;opacity:.22;background-image:radial-gradient(color-mix(in srgb,var(--ac) 24%,transparent) .7px,transparent .7px);background-size:24px 24px;mask-image:linear-gradient(to bottom right,#000,transparent 72%)}
+@media(prefers-reduced-motion:reduce){body::after{animation:none!important}main::before{opacity:.12}}
+@media print{body::after,main::before{display:none!important}}
+
 </style></head><body>
 <div class="app">
 <nav aria-label="Menu principal"><div class="br"><div class="mk">SIB</div><div><b id="bnm">SIB Gestion</b><small>Innover • Connecter • Développer</small></div></div><div id="nv"></div><div class="ft"><div class="me" data-go="prof" title="Mon profil"><span class="av2" id="unm0"></span><div><b id="unm"></b><small id="urr"></small></div></div><button class="lob" data-u="out">Se déconnecter</button></div></nav>
