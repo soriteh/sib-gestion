@@ -418,6 +418,9 @@ function lg(a){S.jr.unshift({d:new Date().toISOString(),u:(CU?CU.nom+" · ":"")+
 
 
 function draw2(){
+  // Répare les états anciens ou distants qui ne contiennent pas le catalogue des services.
+  if(!Array.isArray(S.sv)||!S.sv.length)S.sv=SV0.map(([n,p])=>({id:String(Date.now()+Math.random()),n,p,active:true}));
+  SV=S.sv.filter(x=>x&&x.active!==false).map(x=>[x.n,+x.p||0]);
   $("svc").innerHTML=`<h2>Catalogue des services</h2><p style="color:var(--mu)">Ajoutez, modifiez ou désactivez les prestations et leurs prix. Les anciens encaissements conservent leurs montants historiques.</p>`+bx("Ajouter / modifier un service",F("svcid","Identifiant","text",0,"")+F("svcn","Nom du service")+F("svcp","Prix unitaire ("+SY()+")","number",0,""),`<button class="p" data-a="svcadd">Enregistrer le service</button> <button class="s" data-a="svccancel">Vider</button>`)+`<div class="box">`+T(["Service","Prix unitaire","État","Actions"],S.sv.map((s,i)=>`<tr><td>${esc(s.n)}</td><td class="r">${fm(s.p)}</td><td>${s.active===false?"Désactivé":"Actif"}</td><td><button class="s" data-a="svcedit" data-i="${i}">Modifier</button> <button class="s" data-a="svcstate" data-i="${i}">${s.active===false?"Activer":"Désactiver"}</button></td></tr>`))+`</div>`;
   $("svcid").type="hidden";
  const noC=`<div class="box">Ajoutez d'abord un client dans « Clients ».</div>`,fs=c=>S.fa.filter(f=>f.c==c.id&&!f.x);
