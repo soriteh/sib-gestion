@@ -88,19 +88,22 @@ nav{position:fixed;inset:0 auto 0 0;width:270px;height:100%;padding-top:calc(18p
 
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 @media print{
- @page{margin:8mm}
- body.print-receipt *{visibility:hidden!important}
- body.print-receipt #rc,body.print-receipt #rc *{visibility:visible!important}
- body.print-receipt #rc{display:block!important;position:fixed!important;left:0!important;top:0!important;width:80mm!important;max-width:100%!important;margin:0!important;padding:0!important;background:#fff!important;color:#111!important;z-index:999999!important}
- body.print-receipt #rc .box{width:100%!important;max-width:100%!important;margin:0!important;padding:4mm!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:#fff!important;color:#111!important;overflow:visible!important}
- body.print-receipt #rc h2{font-size:16pt!important;margin:0 0 4mm!important;color:#111!important}
- body.print-receipt #rc p{font-size:9pt!important;margin:0 0 4mm!important}
- body.print-receipt #rc .tw{overflow:visible!important}
- body.print-receipt #rc table{width:100%!important;border-collapse:collapse!important;font-size:8pt!important}
- body.print-receipt #rc th,body.print-receipt #rc td{padding:2mm 1mm!important;border-bottom:1px solid #ddd!important;color:#111!important}
- body.print-receipt #rc .tot{margin-top:4mm!important;padding-top:3mm!important;border-top:2px solid #111!important;font-size:12pt!important;font-weight:800!important;color:#111!important}
+ @page{size:80mm auto;margin:4mm}
+ html,body{width:80mm!important;min-width:0!important;margin:0!important;padding:0!important;background:#fff!important;color:#111!important;overflow:visible!important}
+ body.print-receipt *{display:none!important;visibility:hidden!important}
+ body.print-receipt #rc,body.print-receipt #rc *{display:revert!important;visibility:visible!important}
+ body.print-receipt #rc{display:block!important;position:absolute!important;left:0!important;top:0!important;width:72mm!important;max-width:72mm!important;margin:0!important;padding:0!important;background:#fff!important;color:#111!important;z-index:999999!important}
+ body.print-receipt #rc .box{display:block!important;width:100%!important;max-width:100%!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:#fff!important;color:#111!important;overflow:visible!important}
+ body.print-receipt #rc h2{display:block!important;font-size:14pt!important;margin:0 0 4mm!important;color:#111!important}
+ body.print-receipt #rc p{display:block!important;font-size:9pt!important;margin:0 0 4mm!important}
+ body.print-receipt #rc .tw{display:block!important;overflow:visible!important}
+ body.print-receipt #rc table{display:table!important;width:100%!important;border-collapse:collapse!important;font-size:8pt!important}
+ body.print-receipt #rc tbody{display:table-row-group!important}
+ body.print-receipt #rc tr{display:table-row!important}
+ body.print-receipt #rc td,body.print-receipt #rc th{display:table-cell!important;padding:2mm 1mm!important;border-bottom:1px solid #ddd!important;color:#111!important}
+ body.print-receipt #rc .tot{display:block!important;margin-top:4mm!important;padding-top:3mm!important;border-top:2px solid #111!important;font-size:12pt!important;font-weight:800!important;color:#111!important}
  body.print-receipt #rc .noprint{display:none!important}
- nav,.top,#bk{display:none!important}
+ body:not(.print-receipt) nav,body:not(.print-receipt) .top,body:not(.print-receipt) #bk{display:none!important}
  body:not(.print-receipt) #dev>.box:not(:last-child),body:not(.print-receipt) #fac>.box:not(:last-child),body:not(.print-receipt) #dev h2,body:not(.print-receipt) #fac h2{display:none}
  .app{display:block}
 }
@@ -365,7 +368,7 @@ $("add").onclick=()=>{const q=+$("qt").value,p=+$("pu").value;if(!(q>0)||!(p>=0)
 $("ok").onclick=()=>{if(!cart.length)return toast("Aucun service ajouté");
  const no=num("REC"),m=cart.reduce((s,l)=>s+l.q*l.p,0),a=$("pm").value,c=$("cl").value.trim()||"Client comptant";
  add({t:"recette",no,m,a,lines:cart,c});showReceipt(S.e[S.e.length-1]);cart=[];drawCart();$("cl").value="";toast("Encaissement enregistré")};
-function printReceipt(){document.body.classList.add("print-receipt");const cleanup=()=>document.body.classList.remove("print-receipt");window.addEventListener("afterprint",cleanup,{once:true});window.print();setTimeout(cleanup,1200)}
+function printReceipt(){document.body.classList.add("print-receipt");const cleanup=()=>document.body.classList.remove("print-receipt");window.addEventListener("afterprint",cleanup,{once:true});window.print()}
 function showReceipt(e){$("rc").innerHTML=`<div class="box"><h2>Reçu ${e.no}</h2><p>${new Date(e.d).toLocaleString("fr-FR")}<br>Client : ${esc(e.c)}<br>Paiement : ${esc(e.a)}</p>
 <div class="tw"><table><tbody>${e.lines.map(l=>`<tr><td>${esc(l.s)}</td><td class="r">${l.q} × ${fm(l.p)}</td><td class="r">${fm(l.q*l.p)}</td></tr>`).join("")}</tbody></table></div>
 <div class="tot">Total : ${fm(e.m)}</div><button class="s noprint" onclick="printReceipt()">Imprimer le reçu</button></div>`}
