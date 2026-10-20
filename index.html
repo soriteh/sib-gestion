@@ -651,9 +651,11 @@ function _sibTableDraw(id){
  const start=o.page*10;
  const visible=o.rows.slice(start,start+10);
  body.innerHTML=visible.map(function(row,i){
-  const cells=row.replace(/^\s*<tr[^>]*>/i,"").replace(/<\/tr>\s*$/i,"");
-  if(o.numbered)return cells;
-  return '<tr><td class="r" style="color:var(--mu);font-weight:600">'+(start+i+1)+'</td>'+cells+'</tr>';
+  const match=row.match(/^\s*(<tr[^>]*>)([\s\S]*?)<\/tr>\s*$/i);
+  if(!match)return row;
+  const opening=match[1],cells=match[2];
+  if(o.numbered)return opening+cells+"</tr>";
+  return opening+'<td class="r" style="color:var(--mu);font-weight:600">'+(start+i+1)+'</td>'+cells+'</tr>';
  }).join("");
  if(!o.rows.length){
   let colspan=o.headers.length;
