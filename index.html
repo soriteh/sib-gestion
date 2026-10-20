@@ -541,6 +541,17 @@ nav .me{padding:8px;margin-bottom:6px}
 nav .lob{min-height:34px;font-size:11px}
 @media(max-width:700px){main{padding:12px}.box{padding:13px}.k{padding:14px}.row{gap:10px}table th,table td{padding:8px}}
 
+
+/* Cartes KPI du tableau de bord : format compact */
+#dash .row{gap:10px;row-gap:10px}
+#dash .k{padding:12px 14px!important;min-height:0;border-radius:12px;box-shadow:0 2px 8px rgba(16,35,68,.045)}
+#dash .k span{font-size:10px!important;line-height:1.35;letter-spacing:.025em}
+#dash .k b{font-size:clamp(17px,1.55vw,21px)!important;line-height:1.2;margin-top:6px!important;letter-spacing:-.04em;overflow-wrap:anywhere}
+#dash .k small,#dash .k p{font-size:10px!important;line-height:1.35;margin-top:5px}
+#dash .k:after{width:68px;height:68px;right:-26px;top:-30px}
+#dash .k:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(16,35,68,.08)}
+@media(max-width:700px){#dash .row{gap:8px}#dash .k{padding:10px 11px!important;border-radius:11px}#dash .k b{font-size:17px!important}#dash .k span,#dash .k small,#dash .k p{font-size:10px!important}}
+
 </style></head><body>
 <div id="sib-startup" role="status" aria-live="polite"><div class="sib-startup-inner"><div class="sib-startup-logo" aria-hidden="true">SIB</div><div class="sib-startup-name">SIB Gestion</div><div class="sib-startup-label">Chargement de votre espace…</div><div class="sib-startup-track" aria-hidden="true"></div></div></div>
 <div class="app">
