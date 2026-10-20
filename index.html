@@ -703,10 +703,13 @@ function save(){
   return;
  }
  const snapshot=cloudSnapshot();
+ // Conserver immédiatement une copie locale pour éviter toute perte si la page est actualisée avant la fin de la requête réseau.
+ storePendingCloudSnapshot(snapshot);
  cloudSaveChain=cloudSaveChain.then(()=>window.SIBCloud.saveAppState(snapshot).then(()=>{
   try{const pending=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null");if(pending&&JSON.stringify(pending.state)===JSON.stringify(snapshot))localStorage.removeItem(SIB_PENDING_KEY)}catch(_){}
  })).catch(err=>{
-  const now=Date.now(),stored=storePendingCloudSnapshot(snapshot);
+  const now=Date.now();let stored=false;
+  try{const pending=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null");stored=!!pending&&JSON.stringify(pending.state)===JSON.stringify(snapshot);if(!pending)stored=storePendingCloudSnapshot(snapshot)}catch(_){stored=false}
   console.error("SIB Supabase save failed:",err);
   if(now-cloudSaveErrorAt>3000){
    cloudSaveErrorAt=now;
