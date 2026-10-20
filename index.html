@@ -319,6 +319,76 @@ button[data-a="profcancel"]:hover, button[data-id]:hover,
 #cart button:hover, button[data-a="vd"][data-i]:hover{
   background:#b91c1c!important;color:#fff!important;border-color:#991b1b!important;
 }
+
+/* Animation renforcée des textes et interactions sur le panneau gauche de connexion */
+.lgl .lgb h2{
+ display:inline-block;
+ transform-origin:left center;
+ transition:color .28s ease,text-shadow .28s ease,transform .28s ease;
+ animation:loginTextReveal .85s cubic-bezier(.2,.75,.25,1) .12s both;
+}
+.lgl .lgb p{
+ display:inline-block;
+ transition:color .28s ease,letter-spacing .28s ease,transform .28s ease;
+ animation:loginTextReveal .85s cubic-bezier(.2,.75,.25,1) .3s both;
+}
+.lgl .lgb ul{padding-left:20px;margin-top:24px}
+.lgl .lgb li{
+ position:relative;
+ padding:9px 12px 9px 8px;
+ margin:4px 0;
+ border:1px solid transparent;
+ border-radius:10px;
+ opacity:0;
+ transform:translateX(-22px);
+ animation:loginListReveal .65s cubic-bezier(.2,.75,.25,1) both;
+ transition:background .25s ease,border-color .25s ease,transform .25s ease,box-shadow .25s ease,color .25s ease;
+ cursor:default;
+}
+.lgl .lgb li:nth-child(1){animation-delay:.42s}
+.lgl .lgb li:nth-child(2){animation-delay:.58s}
+.lgl .lgb li:nth-child(3){animation-delay:.74s}
+.lgl .lgb li::marker{color:#f4a261;transition:color .25s ease}
+.lgl .lgb li:hover{
+ transform:translateX(8px) scale(1.015);
+ background:rgba(255,255,255,.09);
+ border-color:rgba(255,255,255,.2);
+ box-shadow:0 8px 24px rgba(0,0,0,.16),inset 3px 0 0 #f4a261;
+ color:#fff;
+}
+.lgl .lgb h2:hover{
+ color:#fff;
+ transform:translateX(4px);
+ text-shadow:0 0 22px rgba(113,166,255,.6);
+}
+.lgl .lgb p:hover{
+ color:#ffd2a8;
+ letter-spacing:.09em;
+ transform:translateY(-2px);
+}
+.lgl .lgb .mk{transition:transform .3s ease,box-shadow .3s ease,filter .3s ease}
+.lgl .lgb .mk:hover{
+ transform:translateY(-7px) rotate(-4deg) scale(1.06);
+ filter:brightness(1.12);
+ box-shadow:0 16px 42px rgba(46,108,214,.52),0 0 0 1px rgba(255,255,255,.32);
+}
+@keyframes loginTextReveal{
+ from{opacity:0;transform:translateY(18px);filter:blur(5px)}
+ to{opacity:1;transform:translateY(0);filter:blur(0)}
+}
+@keyframes loginListReveal{
+ from{opacity:0;transform:translateX(-22px);filter:blur(3px)}
+ to{opacity:1;transform:translateX(0);filter:blur(0)}
+}
+@media(max-width:720px){
+ .lgl .lgb li{padding:7px 9px}
+ .lgl .lgb li:hover{transform:translateX(3px)}
+}
+@media(prefers-reduced-motion:reduce){
+ .lgl .lgb h2,.lgl .lgb p,.lgl .lgb li{animation:none;opacity:1;transform:none;filter:none}
+ .lgl .lgb h2,.lgl .lgb p,.lgl .lgb li,.lgl .lgb .mk{transition:none}
+}
+
 </style></head><body>
 <div class="app">
 <nav aria-label="Menu principal"><div class="br"><div class="mk">SIB</div><div><b id="bnm">SIB Gestion</b><small>Innover • Connecter • Développer</small></div></div><div id="nv"></div><div class="ft"><div class="me" data-go="prof" title="Mon profil"><span class="av2" id="unm0"></span><div><b id="unm"></b><small id="urr"></small></div></div><button class="lob" data-u="out">Se déconnecter</button></div></nav>
