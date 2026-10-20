@@ -665,6 +665,8 @@ function lg(a){S.jr.unshift({d:new Date().toISOString(),u:(CU?CU.nom+" · ":"")+
 
 
 function draw2(){
+  // Factures encore ouvertes, utilisées dans le formulaire d’encaissement.
+  const op=S.fa.filter(f=>f&&!f.x&&(+f.m||0)-paid(f)>0);
   // Répare les états anciens ou distants qui ne contiennent pas le catalogue des services.
   if(!Array.isArray(S.sv)||!S.sv.length)S.sv=SV0.map(([n,p])=>({id:String(Date.now()+Math.random()),n,p,active:true}));
   SV=S.sv.filter(x=>x&&x.active!==false).map(x=>[x.n,+x.p||0]);
