@@ -420,6 +420,23 @@ button[data-a="profcancel"]:hover, button[data-id]:hover,
 <div class="row noprint"><button class="s" id="exp">Exporter CSV</button><button class="s" id="backup">Sauvegarder toutes les données (JSON)</button><button class="s dg" id="rst">Réinitialiser les données</button></div></section>
 <section id="svc" class="hide"></section><section id="cli" class="hide"></section><section id="dev" class="hide"></section><section id="fac" class="hide"></section><section id="fo" class="hide"></section><section id="st" class="hide"></section><section id="fz" class="hide"></section><section id="pj" class="hide"></section><section id="rap" class="hide"></section><section id="jr" class="hide"></section><section id="usr" class="hide"></section><section id="set" class="hide"></section><section id="prof" class="hide"></section><section id="rh" class="hide"></section><section id="cg" class="hide"></section><section id="pr" class="hide"></section><section id="pa" class="hide"></section></main></div></div><div id="bk"></div><div id="lgn"><div class="lgl"><div class="blob b1"></div><div class="blob b2"></div><div class="lgb"><div class="mk">SIB</div><h2 id="lgh">Soritech Innov Business</h2><p>INNOVER • DÉVELOPPER • CONNECTER</p><ul><li>Encaissements, caisse et banque</li><li>Devis, factures et clients</li><li>Stock, formations et projets</li></ul></div></div><div class="lgr"><div class="lgcard" id="lgc"></div><small class="cp">© Soritech Innov Business · Conakry, Guinée</small></div></div><div id="mdl" class="md hide"><div class="box"><div id="mdc"></div><button class="p" id="mx">Fermer</button></div></div><div id="tst" aria-live="polite"></div>
 <script>
+/* Secours de démarrage : reste actif même si le script principal échoue. */
+(function(){
+ function showStartupError(message){
+  var dash=document.getElementById("dash");
+  if(!dash)return;
+  dash.classList.remove("hide");
+  dash.innerHTML='<div style="margin:24px auto;max-width:900px;padding:22px;border:1px solid #e7a5a5;border-radius:14px;background:#fff7f7;color:#742626"><h2 style="margin-top:0">SIB Gestion n’a pas pu démarrer</h2><p>Une erreur JavaScript empêche le chargement du contenu. Rechargez la page. Si le problème continue, transmettez ce message au support :</p><pre style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px">'+String(message||"Erreur inconnue").replace(/[&<>"]/g,function(ch){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]})+'</pre></div>';
+ }
+ window.addEventListener("error",function(e){
+  if(e&&e.message)showStartupError(e.message+(e.filename?" — "+e.filename.split("/").pop():"")+(e.lineno?":"+e.lineno:""));
+ });
+ window.addEventListener("unhandledrejection",function(e){
+  var reason=e&&e.reason;showStartupError(reason&&(reason.stack||reason.message)||reason||"Erreur asynchrone");
+ });
+})();
+</script>
+<script>
 const SV0=[["Saisie de texte (page)",500],["Impression noir (page)",300],["Impression couleur (page)",1000],["Scannage simple",1000],["Scannage + envoi",2000],["Flocage de maillot",50000],["Décoration de t-shirt",30000],["Confection de cachet",50000],["Plastification",3000],["Reliure",10000],["Cartes de visite (lot)",100000],["Installation caméra de surveillance",500000],["Déploiement wifi zone",2000000],["Création de site web",3000000],["Formation : Tap-touche",150000],["Formation : Windows",200000],["Formation : Word",250000],["Formation : Excel",300000],["Formation : PowerPoint",250000],["Infographie : Photoshop",500000],["Infographie : Illustrator",500000],["Infographie : CorelDRAW",450000],["Infographie : InDesign",500000],["Infographie : Canva",250000]];
 const AC=["Caisse","Banque","Mobile Money"],K="sib-gestion-v1";
 const D0=()=>({set:{nom:"Soritech Innov Business",court:"SIB",pays:"",ville:"",adr:"",tel:"",mail:"",web:"",wa:"",logo:"",fav:"",app:"SIB Gestion",cc:"GNF",cn:"Franc guinéen",sym:"FG",pre:{DEV:"DEV",FAC:"FAC",REC:"REC"},rh:{cgm:"2.5",sam:"non",cs:"0",cp:"0"}},dis:{},emp:[],cg:[],pt:{},bl:[],us:[],e:[],n:{},c:[],dv:[],fa:[],fo:[],ac:[],st:[],fz:[],pj:[],jr:[],etudiants:[]});let S=D0();try{S={...S,...JSON.parse(localStorage.getItem(K))}}catch(_){}
@@ -518,7 +535,7 @@ function bal(){const b={Caisse:0,Banque:0,"Mobile Money":0};S.e.forEach(e=>eff(e
 function add(e){e.id=Date.now()+Math.random();e.d=new Date().toISOString();S.e.push(e);lg(e.no+" · "+e.t+" · "+fm(e.m));save()}
 function ctx(e){const r=S.e.find(x=>x.id==e.rev);return r}
 function renderClients(){const invoicesFor=c=>S.fa.filter(f=>f.c==c.id&&!f.x);$("cli").innerHTML="<h2>Clients</h2>"+bx("Nouveau client",F("cn","Nom")+F("ct","Téléphone")+F("ca","Adresse"),'<button class="p" data-a="cadd">Ajouter</button>')+'<div class="box">'+T(["Client","Téléphone","Adresse","Facturé","Reste dû"],S.c.map(c=>{const fs=invoicesFor(c),billed=fs.reduce((sum,f)=>sum+f.m,0),due=fs.reduce((sum,f)=>sum+f.m-paid(f),0);return "<tr><td>"+esc(c.n)+"</td><td>"+esc(c.t||"")+"</td><td>"+esc(c.a||"")+"</td><td class='r'>"+fm(billed)+"</td><td class='r'>"+fm(due)+"</td></tr>"}))+"</div>"}
-function nav(v){if(v!==CUR&&gate(()=>nav(v)))return;document.querySelectorAll("main section").forEach(s=>{const on=s.id==v;s.classList.toggle("hide",!on);if(on){s.classList.remove("in2");void s.offsetWidth;s.classList.add("in2");setTimeout(()=>s.classList.remove("in2"),1500)}});document.querySelectorAll("#nv button").forEach(b=>b.classList.toggle("on",b.dataset.v==v));$("pt").textContent=(P.find(p=>p[0]==v)||[])[1]||"";if(v=="dash")for(const k in PV)delete PV[k];document.body.classList.remove("mo");CUR=v;if(v==="cli")renderClients();try{draw()}catch(err){console.error("SIB interface draw error:",err);if(v==="cli")toast("La page Clients est affichée, mais une autre partie de l’interface a rencontré une erreur.","wa")}}
+function nav(v){if(v!==CUR&&gate(()=>nav(v)))return;document.querySelectorAll("main section").forEach(s=>{const on=s.id==v;s.classList.toggle("hide",!on);if(on){s.classList.remove("in2");void s.offsetWidth;s.classList.add("in2");setTimeout(()=>s.classList.remove("in2"),1500)}});document.querySelectorAll("#nv button").forEach(b=>b.classList.toggle("on",b.dataset.v==v));$("pt").textContent=(P.find(p=>p[0]==v)||[])[1]||"";if(v=="dash")for(const k in PV)delete PV[k];document.body.classList.remove("mo");CUR=v;if(v==="cli")renderClients();try{draw()}catch(err){console.error("SIB interface draw error:",err);const target=document.getElementById(v);if(target){target.classList.remove("hide");target.innerHTML='<div class="box" style="border:1px solid #e7a5a5"><h2>Erreur de chargement</h2><p>Cette page n’a pas pu être affichée. Rechargez l’application. Si le problème continue, transmettez le message ci-dessous au support.</p><pre style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></div>';const pre=target.querySelector("pre");if(pre)pre.textContent=err&& (err.stack||err.message)||String(err)}if(v==="cli")toast("Erreur pendant le chargement de la page Clients.","wa")}}
 
 refreshServiceSelects();$("sv").onchange=()=>$("pu").value=SV[$("sv").value]?.[1]??"";$("sv").onchange();
 ["fr","tt2","da"].forEach(i=>$(i).innerHTML=AC.map(a=>`<option>${a}</option>`).join(""));
@@ -1115,5 +1132,5 @@ $("lgc").addEventListener("keydown",e=>{if(e.key=="Enter")doGo()});
  document.body.appendChild(field);
 })();
 
-drawCart();boot();
+drawCart();boot().catch(err=>{console.error("SIB startup error:",err);const d=document.getElementById("dash");if(d){d.classList.remove("hide");d.innerHTML='<div class="box"><h2>Erreur au démarrage</h2><pre style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></div>';d.querySelector("pre").textContent=err&&(err.stack||err.message)||String(err)}});
 </script></body></html>
