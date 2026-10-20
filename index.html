@@ -407,7 +407,13 @@ button[data-a="profcancel"]:hover, button[data-id]:hover,
 }
 
 /* Écran de démarrage SIB : visible immédiatement pendant l'initialisation */
-#sib-startup{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;background:linear-gradient(145deg,#0c1730,#102b53 58%,#0b1b35);color:#fff;transition:opacity .28s ease,visibility .28s ease}
+#sib-startup{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;overflow:hidden;isolation:isolate;background:linear-gradient(125deg,#071326,#10376a,#0b1b35,#174c83,#071326);background-size:300% 300%;animation:sibStartBg 12s ease-in-out infinite;color:#fff;transition:opacity .28s ease,visibility .28s ease}
+#sib-startup:before,#sib-startup:after{content:"";position:absolute;inset:-35%;z-index:-1;pointer-events:none}
+#sib-startup:before{background:radial-gradient(circle at 25% 35%,rgba(49,132,245,.42),transparent 28%),radial-gradient(circle at 75% 60%,rgba(237,125,49,.2),transparent 24%),radial-gradient(circle at 50% 85%,rgba(42,198,255,.18),transparent 30%);filter:blur(8px);animation:sibStartGlow 9s ease-in-out infinite alternate}
+#sib-startup:after{inset:0;background-image:radial-gradient(circle,rgba(255,255,255,.75) 1px,transparent 1.7px),radial-gradient(circle,rgba(102,181,255,.6) 1px,transparent 1.8px);background-size:72px 72px,113px 113px;background-position:0 0,35px 28px;opacity:.28;animation:sibStartStars 22s linear infinite}
+@keyframes sibStartBg{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+@keyframes sibStartGlow{0%{transform:translate3d(-2%,1%,0) scale(.96)}100%{transform:translate3d(2%,-2%,0) scale(1.08)}}
+@keyframes sibStartStars{to{background-position:0 144px,35px -198px}}
 #sib-startup.done{opacity:0;visibility:hidden;pointer-events:none}
 .sib-startup-inner{display:flex;flex-direction:column;align-items:center;gap:15px;padding:24px;text-align:center}
 .sib-startup-logo{width:76px;height:76px;display:grid;place-items:center;border-radius:22px;background:linear-gradient(135deg,#3984f5,#0752b6);font-size:23px;font-weight:800;letter-spacing:-1px;box-shadow:0 12px 38px rgba(35,112,232,.38);position:relative;animation:sibStartFloat 2s ease-in-out infinite}
@@ -419,7 +425,7 @@ button[data-a="profcancel"]:hover, button[data-id]:hover,
 @keyframes sibStartFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
 @keyframes sibStartOrbit{to{transform:rotate(360deg)}}
 @keyframes sibStartProgress{0%{transform:translateX(-110%)}100%{transform:translateX(370%)}}
-@media(prefers-reduced-motion:reduce){.sib-startup-logo,.sib-startup-logo:after,.sib-startup-track:after{animation:none!important}}
+@media(prefers-reduced-motion:reduce){#sib-startup,#sib-startup:before,#sib-startup:after,.sib-startup-logo,.sib-startup-logo:after,.sib-startup-track:after{animation:none!important}.sib-startup-logo{transform:none!important}}
 </style></head><body>
 <div id="sib-startup" role="status" aria-live="polite"><div class="sib-startup-inner"><div class="sib-startup-logo" aria-hidden="true">SIB</div><div class="sib-startup-name">SIB Gestion</div><div class="sib-startup-label">Chargement de votre espace…</div><div class="sib-startup-track" aria-hidden="true"></div></div></div>
 <div class="app">
