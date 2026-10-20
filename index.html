@@ -402,7 +402,22 @@ button[data-a="profcancel"]:hover, button[data-id]:hover,
  .lgl .lgb h2,.lgl .lgb p,.lgl .lgb li,.lgl .lgb .mk{transition:none}
 }
 
+/* Écran de démarrage SIB : visible immédiatement pendant l'initialisation */
+#sib-startup{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;background:linear-gradient(145deg,#0c1730,#102b53 58%,#0b1b35);color:#fff;transition:opacity .28s ease,visibility .28s ease}
+#sib-startup.done{opacity:0;visibility:hidden;pointer-events:none}
+.sib-startup-inner{display:flex;flex-direction:column;align-items:center;gap:15px;padding:24px;text-align:center}
+.sib-startup-logo{width:76px;height:76px;display:grid;place-items:center;border-radius:22px;background:linear-gradient(135deg,#3984f5,#0752b6);font-size:23px;font-weight:800;letter-spacing:-1px;box-shadow:0 12px 38px rgba(35,112,232,.38);position:relative;animation:sibStartFloat 2s ease-in-out infinite}
+.sib-startup-logo:after{content:"";position:absolute;inset:-7px;border:1px solid rgba(255,255,255,.42);border-right-color:#ed7d31;border-radius:27px;animation:sibStartOrbit 4s linear infinite}
+.sib-startup-name{font-size:20px;font-weight:800;letter-spacing:.02em}
+.sib-startup-label{font-size:13px;color:#c5d5ee}
+.sib-startup-track{width:154px;height:3px;border-radius:9px;background:rgba(255,255,255,.17);overflow:hidden;margin-top:3px}
+.sib-startup-track:after{content:"";display:block;width:42%;height:100%;border-radius:9px;background:#ed7d31;animation:sibStartProgress 1.25s ease-in-out infinite}
+@keyframes sibStartFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes sibStartOrbit{to{transform:rotate(360deg)}}
+@keyframes sibStartProgress{0%{transform:translateX(-110%)}100%{transform:translateX(370%)}}
+@media(prefers-reduced-motion:reduce){.sib-startup-logo,.sib-startup-logo:after,.sib-startup-track:after{animation:none!important}}
 </style></head><body>
+<div id="sib-startup" role="status" aria-live="polite"><div class="sib-startup-inner"><div class="sib-startup-logo" aria-hidden="true">SIB</div><div class="sib-startup-name">SIB Gestion</div><div class="sib-startup-label">Chargement de votre espace…</div><div class="sib-startup-track" aria-hidden="true"></div></div></div>
 <div class="app">
 <nav aria-label="Menu principal"><div class="br"><div class="mk">SIB</div><div><b id="bnm">SIB Gestion</b><small>Innover • Connecter • Développer</small></div></div><div id="nv"></div><div class="ft"><div class="me" data-go="prof" title="Mon profil"><span class="av2" id="unm0"></span><div><b id="unm"></b><small id="urr"></small></div></div><button class="lob" data-u="out">Se déconnecter</button></div></nav>
 <div class="col"><header class="top"><button id="mb" aria-label="Ouvrir le menu"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button><button id="cbt" class="ib" aria-label="Réduire ou agrandir le menu"><svg viewBox="0 0 24 24"><path d="M11 17l-5-5 5-5M18 17l-5-5 5-5"/></svg></button><h1 id="pt"></h1><span class="sp"></span><span id="dd"></span><button class="ib" id="rfb" aria-label="Actualiser"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 11-3-6.7L21 8M21 3v5h-5"/></svg></button><span class="rel"><button class="ib" id="blb" aria-label="Notifications"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0"/></svg><i class="bg hide" id="bcn"></i></button><div class="pp hide" id="npp"></div></span><span class="rel"><button class="av" id="avb" aria-label="Profil utilisateur"></button><div class="pp hide" id="amm"></div></span></header><main>
@@ -1177,5 +1192,5 @@ $("lgc").addEventListener("keydown",e=>{if(e.key=="Enter")doGo()});
  document.body.appendChild(field);
 })();
 
-drawCart();boot().catch(err=>{console.error("SIB startup error:",err);const d=document.getElementById("dash");if(d){d.classList.remove("hide");d.innerHTML='<div class="box"><h2>Erreur au démarrage</h2><pre style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></div>';d.querySelector("pre").textContent=err&&(err.stack||err.message)||String(err)}});
+drawCart();boot().catch(err=>{console.error("SIB startup error:",err);const d=document.getElementById("dash");if(d){d.classList.remove("hide");d.innerHTML='<div class="box"><h2>Erreur au démarrage</h2><pre style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></div>';d.querySelector("pre").textContent=err&&(err.stack||err.message)||String(err)}}).finally(()=>{const splash=document.getElementById("sib-startup");if(splash){splash.classList.add("done");setTimeout(()=>splash.remove(),350)}});
 </script></body></html>
