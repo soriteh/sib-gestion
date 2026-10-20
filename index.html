@@ -426,6 +426,21 @@ const D0=()=>({set:{nom:"Soritech Innov Business",court:"SIB",pays:"",ville:"",a
 S.set={...D0().set,...S.set};S.set.pre={...D0().set.pre,...S.set.pre};S.set.rh={...D0().set.rh,...S.set.rh};S.dis=S.dis||{};
 if(!Array.isArray(S.sv)||!S.sv.length)S.sv=SV0.map(([n,p])=>({id:String(Date.now()+Math.random()),n,p,active:true}));let SV=S.sv.filter(x=>x.active!==false).map(x=>[x.n,+x.p||0]);
 S.us.forEach(u=>{if(u.pn===undefined){const w=(u.nom||"").split(" ");u.pn=w[0]||"";u.nm=w.slice(1).join(" ");}u.mail=u.mail||"";u.tel=u.tel||"";u.ph=u.ph||""});
+
+function repairState(input){
+ const defaults=D0(),src=input&&typeof input==="object"&&!Array.isArray(input)?input:{},out={...defaults,...src};
+ for(const k of Object.keys(defaults)){
+  if(Array.isArray(defaults[k])&&!Array.isArray(out[k]))out[k]=defaults[k];
+  else if(defaults[k]&&typeof defaults[k]==="object"&&!Array.isArray(defaults[k])&&(!out[k]||typeof out[k]!=="object"||Array.isArray(out[k])))out[k]=defaults[k];
+ }
+ out.set={...defaults.set,...(out.set&&typeof out.set==="object"&&!Array.isArray(out.set)?out.set:{})};
+ out.set.pre={...defaults.set.pre,...(out.set.pre&&typeof out.set.pre==="object"&&!Array.isArray(out.set.pre)?out.set.pre:{})};
+ out.set.rh={...defaults.set.rh,...(out.set.rh&&typeof out.set.rh==="object"&&!Array.isArray(out.set.rh)?out.set.rh:{})};
+ out.dis=out.dis&&typeof out.dis==="object"&&!Array.isArray(out.dis)?out.dis:{};
+ return out;
+}
+S=repairState(S);
+
 const $=i=>document.getElementById(i),fm=n=>Math.round(n).toLocaleString("fr-FR").replace(/\u202f/g," ")+" "+((S.set&&S.set.sym)||"FG");
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let cloudSessionReady=false,cloudSaveChain=Promise.resolve(),cloudSaveErrorAt=0;
@@ -548,7 +563,8 @@ function cancel2(id){const o=S.e.find(x=>x.id==id);if(!o)return;
  add({t:"annulation",no:num("AV"),rev:o.id,m:o.m,a:o.a});const b=bal();
  if(Object.values(b).some(v=>v<0)){S.e.pop();save();return toast("Annulation impossible : solde négatif")}if(o.ach){const a=S.ac.find(z=>z.no==o.ach),s=a&&S.st.find(z=>z.n==a.st);if(s)s.q-=a.q;save()}toast("Annulation enregistrée");draw()}
 function draw(){
- const b=bal(),live=S.e.filter(e=>!e.rev&&!gone(e)),mo=new Date().toISOString().slice(0,7);
+ S=repairState(S);
+ const b=bal(),live=S.e.filter(e=>e&&typeof e==="object"&&!e.rev&&!gone(e)),mo=new Date().toISOString().slice(0,7);
  const R=live.filter(e=>e.t=="recette"),D=live.filter(e=>e.t=="depense"),sm=a=>a.reduce((s,e)=>s+e.m,0),inM=a=>a.filter(e=>e.d.slice(0,7)==mo);
  const rM=sm(inM(R)),dM=sm(inM(D)),top={};R.forEach(e=>e.lines.forEach(l=>top[l.s]=(top[l.s]||0)+l.q*l.p));
  const tp=Object.entries(top).sort((x,y)=>y[1]-x[1]).slice(0,5);
@@ -846,7 +862,7 @@ async function doGo(){const m=LM;if($("lbt").classList.contains("ld"))return;
    try{
     const result=await window.SIBCloud.signIn(l,p);
     const remote=await window.SIBCloud.loadAppState();
-    if(remote){S={...D0(),...remote.state};S.set={...D0().set,...S.set};S.set.pre={...D0().set.pre,...S.set.pre};S.set.rh={...D0().set.rh,...S.set.rh};}else{S=D0();}
+    if(remote){S=repairState(remote.state);}else{S=D0();}
     const email=result.user.email||l,parts=(email.split("@")[0]||"Administrateur").split(/[._-]+/).filter(Boolean);
     CU={id:result.user.id,pn:parts[0]||"Administrateur",nm:parts.slice(1).join(" "),nom:[parts[0]||"Administrateur",...parts.slice(1)].join(" "),mail:email,login:email,role:result.membership.role,actif:true,cloud:true,last:null};
     S.us=[CU];RO=CU.role;cloudSessionReady=true;FA=0;applyLogo();activateCloudRealtime();bz(0);enter(true);
