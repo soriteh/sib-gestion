@@ -846,7 +846,7 @@ async function doGo(){const m=LM;if($("lbt").classList.contains("ld"))return;
    try{
     const result=await window.SIBCloud.signIn(l,p);
     const remote=await window.SIBCloud.loadAppState();
-    if(remote){S={...D0(),...remote.state};S.set={...D0().set,...S.set};S.set.pre={...D0().set.pre,...S.set.pre};S.set.rh={...D0().set.rh,...S.set.rh};}else{S=D0();}
+    if(remote){mergeRemoteState(remote.state);}else{S=D0();}
     const email=result.user.email||l,parts=(email.split("@")[0]||"Administrateur").split(/[._-]+/).filter(Boolean);
     CU={id:result.user.id,pn:parts[0]||"Administrateur",nm:parts.slice(1).join(" "),nom:[parts[0]||"Administrateur",...parts.slice(1)].join(" "),mail:email,login:email,role:result.membership.role,actif:true,cloud:true,last:null};
     S.us=[CU];RO=CU.role;cloudSessionReady=true;FA=0;applyLogo();activateCloudRealtime();bz(0);enter(true);
@@ -862,12 +862,23 @@ async function doGo(){const m=LM;if($("lbt").classList.contains("ld"))return;
 function enter(resume){const prev=CU.last;RO=CU.role;PF="mois";fDay=L(new Date());fMon=fDay.slice(0,7);fYr=new Date().getFullYear();CU.last=iso();try{sessionStorage.setItem("sib-uid",CU.id)}catch(_){}document.body.classList.remove("lo");
  lg("Connexion");save();mk();drawAm()}
 function out(force){if(!force&&gate(()=>out()))return;const nm0=CU?(CU.pn||CU.nom):"";if(CU){lg(force?"Session expirée (inactivité)":"Déconnexion");save()}const wasCloud=!!CU?.cloud;CU=null;cloudSessionReady=false;CUR="";try{sessionStorage.removeItem("sib-uid")}catch(_){}if(wasCloud&&window.SIBCloud?.ready)window.SIBCloud.signOut().catch(console.error);DL=[];cart=[];drawCart();["npp","amm"].forEach(i=>$(i).classList.add("hide"));document.body.classList.add("lo");document.body.classList.remove("mo");$("mdl").classList.add("hide");lgv("login");if(!force&&nm0)toast("Au revoir, "+nm0+" ! Vous avez été déconnecté. À bientôt.","ok",{ms:4500})}
+function mergeRemoteState(remoteState){
+ const defaults=D0(),incoming=remoteState&&typeof remoteState==="object"?remoteState:{};
+ S={...defaults,...incoming};
+ for(const k of Object.keys(defaults)){
+  if(Array.isArray(defaults[k])&&!Array.isArray(S[k]))S[k]=defaults[k];
+  else if(defaults[k]&&typeof defaults[k]==="object"&&!Array.isArray(defaults[k])&&(!S[k]||typeof S[k]!=="object"||Array.isArray(S[k])))S[k]=defaults[k];
+ }
+ S.set={...defaults.set,...(S.set&&typeof S.set==="object"?S.set:{})};
+ S.set.pre={...defaults.set.pre,...(S.set.pre&&typeof S.set.pre==="object"?S.set.pre:{})};
+ S.set.rh={...defaults.set.rh,...(S.set.rh&&typeof S.set.rh==="object"?S.set.rh:{})};
+}
 async function boot(){applyLogo();
  if(window.SIBCloud?.ready){
   cloudSessionReady=false;
   try{
    const current=await window.SIBCloud.currentUser(),remote=await window.SIBCloud.loadAppState();
-   if(remote){S={...D0(),...remote.state};S.set={...D0().set,...S.set};S.set.pre={...D0().set.pre,...S.set.pre};S.set.rh={...D0().set.rh,...S.set.rh};}else{S=D0();}
+   if(remote){mergeRemoteState(remote.state);}else{S=D0();}
    const email=current.user.email||"",parts=(email.split("@")[0]||"Administrateur").split(/[._-]+/).filter(Boolean),profile=(S.profile&&typeof S.profile==="object")?S.profile:{};
    CU={id:current.user.id,pn:profile.pn||parts[0]||"Administrateur",nm:profile.nm||parts.slice(1).join(" "),nom:profile.nom||[profile.pn||parts[0]||"Administrateur",profile.nm||parts.slice(1).join(" ")].filter(Boolean).join(" "),mail:email,login:email,role:current.membership.role,actif:true,cloud:true,last:null,tel:profile.tel||"",ph:profile.ph||""};
    S.us=[CU];RO=CU.role;cloudSessionReady=true;applyLogo();activateCloudRealtime();enter(true);if(!remote)await cloudSaveChain;return;
