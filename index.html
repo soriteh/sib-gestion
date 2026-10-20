@@ -487,8 +487,8 @@ function montantEnLettres(value){
  return groups.join(" ").replace(/\s+/g," ").trim();
 }
 function montantEnLettresAvecDevise(value){
- const sym=(S.set&&S.set.sym)||"FG";
- return (Number(value)<0?"moins ":"")+montantEnLettres(value)+" "+sym;
+ const devise="Francs Guinéens";
+ return (Number(value)<0?"moins ":"")+montantEnLettres(value)+" "+devise;
 }
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let cloudSessionReady=false,cloudSaveChain=Promise.resolve(),cloudSaveErrorAt=0;
