@@ -426,6 +426,57 @@ button[data-a="profcancel"]:hover, button[data-id]:hover,
 @keyframes sibStartOrbit{to{transform:rotate(360deg)}}
 @keyframes sibStartProgress{0%{transform:translateX(-110%)}100%{transform:translateX(370%)}}
 @media(prefers-reduced-motion:reduce){#sib-startup,#sib-startup:before,#sib-startup:after,.sib-startup-logo,.sib-startup-logo:after,.sib-startup-track:after{animation:none!important}.sib-startup-logo{transform:none!important}}
+
+/* SIB PREMIUM UI — finition visuelle globale */
+:root{--bg:#f3f6fc;--sf:#fff;--tx:#15233b;--mu:#687891;--ln:#e3e9f3;--ac:#245fcb;--ac2:#eaf1ff;--or:#ef873f;--sh:0 2px 5px rgba(20,38,70,.035),0 12px 34px rgba(20,38,70,.065)}
+body{background:radial-gradient(ellipse at 8% 0%,rgba(56,112,220,.055),transparent 34%),var(--bg);font-family:"Plus Jakarta Sans",Inter,system-ui,-apple-system,sans-serif;letter-spacing:-.012em}
+.app{gap:0}
+nav{background:linear-gradient(165deg,#101d34 0%,#142746 58%,#10203a 100%);box-shadow:8px 0 32px rgba(12,28,53,.09);border-right:1px solid rgba(255,255,255,.06)}
+nav .br{padding:25px 20px 22px;border-bottom:1px solid rgba(255,255,255,.09);margin-bottom:13px}
+nav .mk,.lgb .mk{box-shadow:0 8px 22px rgba(237,125,49,.2),inset 0 1px 0 rgba(255,255,255,.4);border-radius:15px}
+nav .br b{letter-spacing:-.035em;font-size:15px}
+nav .br small{opacity:.72;letter-spacing:.025em}
+#nv{padding:0 10px}
+#nv button{border-radius:11px;margin:3px 0;padding:11px 13px;transition:background .22s ease,transform .22s ease,box-shadow .22s ease}
+#nv button:hover{transform:translateX(3px);background:rgba(255,255,255,.075)}
+#nv button.on{background:linear-gradient(100deg,rgba(58,119,224,.27),rgba(58,119,224,.1));box-shadow:inset 3px 0 #f28b45,inset 0 0 0 1px rgba(255,255,255,.055)}
+nav .ft{border-top:1px solid rgba(255,255,255,.09);padding:15px}
+.col{min-width:0}
+header.top{background:rgba(255,255,255,.88);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid rgba(218,227,240,.85);box-shadow:0 4px 20px rgba(24,44,78,.025);padding-top:14px;padding-bottom:14px}
+header.top h1{font-size:clamp(18px,2vw,23px);font-weight:800;letter-spacing:-.045em}
+main{padding:clamp(16px,2.4vw,30px);max-width:1800px;width:100%;margin:0 auto}
+h2{font-size:clamp(19px,2vw,25px);font-weight:800;letter-spacing:-.04em;margin:0 0 18px;color:var(--tx)}
+h3{font-weight:750;letter-spacing:-.025em}
+.box,.k,.lgcard,.md>.box{border:1px solid color-mix(in srgb,var(--ln) 88%,transparent);border-radius:17px;box-shadow:var(--sh);transition:border-color .2s ease,box-shadow .2s ease,transform .2s ease}
+.box{padding:clamp(15px,2vw,22px);background:var(--sf)}
+.k{position:relative;overflow:hidden;background:linear-gradient(145deg,var(--sf),color-mix(in srgb,var(--sf) 94%,var(--ac2)));padding:20px 21px}
+.k:after{content:"";position:absolute;width:105px;height:105px;right:-35px;top:-44px;border-radius:50%;background:radial-gradient(circle,rgba(55,111,215,.12),transparent 70%);pointer-events:none}
+.k span{font-size:12px;font-weight:700;letter-spacing:.035em;text-transform:uppercase;color:var(--mu)}
+.k b{display:block;margin-top:10px;font-size:clamp(21px,2.5vw,29px);letter-spacing:-.055em;font-weight:800;font-variant-numeric:tabular-nums}
+button,input,select,textarea{font:inherit}
+button{transition:transform .16s ease,box-shadow .2s ease,filter .2s ease}
+button.p{background:linear-gradient(135deg,#2f73df,#2056b8);box-shadow:0 5px 13px rgba(37,95,203,.19),inset 0 1px 0 rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.12);border-radius:10px;font-weight:700}
+button.p:hover{box-shadow:0 8px 20px rgba(37,95,203,.27);filter:saturate(1.08);transform:translateY(-1px)}
+button.s{border-radius:9px;font-weight:650}
+button.s:hover{box-shadow:0 4px 12px rgba(22,42,74,.08);transform:translateY(-1px)}
+input,select,textarea{border-radius:10px!important;border-color:var(--ln)!important;background:var(--sf);transition:border-color .18s ease,box-shadow .18s ease}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ac)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--ac) 13%,transparent)!important}
+label{font-size:12px;font-weight:750;letter-spacing:.015em;color:var(--mu)}
+table{border-collapse:separate;border-spacing:0;font-size:13px}
+table thead th{background:color-mix(in srgb,var(--bg) 78%,var(--sf));color:var(--mu);font-size:11px;text-transform:uppercase;letter-spacing:.055em;font-weight:800;border-bottom:1px solid var(--ln)}
+table th,table td{padding:12px 13px}
+table tbody tr{transition:background .15s ease}
+table tbody tr:hover{background:color-mix(in srgb,var(--ac2) 44%,transparent)}
+table tbody td{border-bottom:1px solid color-mix(in srgb,var(--ln) 72%,transparent)}
+.tw{border:1px solid var(--ln);border-radius:12px;overflow:auto}
+.tw table{margin:0}
+.pp{border:1px solid var(--ln);border-radius:14px;box-shadow:0 18px 48px rgba(13,29,54,.16);backdrop-filter:blur(16px)}
+#tst{box-shadow:0 12px 36px rgba(12,27,49,.18)}
+.lgcard{box-shadow:0 24px 80px rgba(7,21,46,.18);border-color:rgba(255,255,255,.72)}
+@media(min-width:1000px){main{padding-top:28px}.row{gap:14px}}
+@media(max-width:700px){main{padding:14px}.box{border-radius:14px;padding:14px}.k{border-radius:14px;padding:16px}header.top{padding-left:13px;padding-right:13px}table th,table td{padding:10px}}
+@media(prefers-reduced-motion:reduce){button,.box,.k,#nv button{transition:none!important}}
+
 </style></head><body>
 <div id="sib-startup" role="status" aria-live="polite"><div class="sib-startup-inner"><div class="sib-startup-logo" aria-hidden="true">SIB</div><div class="sib-startup-name">SIB Gestion</div><div class="sib-startup-label">Chargement de votre espace…</div><div class="sib-startup-track" aria-hidden="true"></div></div></div>
 <div class="app">
