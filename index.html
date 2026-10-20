@@ -539,15 +539,31 @@ function activateCloudRealtime(){
   });
  }catch(err){console.warn("SIB Realtime unavailable:",err)}
 }
+const SIB_PENDING_KEY="sib-pending-cloud-save-v1";
 function cloudSnapshot(){const x=JSON.parse(JSON.stringify(S));delete x.us;return x}
+function storePendingCloudSnapshot(snapshot){try{localStorage.setItem(SIB_PENDING_KEY,JSON.stringify({savedAt:Date.now(),state:snapshot}));return true}catch(err){console.error("SIB pending backup failed:",err);return false}}
+async function retryPendingCloudSave(){
+ if(!navigator.onLine||!window.SIBCloud?.ready||!cloudSessionReady)return;
+ let pending;try{pending=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null")}catch(_){return}
+ if(!pending?.state)return;
+ try{
+  await window.SIBCloud.saveAppState(pending.state);
+  let current;try{current=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null")}catch(_){}
+  if(current&&current.savedAt===pending.savedAt)localStorage.removeItem(SIB_PENDING_KEY);
+  if(typeof toast==="function")toast("Connexion rétablie : les modifications en attente ont été synchronisées.","ok",{ms:4500});
+ }catch(err){console.warn("SIB pending save retry failed:",err)}
+}
+window.addEventListener("online",()=>{retryPendingCloudSave()});
 function save(){
  if(!window.SIBCloud?.ready||!cloudSessionReady){
   if(typeof toast==="function")toast("Sauvegarde refusée : aucune session Supabase active. Reconnectez-vous avant de modifier les données.","er");
   return;
  }
  const snapshot=cloudSnapshot();
- cloudSaveChain=cloudSaveChain.then(()=>window.SIBCloud.saveAppState(snapshot)).catch(err=>{
-  const now=Date.now();
+ cloudSaveChain=cloudSaveChain.then(()=>window.SIBCloud.saveAppState(snapshot).then(()=>{
+  try{const pending=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null");if(pending&&JSON.stringify(pending.state)===JSON.stringify(snapshot))localStorage.removeItem(SIB_PENDING_KEY)}catch(_){}
+ })).catch(err=>{
+  const now=Date.now(),stored=storePendingCloudSnapshot(snapshot);
   console.error("SIB Supabase save failed:",err);
   if(now-cloudSaveErrorAt>3000){
    cloudSaveErrorAt=now;
@@ -555,7 +571,8 @@ function save(){
    if(/NetworkError|Failed to fetch|fetch failed|Load failed/i.test(detail)){
     detail="connexion réseau vers Supabase impossible. Vérifiez Internet, l'URL du projet et les règles réseau du navigateur";
    }
-   if(typeof toast==="function")toast("ÉCHEC DE SAUVEGARDE SUPABASE : "+detail+". Aucune sauvegarde locale n'est utilisée. Ne rechargez pas la page avant d'avoir rétabli la connexion.","er",{sticky:true});
+   const localNotice=stored?" Une copie temporaire des modifications est conservée sur cet appareil et sera renvoyée lors du rétablissement de la connexion.":" Impossible de conserver une copie temporaire sur cet appareil.";
+   if(typeof toast==="function")toast("ÉCHEC DE SAUVEGARDE SUPABASE : "+detail+"."+localNotice,"er",{sticky:true});
   }
  });
 }
@@ -967,7 +984,9 @@ async function boot(){applyLogo();
   cloudSessionReady=false;
   try{
    const current=await window.SIBCloud.currentUser(),remote=await window.SIBCloud.loadAppState();
-   if(remote){S={...D0(),...remote.state};S.set={...D0().set,...S.set};S.set.pre={...D0().set.pre,...S.set.pre};S.set.rh={...D0().set.rh,...S.set.rh};}else{S=D0();}
+   let pendingCloud=null;try{pendingCloud=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null")}catch(_){}
+   if(pendingCloud?.state){S={...D0(),...pendingCloud.state};S.set={...D0().set,...S.set};S.set.pre={...D0().set.pre,...S.set.pre};S.set.rh={...D0().set.rh,...S.set.rh};}
+   else if(remote){S={...D0(),...remote.state};S.set={...D0().set,...S.set};S.set.pre={...D0().set.pre,...S.set.pre};S.set.rh={...D0().set.rh,...S.set.rh};}else{S=D0();}
    const email=current.user.email||"",parts=(email.split("@")[0]||"Administrateur").split(/[._-]+/).filter(Boolean),profile=(S.profile&&typeof S.profile==="object")?S.profile:{};
    CU={id:current.user.id,pn:profile.pn||parts[0]||"Administrateur",nm:profile.nm||parts.slice(1).join(" "),nom:profile.nom||[profile.pn||parts[0]||"Administrateur",profile.nm||parts.slice(1).join(" ")].filter(Boolean).join(" "),mail:email,login:email,role:current.membership.role,actif:true,cloud:true,last:null,tel:profile.tel||"",ph:profile.ph||""};
    S.us=[CU];RO=CU.role;cloudSessionReady=true;applyLogo();activateCloudRealtime();enter(true);if(!remote)await cloudSaveChain;return;
