@@ -480,6 +480,40 @@ table tbody td{border-bottom:1px solid color-mix(in srgb,var(--ln) 72%,transpare
 
 /* Contraste premium : nom de l’entreprise en blanc sur la page de connexion */
 #lgn .lgb h2#lgh{color:#fff!important;text-shadow:0 2px 14px rgba(0,0,0,.18)}
+
+/* Refonte premium du menu latéral */
+nav{width:264px;min-width:264px;padding:18px 12px 12px;background:linear-gradient(160deg,#0d192d 0%,#122541 52%,#0c1a30 100%);border-right:1px solid rgba(255,255,255,.075);box-shadow:10px 0 35px rgba(10,24,46,.12)}
+nav .br{padding:12px 10px 21px;gap:12px;margin:0 4px 14px;border-bottom:1px solid rgba(255,255,255,.09);align-items:center}
+nav .br .mk{width:43px;height:43px;border-radius:13px}
+nav .br b{font-size:15px;letter-spacing:-.035em;color:#fff}
+nav .br small{display:block;margin-top:4px;color:#9cacc5;font-size:10px;line-height:1.45;letter-spacing:.015em}
+#nv{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:4px 5px 14px;scrollbar-width:thin;scrollbar-color:rgba(180,199,230,.24) transparent}
+#nv::-webkit-scrollbar{width:5px}
+#nv::-webkit-scrollbar-thumb{background:rgba(180,199,230,.22);border-radius:8px}
+#nv button{position:relative;display:flex;align-items:center;gap:12px;min-height:42px;margin:3px 0;padding:10px 12px;border:1px solid transparent;border-radius:11px;color:#c2cee1;font-size:12.5px;font-weight:600;letter-spacing:-.005em;text-align:left;transition:background .18s ease,border-color .18s ease,color .18s ease,transform .18s ease}
+#nv button svg{width:18px;height:18px;flex:0 0 18px;opacity:.82;transition:opacity .18s ease,transform .18s ease}
+#nv button:hover{transform:translateX(2px);background:rgba(255,255,255,.055);border-color:rgba(255,255,255,.065);color:#fff}
+#nv button:hover svg{opacity:1;transform:scale(1.06)}
+#nv button.on{color:#fff;background:linear-gradient(100deg,rgba(55,112,215,.27),rgba(55,112,215,.09));border-color:rgba(104,157,244,.18);box-shadow:inset 3px 0 #f28b45,0 4px 14px rgba(0,0,0,.08)}
+#nv button.on svg{color:#ffb477;opacity:1}
+nav .ft{margin-top:auto;padding:13px 5px 4px;border-top:1px solid rgba(255,255,255,.09);background:linear-gradient(0deg,rgba(8,18,34,.3),transparent)}
+nav .me{padding:10px 9px;margin-bottom:8px;border:1px solid rgba(255,255,255,.07);border-radius:12px;background:rgba(255,255,255,.035);transition:background .2s ease,border-color .2s ease}
+nav .me:hover{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.13)}
+nav .me b{font-size:12px;color:#f5f8ff}
+nav .me small{font-size:10px;color:#9aabc5}
+nav .av2{box-shadow:0 0 0 3px rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12)}
+nav .lob{width:100%;min-height:38px;justify-content:center;border:1px solid rgba(255,255,255,.1);border-radius:10px;background:rgba(255,255,255,.045);color:#d5deed;font-size:12px;font-weight:650;transition:background .2s ease,border-color .2s ease,color .2s ease}
+nav .lob:hover{background:rgba(239,100,100,.12);border-color:rgba(239,100,100,.25);color:#ffd6d6}
+body.col2 nav{width:78px;min-width:78px;padding-left:8px;padding-right:8px}
+body.col2 nav .br{padding:10px 0 18px;margin-left:0;margin-right:0}
+body.col2 nav .br .mk{width:42px;height:42px}
+body.col2 #nv{padding-left:0;padding-right:0}
+body.col2 #nv button{justify-content:center;min-height:42px;padding:10px 0}
+body.col2 nav .ft{padding-left:0;padding-right:0}
+@media(max-width:900px){nav{width:250px;min-width:250px}}
+@media(max-width:720px){nav{width:min(84vw,300px);min-width:0;box-shadow:18px 0 45px rgba(4,14,30,.24)}}
+@media(prefers-reduced-motion:reduce){#nv button,#nv button svg,nav .me,nav .lob{transition:none!important}}
+
 </style></head><body>
 <div id="sib-startup" role="status" aria-live="polite"><div class="sib-startup-inner"><div class="sib-startup-logo" aria-hidden="true">SIB</div><div class="sib-startup-name">SIB Gestion</div><div class="sib-startup-label">Chargement de votre espace…</div><div class="sib-startup-track" aria-hidden="true"></div></div></div>
 <div class="app">
