@@ -376,8 +376,24 @@ function activateCloudRealtime(){
  }catch(err){console.warn("SIB Realtime unavailable:",err)}
 }
 function cloudSnapshot(){const x=JSON.parse(JSON.stringify(S));delete x.us;return x}
-function save(){try{localStorage.setItem(K,JSON.stringify(S));}catch(err){console.error("SIB local save failed:",err);if(typeof toast==="function")toast("Sauvegarde locale impossible : espace de stockage du navigateur insuffisant. Le logo ou la photo peut être trop volumineux.","er");}
- if(window.SIBCloud?.ready&&cloudSessionReady){const snapshot=cloudSnapshot();cloudSaveChain=cloudSaveChain.then(()=>window.SIBCloud.saveAppState(snapshot)).catch(err=>{const now=Date.now();if(now-cloudSaveErrorAt>8000){cloudSaveErrorAt=now;console.error("SIB cloud save failed:",err);if(typeof toast==="function")toast("Synchronisation impossible : "+(err?.message||"erreur Supabase")+". Les modifications restent dans ce navigateur si la sauvegarde locale a réussi.","er");}});}
+function save(){
+ if(!window.SIBCloud?.ready||!cloudSessionReady){
+  if(typeof toast==="function")toast("Sauvegarde refusée : aucune session Supabase active. Reconnectez-vous avant de modifier les données.","er");
+  return;
+ }
+ const snapshot=cloudSnapshot();
+ cloudSaveChain=cloudSaveChain.then(()=>window.SIBCloud.saveAppState(snapshot)).catch(err=>{
+  const now=Date.now();
+  console.error("SIB Supabase save failed:",err);
+  if(now-cloudSaveErrorAt>3000){
+   cloudSaveErrorAt=now;
+   let detail=err?.message||"Erreur inconnue";
+   if(/NetworkError|Failed to fetch|fetch failed|Load failed/i.test(detail)){
+    detail="connexion réseau vers Supabase impossible. Vérifiez Internet, l'URL du projet et les règles réseau du navigateur";
+   }
+   if(typeof toast==="function")toast("ÉCHEC DE SAUVEGARDE SUPABASE : "+detail+". Aucune sauvegarde locale n'est utilisée. Ne rechargez pas la page avant d'avoir rétabli la connexion.","er",{sticky:true});
+  }
+ });
 }
 const TI={ok:"M20 6L9 17l-5-5",er:"M12 8v5M12 16h.01M12 2a10 10 0 100 20 10 10 0 000-20z",wa:"M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z",in:"M12 16v-4M12 8h.01M12 2a10 10 0 100 20 10 10 0 000-20z"};
 const ic=t=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${TI[t]}"/></svg>`;
