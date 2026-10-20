@@ -420,6 +420,25 @@ button[data-a="profcancel"]:hover, button[data-id]:hover,
 <div class="row noprint"><button class="s" id="exp">Exporter CSV</button><button class="s" id="backup">Sauvegarder toutes les données (JSON)</button><button class="s dg" id="rst">Réinitialiser les données</button></div></section>
 <section id="svc" class="hide"></section><section id="cli" class="hide"></section><section id="dev" class="hide"></section><section id="fac" class="hide"></section><section id="fo" class="hide"></section><section id="st" class="hide"></section><section id="fz" class="hide"></section><section id="pj" class="hide"></section><section id="rap" class="hide"></section><section id="jr" class="hide"></section><section id="usr" class="hide"></section><section id="set" class="hide"></section><section id="prof" class="hide"></section><section id="rh" class="hide"></section><section id="cg" class="hide"></section><section id="pr" class="hide"></section><section id="pa" class="hide"></section></main></div></div><div id="bk"></div><div id="lgn"><div class="lgl"><div class="blob b1"></div><div class="blob b2"></div><div class="lgb"><div class="mk">SIB</div><h2 id="lgh">Soritech Innov Business</h2><p>INNOVER • DÉVELOPPER • CONNECTER</p><ul><li>Encaissements, caisse et banque</li><li>Devis, factures et clients</li><li>Stock, formations et projets</li></ul></div></div><div class="lgr"><div class="lgcard" id="lgc"></div><small class="cp">© Soritech Innov Business · Conakry, Guinée</small></div></div><div id="mdl" class="md hide"><div class="box"><div id="mdc"></div><button class="p" id="mx">Fermer</button></div></div><div id="tst" aria-live="polite"></div>
 <script>
+/* Diagnostic de secours : affiche les erreurs JavaScript qui peuvent laisser l’interface vide. */
+(function(){
+ function report(message,source,line,col){
+  try{
+   var old=document.getElementById("sib-fatal-error");if(old)return;
+   var panel=document.createElement("div");panel.id="sib-fatal-error";
+   panel.setAttribute("role","alert");
+   panel.style.cssText="position:fixed;inset:72px 12px auto;z-index:2147483647;padding:16px;border:2px solid #b42318;border-radius:12px;background:#fff;color:#202124;font:14px/1.5 -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;box-shadow:0 8px 32px #0003;max-height:70vh;overflow:auto";
+   var title=document.createElement("strong");title.textContent="SIB Gestion : erreur empêchant l’affichage";
+   var detail=document.createElement("pre");detail.style.cssText="white-space:pre-wrap;overflow-wrap:anywhere;margin:10px 0";detail.textContent=String(message||"Erreur JavaScript")+(source?"\nFichier : "+source:"")+(line?"\nLigne : "+line+(col?":"+col:""):"");
+   var note=document.createElement("p");note.textContent="Envoyez une capture de ce message au support pour corriger précisément le problème.";
+   panel.appendChild(title);panel.appendChild(detail);panel.appendChild(note);(document.body||document.documentElement).appendChild(panel);
+  }catch(_){}
+ }
+ window.addEventListener("error",function(e){report(e.message||"Erreur de chargement JavaScript",e.filename,e.lineno,e.colno)});
+ window.addEventListener("unhandledrejection",function(e){var r=e.reason;report(r&&r.stack||r&&r.message||String(r||"Erreur asynchrone"))});
+})();
+</script>
+<script>
 const SV0=[["Saisie de texte (page)",500],["Impression noir (page)",300],["Impression couleur (page)",1000],["Scannage simple",1000],["Scannage + envoi",2000],["Flocage de maillot",50000],["Décoration de t-shirt",30000],["Confection de cachet",50000],["Plastification",3000],["Reliure",10000],["Cartes de visite (lot)",100000],["Installation caméra de surveillance",500000],["Déploiement wifi zone",2000000],["Création de site web",3000000],["Formation : Tap-touche",150000],["Formation : Windows",200000],["Formation : Word",250000],["Formation : Excel",300000],["Formation : PowerPoint",250000],["Infographie : Photoshop",500000],["Infographie : Illustrator",500000],["Infographie : CorelDRAW",450000],["Infographie : InDesign",500000],["Infographie : Canva",250000]];
 const AC=["Caisse","Banque","Mobile Money"],K="sib-gestion-v1";
 const D0=()=>({set:{nom:"Soritech Innov Business",court:"SIB",pays:"",ville:"",adr:"",tel:"",mail:"",web:"",wa:"",logo:"",fav:"",app:"SIB Gestion",cc:"GNF",cn:"Franc guinéen",sym:"FG",pre:{DEV:"DEV",FAC:"FAC",REC:"REC"},rh:{cgm:"2.5",sam:"non",cs:"0",cp:"0"}},dis:{},emp:[],cg:[],pt:{},bl:[],us:[],e:[],n:{},c:[],dv:[],fa:[],fo:[],ac:[],st:[],fz:[],pj:[],jr:[],etudiants:[]});let S=D0();try{S={...S,...JSON.parse(localStorage.getItem(K))}}catch(_){}
