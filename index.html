@@ -408,7 +408,7 @@ button[data-a="profcancel"]:hover, button[data-id]:hover,
 .sib-startup-inner{display:flex;flex-direction:column;align-items:center;gap:15px;padding:24px;text-align:center}
 .sib-startup-logo{width:76px;height:76px;display:grid;place-items:center;border-radius:22px;background:linear-gradient(135deg,#3984f5,#0752b6);font-size:23px;font-weight:800;letter-spacing:-1px;box-shadow:0 12px 38px rgba(35,112,232,.38);position:relative;animation:sibStartFloat 2s ease-in-out infinite}
 .sib-startup-logo:after{content:"";position:absolute;inset:-7px;border:1px solid rgba(255,255,255,.42);border-right-color:#ed7d31;border-radius:27px;animation:sibStartOrbit 4s linear infinite}
-.sib-startup-name{font-size:20px;font-weight:800;letter-spacing:.02em}
+.sib-startup-name{font-size:20px;font-weight:800;letter-spacing:.02em}.sib-startup-logo.has-image{background:#fff;padding:7px}.sib-startup-logo img{display:block;width:100%;height:100%;object-fit:contain;border-radius:15px}
 .sib-startup-label{font-size:13px;color:#c5d5ee}
 .sib-startup-track{width:154px;height:3px;border-radius:9px;background:rgba(255,255,255,.17);overflow:hidden;margin-top:3px}
 .sib-startup-track:after{content:"";display:block;width:42%;height:100%;border-radius:9px;background:#ed7d31;animation:sibStartProgress 1.25s ease-in-out infinite}
@@ -980,9 +980,10 @@ async function cpw(){const ce=m=>$("cerr").textContent=m;if((await hp(V("cp0"),C
 const SY=()=>(S.set&&S.set.sym)||"FG";
 let PS={};
 function coHead(){const s=S.set||{},l=[s.adr,[s.ville,s.pays].filter(Boolean).join(", "),s.tel,s.mail,s.web].filter(Boolean);return`<div class="sib-doc-head" style="display:flex;gap:12px;align-items:center;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #d8deea;color:#172033">${s.logo?`<img src="${s.logo}" alt="Logo ${esc(s.nom||"SIB")}" style="display:block;height:52px;max-width:125px;object-fit:contain">`:""}<div style="min-width:0"><b style="font-size:14px">${esc(s.nom||"Soritech Innov Business")}</b>${l.length?`<br><small>${l.map(esc).join(" · ")}</small>`:""}<br><small style="color:#53627a">${esc(s.app||"SIB Gestion")}</small></div></div>`}
-function applyLogo(){const s=S.set,n=s.nom||"Soritech Innov Business";
+function applyLogo(){const s=S.set||{},n=s.nom||"Soritech Innov Business",app=s.app||"SIB Gestion";
  document.querySelectorAll(".mk").forEach(m=>{m.classList.toggle("has",!!s.logo);m.innerHTML=s.logo?`<img src="${s.logo}" alt="Logo ${esc(n)}">`:esc((s.court||"SIB").slice(0,4))});
- $("lgh").textContent=n;$("bnm").textContent=s.app||"SIB Gestion";document.title=s.app||"SIB Gestion";
+ const splashLogo=document.querySelector("#sib-startup .sib-startup-logo"),splashName=document.querySelector("#sib-startup .sib-startup-name");if(splashLogo){splashLogo.innerHTML=s.logo?`<img src="${s.logo}" alt="${esc(n)}">`:esc((s.court||"SIB").slice(0,4));splashLogo.classList.toggle("has-image",!!s.logo)}if(splashName)splashName.textContent=app;
+ $("lgh").textContent=n;$("bnm").textContent=app;document.title=app;
  document.querySelectorAll(".cur").forEach(x=>x.textContent=SY());
  let l=document.querySelector('link[rel="icon"]');if(s.fav){if(!l){l=document.createElement("link");l.rel="icon";document.head.appendChild(l)}l.href=s.fav}else if(l)l.remove()}
 const smsg=(t,x)=>{const m=$("sst");if(m){m.className="msg "+t;m.textContent=x}};
