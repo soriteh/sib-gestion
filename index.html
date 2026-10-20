@@ -716,7 +716,7 @@ function refreshServiceSelects(){
  const zf=$("zf"),zfPrev=zf?zf.value:"";
  if(zf){const fs=SV.filter(s=>/^(Formation|Infographie)/.test(s[0]));zf.innerHTML=fs.map(s=>`<option value="${esc(s[0])}">${esc(s[0])}</option>`).join("");if(fs.some(s=>s[0]===zfPrev))zf.value=zfPrev;if(fs.length&&$("zx"))$("zx").value=fs.find(s=>s[0]===zf.value)?.[1]||0;}
 }
-document.querySelector("main").addEventListener("click",e=>{const b=e.target.closest("[data-a]");if(b&&ACT[b.dataset.a])ACT[b.dataset.a](b.dataset.i)});
+document.querySelector("main").addEventListener("click",e=>{const b=e.target.closest("[data-a]");if(b&&ACT[b.dataset.a])ACT[b.dataset.a](b.dataset.i,b.dataset.j)});
 document.querySelector("main").addEventListener("change",e=>{const i=e.target.id;
  if(i=="vs")$("vp").value=SV.find(s=>s[0]==e.target.value)[1];
  if(i=="zf"){const s=SV.find(s=>s[0]==e.target.value);if(s)$("zx").value=s[1]}
