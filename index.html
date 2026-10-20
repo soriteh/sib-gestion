@@ -549,8 +549,8 @@ function cancel2(id){const o=S.e.find(x=>x.id==id);if(!o)return;
  if(Object.values(b).some(v=>v<0)){S.e.pop();save();return toast("Annulation impossible : solde négatif")}if(o.ach){const a=S.ac.find(z=>z.no==o.ach),s=a&&S.st.find(z=>z.n==a.st);if(s)s.q-=a.q;save()}toast("Annulation enregistrée");draw()}
 function draw(){
  const b=bal(),live=S.e.filter(e=>!e.rev&&!gone(e)),mo=new Date().toISOString().slice(0,7);
- const R=live.filter(e=>e.t=="recette"),D=live.filter(e=>e.t=="depense"),sm=a=>a.reduce((s,e)=>s+e.m,0),inM=a=>a.filter(e=>e.d.slice(0,7)==mo);
- const rM=sm(inM(R)),dM=sm(inM(D)),top={};R.forEach(e=>e.lines.forEach(l=>top[l.s]=(top[l.s]||0)+l.q*l.p));
+ const R=live.filter(e=>e.t=="recette"),D=live.filter(e=>e.t=="depense"),sm=a=>a.reduce((s,e)=>s+(Number(e.m)||0),0),inM=a=>a.filter(e=>String(e.d||"").slice(0,7)==mo);
+ const rM=sm(inM(R)),dM=sm(inM(D)),top={};R.forEach(e=>(Array.isArray(e.lines)?e.lines:[]).forEach(l=>{if(l&&l.s)top[l.s]=(top[l.s]||0)+(Number(l.q)||0)*(Number(l.p)||0)}));
  const tp=Object.entries(top).sort((x,y)=>y[1]-x[1]).slice(0,5);
  $("dash").innerHTML=`<h2>Tableau de bord</h2><div class="row" style="margin-bottom:14px">${AC.map((a,i)=>`<div class="k" style="--card-delay:${i*70}ms"><span>${a}</span><b>${fm(b[a])}</b></div>`).join("")}<div class="k" style="--card-delay:210ms"><span>Total disponible</span><b>${fm(b.Caisse+b.Banque+b["Mobile Money"])}</b></div></div>
  <div class="row" style="margin-bottom:14px">${[["Recettes du mois",rM,"in"],["Dépenses du mois",dM,"out"],["Résultat du mois",rM-dM,""]].map(([label,value,cls],i)=>`<div class="k" style="--card-delay:${(i+4)*70}ms"><span>${label}</span><b class="${cls}">${fm(value)}</b></div>`).join("")}</div>
@@ -1094,7 +1094,7 @@ Object.assign(ACT,{ugen(){$("up").value=gp()},
  ureset(id){if(RO!="Administrateur")return;const u=S.us.find(x=>x.id==id);if(!u)return;
   ask("Voulez-vous réinitialiser le mot de passe de "+u.nom+" ? Un mot de passe temporaire sera généré.",async()=>{const p=gp(),salt=rs();u.salt=salt;u.hash=await hp(p,salt);u.mc=true;lg("Mot de passe réinitialisé : "+u.nom);save();draw();info("Mot de passe réinitialisé","Utilisateur : <b>"+esc(u.nom)+"</b><br>Mot de passe temporaire : <b>"+esc(p)+"</b><br><small>Il devra le changer à sa prochaine connexion.</small>")},{title:"Réinitialiser le mot de passe",ok:"Réinitialiser",warn:"L'ancien mot de passe cessera de fonctionner immédiatement."})}});
 document.addEventListener("click",e=>{const b=e.target.closest("[data-u]");if(!b)return;const a=b.dataset.u;
- if(a=="go")doGo();if(a=="out")out();if(a=="pw"){$("amm").classList.add("hide");pwm()}if(a=="cpw")cpw();if(a=="eye"){const i=$(b.dataset.t);i.type=i.type=="password"?"text":"password"}});
+ if(a=="go")doGo();if(a=="out")out(true);if(a=="pw"){$("amm").classList.add("hide");pwm()}if(a=="cpw")cpw();if(a=="eye"){const i=$(b.dataset.t);i.type=i.type=="password"?"text":"password"}});
 $("lgc").addEventListener("keydown",e=>{if(e.key=="Enter")doGo()});
 
 
