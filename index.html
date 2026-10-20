@@ -63,6 +63,18 @@ button.p:hover{filter:brightness(1.1);box-shadow:0 6px 18px color-mix(in srgb,va
 button.p:active,button.s:active{transform:scale(.96)}
 button.s{background:var(--sf);border:1px solid var(--ln);color:var(--tx);border-radius:8px;padding:5px 10px;font:inherit;cursor:pointer;transition:transform .15s,border-color .2s,color .2s}
 button.s:hover{border-color:var(--ac);color:var(--ac)}
+/* SIB UI: couleurs de boutons par fonction */
+button.p{background:var(--ac);color:#fff;border:1px solid var(--ac);box-shadow:0 3px 8px color-mix(in srgb,var(--ac) 22%,transparent)}
+button.p:hover{background:#1d4ed8;border-color:#1d4ed8;filter:none}
+button.s{background:var(--sf);color:var(--tx);border:1px solid #cbd5e1}
+button.s:hover{background:var(--ac2);border-color:var(--ac);color:var(--ac)}
+button.s.dg,button.p.dg{background:#b91c1c!important;border:1px solid #b91c1c!important;color:#fff!important;box-shadow:none}
+button.s.dg:hover,button.p.dg:hover{background:#991b1b!important;border-color:#991b1b!important}
+button.s[data-a="dvstatus"][data-i$="Accepté"],button.s[data-a="dvstatus"][data-i$="Accepté"]{background:#15803d;color:#fff;border-color:#15803d}
+button.s[data-a="dvstatus"][data-i$="Accepté"]:hover{background:#166534;color:#fff;border-color:#166534}
+button:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
+button:focus-visible{outline:3px solid #f59e0b;outline-offset:2px}
+
 .tw{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:14px}
 th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--ln);white-space:nowrap}th{color:var(--mu);font-weight:600;font-size:13px}
 tbody tr{transition:background .15s}tbody tr:hover{background:var(--ac2)}
