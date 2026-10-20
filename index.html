@@ -991,6 +991,7 @@ document.querySelector("main").addEventListener("click",e=>{const b=e.target.clo
 document.querySelector("main").addEventListener("change",e=>{const i=e.target.id;
  if(i=="vs")$("vp").value=SV.find(s=>s[0]==e.target.value)[1];
  if(i=="zf"){const s=SV.find(s=>s[0]==e.target.value);if(s)$("zx").value=s[1]}
+ if(i=="zcourse"){const selected=e.target.value,custom=Array.isArray(S.courses)?S.courses.find(x=>x.nom===selected):null,service=SV0.find(x=>x[0]===selected)||SV.find(x=>x[0]===selected)||SV.find(x=>x[0]==="Formation : "+selected);const price=custom?+custom.prix:(service?+service[1]:0);if($("zemontant"))$("zemontant").value=price;if($("zpaid")&&(+ $("zpaid").value||0)>price)$("zpaid").value=price;}
  if(i=="rm"&&e.target.value){RM=e.target.value;draw()}});
 
 const GR=[["Principal",["dash","sale"]],["Ventes",["svc","cli","dev","fac"]],["Finances",["treso","dep","fo"]],["Activités",["st","fz","pj"]],["Ressources humaines",["rh","cg","pr","pa"]],["Pilotage",["rap","hist","jr"]],["Administration",["usr","set"]]];
