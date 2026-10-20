@@ -420,25 +420,6 @@ button[data-a="profcancel"]:hover, button[data-id]:hover,
 <div class="row noprint"><button class="s" id="exp">Exporter CSV</button><button class="s" id="backup">Sauvegarder toutes les données (JSON)</button><button class="s dg" id="rst">Réinitialiser les données</button></div></section>
 <section id="svc" class="hide"></section><section id="cli" class="hide"></section><section id="dev" class="hide"></section><section id="fac" class="hide"></section><section id="fo" class="hide"></section><section id="st" class="hide"></section><section id="fz" class="hide"></section><section id="pj" class="hide"></section><section id="rap" class="hide"></section><section id="jr" class="hide"></section><section id="usr" class="hide"></section><section id="set" class="hide"></section><section id="prof" class="hide"></section><section id="rh" class="hide"></section><section id="cg" class="hide"></section><section id="pr" class="hide"></section><section id="pa" class="hide"></section></main></div></div><div id="bk"></div><div id="lgn"><div class="lgl"><div class="blob b1"></div><div class="blob b2"></div><div class="lgb"><div class="mk">SIB</div><h2 id="lgh">Soritech Innov Business</h2><p>INNOVER • DÉVELOPPER • CONNECTER</p><ul><li>Encaissements, caisse et banque</li><li>Devis, factures et clients</li><li>Stock, formations et projets</li></ul></div></div><div class="lgr"><div class="lgcard" id="lgc"></div><small class="cp">© Soritech Innov Business · Conakry, Guinée</small></div></div><div id="mdl" class="md hide"><div class="box"><div id="mdc"></div><button class="p" id="mx">Fermer</button></div></div><div id="tst" aria-live="polite"></div>
 <script>
-/* Diagnostic de secours : affiche les erreurs JavaScript qui peuvent laisser l’interface vide. */
-(function(){
- function report(message,source,line,col){
-  try{
-   var old=document.getElementById("sib-fatal-error");if(old)return;
-   var panel=document.createElement("div");panel.id="sib-fatal-error";
-   panel.setAttribute("role","alert");
-   panel.style.cssText="position:fixed;inset:72px 12px auto;z-index:2147483647;padding:16px;border:2px solid #b42318;border-radius:12px;background:#fff;color:#202124;font:14px/1.5 -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;box-shadow:0 8px 32px #0003;max-height:70vh;overflow:auto";
-   var title=document.createElement("strong");title.textContent="SIB Gestion : erreur empêchant l’affichage";
-   var detail=document.createElement("pre");detail.style.cssText="white-space:pre-wrap;overflow-wrap:anywhere;margin:10px 0";detail.textContent=String(message||"Erreur JavaScript")+(source?"\nFichier : "+source:"")+(line?"\nLigne : "+line+(col?":"+col:""):"");
-   var note=document.createElement("p");note.textContent="Envoyez une capture de ce message au support pour corriger précisément le problème.";
-   panel.appendChild(title);panel.appendChild(detail);panel.appendChild(note);(document.body||document.documentElement).appendChild(panel);
-  }catch(_){}
- }
- window.addEventListener("error",function(e){report(e.message||"Erreur de chargement JavaScript",e.filename,e.lineno,e.colno)});
- window.addEventListener("unhandledrejection",function(e){var r=e.reason;report(r&&r.stack||r&&r.message||String(r||"Erreur asynchrone"))});
-})();
-</script>
-<script>
 const SV0=[["Saisie de texte (page)",500],["Impression noir (page)",300],["Impression couleur (page)",1000],["Scannage simple",1000],["Scannage + envoi",2000],["Flocage de maillot",50000],["Décoration de t-shirt",30000],["Confection de cachet",50000],["Plastification",3000],["Reliure",10000],["Cartes de visite (lot)",100000],["Installation caméra de surveillance",500000],["Déploiement wifi zone",2000000],["Création de site web",3000000],["Formation : Tap-touche",150000],["Formation : Windows",200000],["Formation : Word",250000],["Formation : Excel",300000],["Formation : PowerPoint",250000],["Infographie : Photoshop",500000],["Infographie : Illustrator",500000],["Infographie : CorelDRAW",450000],["Infographie : InDesign",500000],["Infographie : Canva",250000]];
 const AC=["Caisse","Banque","Mobile Money"],K="sib-gestion-v1";
 const D0=()=>({set:{nom:"Soritech Innov Business",court:"SIB",pays:"",ville:"",adr:"",tel:"",mail:"",web:"",wa:"",logo:"",fav:"",app:"SIB Gestion",cc:"GNF",cn:"Franc guinéen",sym:"FG",pre:{DEV:"DEV",FAC:"FAC",REC:"REC"},rh:{cgm:"2.5",sam:"non",cs:"0",cp:"0"}},dis:{},emp:[],cg:[],pt:{},bl:[],us:[],e:[],n:{},c:[],dv:[],fa:[],fo:[],ac:[],st:[],fz:[],pj:[],jr:[],etudiants:[]});let S=D0();try{S={...S,...JSON.parse(localStorage.getItem(K))}}catch(_){}
@@ -515,11 +496,11 @@ function num(p){const y=new Date().getFullYear(),k=p+y;S.n[k]=(S.n[k]||0)+1;retu
 function eff(e){if(e.rev){const o=S.e.find(x=>x.id==e.rev);return o?eff(o).map(([a,d])=>[a,-d]):[]}
  if(e.t=="recette")return[[e.a,e.m]];if(e.t=="depense")return[[e.a,-e.m]];return[[e.a,-e.m],[e.b,e.m]]}
 const gone=e=>S.e.some(x=>x.rev==e.id);
-function bal(){const b={Caisse:0,Banque:0,"Mobile Money":0};(Array.isArray(S.e)?S.e:[]).filter(e=>e&&typeof e==="object").forEach(e=>{try{eff(e).forEach(([a,d])=>{if(Object.prototype.hasOwnProperty.call(b,a))b[a]+=Number(d)||0})}catch(err){console.warn("Transaction ignorée dans le calcul des soldes:",err)}});return b}
+function bal(){const b={Caisse:0,Banque:0,"Mobile Money":0};S.e.forEach(e=>eff(e).forEach(([a,d])=>b[a]+=d));return b}
 function add(e){e.id=Date.now()+Math.random();e.d=new Date().toISOString();S.e.push(e);lg(e.no+" · "+e.t+" · "+fm(e.m));save()}
 function ctx(e){const r=S.e.find(x=>x.id==e.rev);return r}
 function renderClients(){const invoicesFor=c=>S.fa.filter(f=>f.c==c.id&&!f.x);$("cli").innerHTML="<h2>Clients</h2>"+bx("Nouveau client",F("cn","Nom")+F("ct","Téléphone")+F("ca","Adresse"),'<button class="p" data-a="cadd">Ajouter</button>')+'<div class="box">'+T(["Client","Téléphone","Adresse","Facturé","Reste dû"],S.c.map(c=>{const fs=invoicesFor(c),billed=fs.reduce((sum,f)=>sum+f.m,0),due=fs.reduce((sum,f)=>sum+f.m-paid(f),0);return "<tr><td>"+esc(c.n)+"</td><td>"+esc(c.t||"")+"</td><td>"+esc(c.a||"")+"</td><td class='r'>"+fm(billed)+"</td><td class='r'>"+fm(due)+"</td></tr>"}))+"</div>"}
-function nav(v){if(!v||!document.getElementById(v)||!document.getElementById(v).matches("main section"))v="dash";if(v!==CUR&&gate(()=>nav(v)))return;document.querySelectorAll("main section").forEach(s=>{const on=s.id==v;s.classList.toggle("hide",!on);if(on){s.classList.remove("in2");void s.offsetWidth;s.classList.add("in2");setTimeout(()=>s.classList.remove("in2"),1500)}});document.querySelectorAll("#nv button").forEach(b=>b.classList.toggle("on",b.dataset.v==v));$("pt").textContent=(P.find(p=>p[0]==v)||[])[1]||"";if(v=="dash")for(const k in PV)delete PV[k];document.body.classList.remove("mo");CUR=v;if(v==="cli")renderClients();try{draw()}catch(err){console.error("SIB interface draw error:",err);const target=$(v);if(target&&!target.innerHTML.trim())target.innerHTML=`<div class="box"><h2>Affichage interrompu</h2><p>Une erreur empêche cette page de se charger. Vos données ne sont pas supprimées.</p><button class="p" onclick="location.reload()">Actualiser l’application</button></div>`;toast("Erreur d’affichage sur la page "+((P.find(p=>p[0]===v)||[])[1]||v)+". Consultez la console ou actualisez la page.","er")}}
+function nav(v){if(v!==CUR&&gate(()=>nav(v)))return;document.querySelectorAll("main section").forEach(s=>{const on=s.id==v;s.classList.toggle("hide",!on);if(on){s.classList.remove("in2");void s.offsetWidth;s.classList.add("in2");setTimeout(()=>s.classList.remove("in2"),1500)}});document.querySelectorAll("#nv button").forEach(b=>b.classList.toggle("on",b.dataset.v==v));$("pt").textContent=(P.find(p=>p[0]==v)||[])[1]||"";if(v=="dash")for(const k in PV)delete PV[k];document.body.classList.remove("mo");CUR=v;if(v==="cli")renderClients();try{draw()}catch(err){console.error("SIB interface draw error:",err);if(v==="cli")toast("La page Clients est affichée, mais une autre partie de l’interface a rencontré une erreur.","wa")}}
 
 refreshServiceSelects();$("sv").onchange=()=>$("pu").value=SV[$("sv").value]?.[1]??"";$("sv").onchange();
 ["fr","tt2","da"].forEach(i=>$(i).innerHTML=AC.map(a=>`<option>${a}</option>`).join(""));
@@ -567,9 +548,9 @@ function cancel2(id){const o=S.e.find(x=>x.id==id);if(!o)return;
  add({t:"annulation",no:num("AV"),rev:o.id,m:o.m,a:o.a});const b=bal();
  if(Object.values(b).some(v=>v<0)){S.e.pop();save();return toast("Annulation impossible : solde négatif")}if(o.ach){const a=S.ac.find(z=>z.no==o.ach),s=a&&S.st.find(z=>z.n==a.st);if(s)s.q-=a.q;save()}toast("Annulation enregistrée");draw()}
 function draw(){
- const b=bal(),events=Array.isArray(S.e)?S.e.filter(e=>e&&typeof e==="object"):[],live=events.filter(e=>!e.rev&&!gone(e)),mo=new Date().toISOString().slice(0,7);
- const R=live.filter(e=>e.t=="recette"),D=live.filter(e=>e.t=="depense"),sm=a=>a.reduce((s,e)=>s+(Number(e.m)||0),0),inM=a=>a.filter(e=>String(e.d||"").slice(0,7)==mo);
- const rM=sm(inM(R)),dM=sm(inM(D)),top={};R.forEach(e=>(Array.isArray(e.lines)?e.lines:[]).forEach(l=>{if(l&&l.s)top[l.s]=(top[l.s]||0)+(Number(l.q)||0)*(Number(l.p)||0)}));
+ const b=bal(),live=S.e.filter(e=>!e.rev&&!gone(e)),mo=new Date().toISOString().slice(0,7);
+ const R=live.filter(e=>e.t=="recette"),D=live.filter(e=>e.t=="depense"),sm=a=>a.reduce((s,e)=>s+e.m,0),inM=a=>a.filter(e=>e.d.slice(0,7)==mo);
+ const rM=sm(inM(R)),dM=sm(inM(D)),top={};R.forEach(e=>e.lines.forEach(l=>top[l.s]=(top[l.s]||0)+l.q*l.p));
  const tp=Object.entries(top).sort((x,y)=>y[1]-x[1]).slice(0,5);
  $("dash").innerHTML=`<h2>Tableau de bord</h2><div class="row" style="margin-bottom:14px">${AC.map((a,i)=>`<div class="k" style="--card-delay:${i*70}ms"><span>${a}</span><b>${fm(b[a])}</b></div>`).join("")}<div class="k" style="--card-delay:210ms"><span>Total disponible</span><b>${fm(b.Caisse+b.Banque+b["Mobile Money"])}</b></div></div>
  <div class="row" style="margin-bottom:14px">${[["Recettes du mois",rM,"in"],["Dépenses du mois",dM,"out"],["Résultat du mois",rM-dM,""]].map(([label,value,cls],i)=>`<div class="k" style="--card-delay:${(i+4)*70}ms"><span>${label}</span><b class="${cls}">${fm(value)}</b></div>`).join("")}</div>
@@ -744,9 +725,9 @@ const GR=[["Principal",["dash","sale"]],["Ventes",["svc","cli","dev","fac"]],["F
 const IC={svc:"M4 5h16M4 12h16M4 19h16",dash:"M3 13h8V3H3zM13 21h8V11h-8zM3 21h8v-6H3zM13 3v6h8V3z",sale:"M12 2v20M17 6H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6",cli:"M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM22 21v-2a4 4 0 00-3-3.9M16 3.1a4 4 0 010 7.8",dev:"M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6M8 13h8M8 17h5",fac:"M4 2v20l3-2 3 2 3-2 3 2 3-2V2l-3 2-3-2-3 2-3-2zM8 8h8M8 12h8M8 16h5",treso:"M3 10l9-6 9 6M5 10v9M9 10v9M15 10v9M19 10v9M3 21h18",dep:"M12 5v14M5 12l7 7 7-7",fo:"M1 3h4l2.7 12.4a2 2 0 002 1.6h9.7a2 2 0 002-1.6L23 7H6M9 21a1 1 0 100-2 1 1 0 000 2zM20 21a1 1 0 100-2 1 1 0 000 2z",st:"M21 8l-9-5-9 5v8l9 5 9-5zM3 8l9 5 9-5M12 13v8",fz:"M22 10L12 5 2 10l10 5zM6 12v5c3 2 9 2 12 0v-5",pj:"M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z",rap:"M18 20V10M12 20V4M6 20v-6",hist:"M3 12a9 9 0 109-9 9 9 0 00-6.7 3L3 8M3 3v5h5M12 7v5l3 2",jr:"M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11",rh:"M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM20 8v6M23 11h-6",cg:"M3 6a2 2 0 012-2h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2zM16 2v4M8 2v4M3 10h18",pr:"M12 22a10 10 0 100-20 10 10 0 000 20zM12 6v6l4 2",pa:"M2 7h20v10H2zM12 14a2 2 0 100-4 2 2 0 000 4zM6 12h.01M18 12h.01",set:"M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6",usr:"M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10zM9 12l2 2 4-4"};
 const svg=i=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${IC[i]}"/></svg>`;
 function mk(){
- const configured=PM[RO],ok=Array.isArray(configured)&&configured.length?configured:(RO==="Administrateur"||RO==="Direction"?P.map(p=>p[0]):["dash"]),nm=Object.fromEntries(P);
+ const ok=PM[RO]||P.map(p=>p[0]),nm=Object.fromEntries(P);
  $("nv").innerHTML=GR.map(([g,ids])=>{const it=ids.filter(i=>ok.includes(i));return it.length?`<p class="gt">${g}</p>`+it.map(i=>`<button data-v="${i}" title="${nm[i]}">${svg(i)}<span>${nm[i]}</span></button>`).join(""):""}).join("");
- $("nv").querySelectorAll("button").forEach(b=>b.onclick=()=>nav(b.dataset.v));nav(ok.includes(CUR)?CUR:(ok.includes("dash")?"dash":ok[0]||"dash"))}
+ $("nv").querySelectorAll("button").forEach(b=>b.onclick=()=>nav(b.dataset.v));nav(ok[0])}
 $("dd").textContent=new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
 $("mb").onclick=()=>document.body.classList.toggle("mo");$("bk").onclick=()=>document.body.classList.remove("mo");
 const PV={},RM2=matchMedia("(prefers-reduced-motion:reduce)");
@@ -865,7 +846,7 @@ async function doGo(){const m=LM;if($("lbt").classList.contains("ld"))return;
    try{
     const result=await window.SIBCloud.signIn(l,p);
     const remote=await window.SIBCloud.loadAppState();
-    if(remote){mergeRemoteState(remote.state);}else{S=D0();}
+    if(remote){S={...D0(),...remote.state};S.set={...D0().set,...S.set};S.set.pre={...D0().set.pre,...S.set.pre};S.set.rh={...D0().set.rh,...S.set.rh};}else{S=D0();}
     const email=result.user.email||l,parts=(email.split("@")[0]||"Administrateur").split(/[._-]+/).filter(Boolean);
     CU={id:result.user.id,pn:parts[0]||"Administrateur",nm:parts.slice(1).join(" "),nom:[parts[0]||"Administrateur",...parts.slice(1)].join(" "),mail:email,login:email,role:result.membership.role,actif:true,cloud:true,last:null};
     S.us=[CU];RO=CU.role;cloudSessionReady=true;FA=0;applyLogo();activateCloudRealtime();bz(0);enter(true);
@@ -881,23 +862,12 @@ async function doGo(){const m=LM;if($("lbt").classList.contains("ld"))return;
 function enter(resume){const prev=CU.last;RO=CU.role;PF="mois";fDay=L(new Date());fMon=fDay.slice(0,7);fYr=new Date().getFullYear();CU.last=iso();try{sessionStorage.setItem("sib-uid",CU.id)}catch(_){}document.body.classList.remove("lo");
  lg("Connexion");save();mk();drawAm()}
 function out(force){if(!force&&gate(()=>out()))return;const nm0=CU?(CU.pn||CU.nom):"";if(CU){lg(force?"Session expirée (inactivité)":"Déconnexion");save()}const wasCloud=!!CU?.cloud;CU=null;cloudSessionReady=false;CUR="";try{sessionStorage.removeItem("sib-uid")}catch(_){}if(wasCloud&&window.SIBCloud?.ready)window.SIBCloud.signOut().catch(console.error);DL=[];cart=[];drawCart();["npp","amm"].forEach(i=>$(i).classList.add("hide"));document.body.classList.add("lo");document.body.classList.remove("mo");$("mdl").classList.add("hide");lgv("login");if(!force&&nm0)toast("Au revoir, "+nm0+" ! Vous avez été déconnecté. À bientôt.","ok",{ms:4500})}
-function mergeRemoteState(remoteState){
- const defaults=D0(),incoming=remoteState&&typeof remoteState==="object"?remoteState:{};
- S={...defaults,...incoming};
- for(const k of Object.keys(defaults)){
-  if(Array.isArray(defaults[k])&&!Array.isArray(S[k]))S[k]=defaults[k];
-  else if(defaults[k]&&typeof defaults[k]==="object"&&!Array.isArray(defaults[k])&&(!S[k]||typeof S[k]!=="object"||Array.isArray(S[k])))S[k]=defaults[k];
- }
- S.set={...defaults.set,...(S.set&&typeof S.set==="object"?S.set:{})};
- S.set.pre={...defaults.set.pre,...(S.set.pre&&typeof S.set.pre==="object"?S.set.pre:{})};
- S.set.rh={...defaults.set.rh,...(S.set.rh&&typeof S.set.rh==="object"?S.set.rh:{})};
-}
 async function boot(){applyLogo();
  if(window.SIBCloud?.ready){
   cloudSessionReady=false;
   try{
    const current=await window.SIBCloud.currentUser(),remote=await window.SIBCloud.loadAppState();
-   if(remote){mergeRemoteState(remote.state);}else{S=D0();}
+   if(remote){S={...D0(),...remote.state};S.set={...D0().set,...S.set};S.set.pre={...D0().set.pre,...S.set.pre};S.set.rh={...D0().set.rh,...S.set.rh};}else{S=D0();}
    const email=current.user.email||"",parts=(email.split("@")[0]||"Administrateur").split(/[._-]+/).filter(Boolean),profile=(S.profile&&typeof S.profile==="object")?S.profile:{};
    CU={id:current.user.id,pn:profile.pn||parts[0]||"Administrateur",nm:profile.nm||parts.slice(1).join(" "),nom:profile.nom||[profile.pn||parts[0]||"Administrateur",profile.nm||parts.slice(1).join(" ")].filter(Boolean).join(" "),mail:email,login:email,role:current.membership.role,actif:true,cloud:true,last:null,tel:profile.tel||"",ph:profile.ph||""};
    S.us=[CU];RO=CU.role;cloudSessionReady=true;applyLogo();activateCloudRealtime();enter(true);if(!remote)await cloudSaveChain;return;
@@ -1113,7 +1083,7 @@ Object.assign(ACT,{ugen(){$("up").value=gp()},
  ureset(id){if(RO!="Administrateur")return;const u=S.us.find(x=>x.id==id);if(!u)return;
   ask("Voulez-vous réinitialiser le mot de passe de "+u.nom+" ? Un mot de passe temporaire sera généré.",async()=>{const p=gp(),salt=rs();u.salt=salt;u.hash=await hp(p,salt);u.mc=true;lg("Mot de passe réinitialisé : "+u.nom);save();draw();info("Mot de passe réinitialisé","Utilisateur : <b>"+esc(u.nom)+"</b><br>Mot de passe temporaire : <b>"+esc(p)+"</b><br><small>Il devra le changer à sa prochaine connexion.</small>")},{title:"Réinitialiser le mot de passe",ok:"Réinitialiser",warn:"L'ancien mot de passe cessera de fonctionner immédiatement."})}});
 document.addEventListener("click",e=>{const b=e.target.closest("[data-u]");if(!b)return;const a=b.dataset.u;
- if(a=="go")doGo();if(a=="out")out(true);if(a=="pw"){$("amm").classList.add("hide");pwm()}if(a=="cpw")cpw();if(a=="eye"){const i=$(b.dataset.t);i.type=i.type=="password"?"text":"password"}});
+ if(a=="go")doGo();if(a=="out")out();if(a=="pw"){$("amm").classList.add("hide");pwm()}if(a=="cpw")cpw();if(a=="eye"){const i=$(b.dataset.t);i.type=i.type=="password"?"text":"password"}});
 $("lgc").addEventListener("keydown",e=>{if(e.key=="Enter")doGo()});
 
 
