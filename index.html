@@ -799,7 +799,11 @@ nav .lob{min-height:34px;font-size:11px}
     root.style.colorScheme=theme;
     root.classList.remove("sib-theme-enter-dark","sib-theme-enter-light");
     void root.offsetWidth;
+    /* Une même transition de chargement pour le thème clair et le thème sombre. */
     root.classList.add(theme==="dark"?"sib-theme-enter-dark":"sib-theme-enter-light");
+    window.setTimeout(function(){
+     root.classList.remove("sib-theme-enter-dark","sib-theme-enter-light");
+    },520);
    }
    button.innerHTML=manualMode===null?icons.auto:(manualMode==="light"?icons.sun:icons.moon);
    button.title=manualMode===null
@@ -824,6 +828,21 @@ nav .lob{min-height:34px;font-size:11px}
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",initThemeControl,{once:true});
  else initThemeControl();
 })();</script>
+<style id="sib-theme-transition-fix">
+/* Même transition de chargement pour le thème clair et le thème sombre. */
+:root.sib-theme-enter-light body,
+:root.sib-theme-enter-dark body{
+ animation:sibThemeLoadingTransition .52s ease both!important;
+}
+@keyframes sibThemeLoadingTransition{
+ 0%{opacity:.72;filter:brightness(.88)}
+ 100%{opacity:1;filter:brightness(1)}
+}
+@media(prefers-reduced-motion:reduce){
+ :root.sib-theme-enter-light body,
+ :root.sib-theme-enter-dark body{animation:none!important}
+}
+</style>
 <style id="sib-premium-dark-theme">
 /* SIB Premium Dark: fond vivant, profondeur, lueurs discrètes et transitions fluides. */
 :root{--sib-dark-glow:rgba(63,119,225,.16);--sib-dark-amber:rgba(238,139,69,.075)}
