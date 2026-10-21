@@ -1624,7 +1624,11 @@ function ld(){
  overlay.classList.add("sib-refresh-visible");
  d.setAttribute("aria-busy","true");
  setTimeout(function(){
-  try { dash(); d.classList.add("in2"); setTimeout(function(){d.classList.remove("in2");},1500); }
+  try {
+   /* Actualiser les données sans afficher l’animation de chargement dans le tableau de bord. */
+   dash();
+   d.classList.remove("in2");
+  }
   finally {
    d.removeAttribute("aria-busy");
    overlay.classList.add("sib-refresh-out");
