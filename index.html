@@ -1013,6 +1013,31 @@ body,.top,main,.box,.k,.pp,.md>.box,input,select,textarea,button.s,.theme-manual
 :root[data-theme="dark"] .sib-refresh-spinner{border-color:rgba(91,147,240,.18);border-top-color:#7cb0ff;border-right-color:#a78bfa}
 :root[data-theme="dark"] .sib-refresh-track{background:rgba(91,147,240,.18)}
 @media(prefers-reduced-motion:reduce){.sib-refresh-spinner,.sib-refresh-track i{animation:none!important}#sib-refresh-overlay{transition:none!important}}
+
+/* Les 8 cartes KPI du tableau de bord restent sobres : sans animation ni effet de survol. */
+#dash .gd>.k,
+#dash .k{
+ animation:none!important;
+ transform:none!important;
+ transition:none!important;
+ box-shadow:var(--sh)!important;
+}
+#dash .k::before,
+#dash .k::after{
+ content:none!important;
+ display:none!important;
+ animation:none!important;
+ transform:none!important;
+ transition:none!important;
+}
+#dash .k:hover,
+#dash .k:hover::before,
+#dash .k:hover::after,
+#dash .k:hover b{
+ transform:none!important;
+ box-shadow:var(--sh)!important;
+ border-color:var(--ln)!important;
+}
 </style>
 </head><body>
 <div id="sib-startup" role="status" aria-live="polite"><div class="sib-startup-inner"><div class="sib-startup-logo" aria-hidden="true">SIB</div><div class="sib-startup-name">SIB Gestion</div><div class="sib-startup-label">Chargement de votre espace…</div><div class="sib-startup-track" aria-hidden="true"></div></div></div>
