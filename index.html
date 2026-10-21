@@ -565,11 +565,11 @@ nav .lob{min-height:34px;font-size:11px}
 :root[data-theme="dark"] main h6,
 :root[data-theme="dark"] .page-title,
 :root[data-theme="dark"] .section-title{color:var(--tx)!important}
-.theme-manual{min-height:36px;padding:0 10px;border:1px solid var(--ln);border-radius:10px;background:var(--sf);color:var(--tx);font:inherit;font-size:12px;font-weight:600;line-height:1.2;white-space:nowrap;cursor:pointer;flex:none}
+.theme-manual{display:inline-grid;place-items:center;width:36px;min-width:36px;height:36px;padding:0;border:1px solid var(--ln);border-radius:10px;background:var(--sf);color:var(--tx);cursor:pointer;flex:none;transition:background .18s,border-color .18s,transform .18s}.theme-manual svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.theme-manual:hover{border-color:var(--ac);background:var(--ac2);transform:translateY(-1px)}.theme-manual:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
 .theme-manual:hover{border-color:var(--ac);background:var(--ac2)}
 .theme-manual:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
 #dd{white-space:nowrap;font-variant-numeric:tabular-nums}
-@media(max-width:720px){.top #dd{display:inline-block!important;max-width:120px;overflow:hidden;text-overflow:ellipsis;font-size:11px!important}.theme-manual{padding:0 7px;font-size:10px;min-height:34px}.top{gap:6px}}
+@media(max-width:720px){.top #dd{display:inline-block!important;max-width:120px;overflow:hidden;text-overflow:ellipsis;font-size:11px!important}.theme-manual{width:34px;min-width:34px;height:34px}.top{gap:6px}}
 /* Thème horaire : harmonise aussi les composants qui utilisaient des couleurs fixes. */
 :root[data-theme="dark"] body,
 :root[data-theme="dark"] .app,
@@ -635,39 +635,50 @@ nav .lob{min-height:34px;font-size:11px}
 :root[data-theme="light"] #pt{color:var(--tx)}
 </style>
 <script>
-/* Thème automatique selon l'heure locale : clair de 07 h à 18 h 59, sombre de 19 h à 06 h 59.
-   Le bouton permet de passer en manuel et de choisir clair/sombre, puis de revenir en automatique. */
+/* Thème automatique selon l'heure, avec bascule manuelle par icône. */
 (function(){
  "use strict";
- var root=document.documentElement;
- var button=document.getElementById("themeModeButton");
- var manualMode=null;
- try{manualMode=localStorage.getItem("sib-theme-manual");}catch(e){}
- function applyTheme(theme){root.setAttribute("data-theme",theme);root.style.colorScheme=theme;}
- function hourlyTheme(){var h=new Date().getHours();return(h>=7&&h<19)?"light":"dark";}
- function renderTheme(){
-  var theme=manualMode==="light"||manualMode==="dark"?manualMode:hourlyTheme();
-  applyTheme(theme);
-  if(button){
-   if(manualMode==="light"){button.textContent="Manuel · Clair";button.title="Mode manuel : thème clair. Cliquer pour passer au sombre.";}
-   else if(manualMode==="dark"){button.textContent="Manuel · Sombre";button.title="Mode manuel : thème sombre. Cliquer pour revenir à l’automatique.";}
-   else{button.textContent="Mode manuel";button.title="Mode automatique selon l’heure. Cliquer pour choisir un thème manuel.";}
-   button.setAttribute("aria-pressed",manualMode==="light"||manualMode==="dark"?"true":"false");
+ function initThemeControl(){
+  var root=document.documentElement;
+  var button=document.getElementById("themeModeButton");
+  if(!button||button.dataset.themeReady==="1")return;
+  button.dataset.themeReady="1";
+  var manualMode=null;
+  try{manualMode=localStorage.getItem("sib-theme-manual");}catch(e){}
+  if(manualMode!=="light"&&manualMode!=="dark")manualMode=null;
+  var icons={
+   sun:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg>',
+   moon:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z"/></svg>',
+   auto:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>'
+  };
+  function hourlyTheme(){var h=new Date().getHours();return(h>=7&&h<19)?"light":"dark";}
+  function renderTheme(){
+   var theme=manualMode||hourlyTheme();
+   root.setAttribute("data-theme",theme);
+   root.style.colorScheme=theme;
+   button.innerHTML=manualMode===null?icons.auto:(manualMode==="light"?icons.sun:icons.moon);
+   button.title=manualMode===null
+    ?"Mode automatique selon l’heure. Cliquer pour forcer le thème clair ou sombre."
+    :(manualMode==="light"?"Mode manuel : thème clair. Cliquer pour passer au sombre.":"Mode manuel : thème sombre. Cliquer pour revenir au mode automatique.");
+   button.setAttribute("aria-label",button.title);
+   button.setAttribute("aria-pressed",manualMode===null?"false":"true");
+   button.dataset.mode=manualMode||"auto";
   }
- }
- if(button)button.addEventListener("click",function(){
-  if(manualMode===null){manualMode=hourlyTheme()==="light"?"dark":"light";}
-  else if(manualMode==="light"){manualMode="dark";}
-  else{manualMode=null;}
-  try{if(manualMode===null)localStorage.removeItem("sib-theme-manual");else localStorage.setItem("sib-theme-manual",manualMode);}catch(e){}
+  button.addEventListener("click",function(){
+   if(manualMode===null)manualMode=hourlyTheme()==="light"?"dark":"light";
+   else if(manualMode==="light")manualMode="dark";
+   else manualMode=null;
+   try{if(manualMode===null)localStorage.removeItem("sib-theme-manual");else localStorage.setItem("sib-theme-manual",manualMode);}catch(e){}
+   renderTheme();
+  });
   renderTheme();
- });
- renderTheme();
- window.addEventListener("focus",renderTheme);
- document.addEventListener("visibilitychange",function(){if(!document.hidden)renderTheme();});
- window.setInterval(renderTheme,30000);
-})();
-</script></head><body>
+  window.addEventListener("focus",renderTheme);
+  document.addEventListener("visibilitychange",function(){if(!document.hidden)renderTheme();});
+  window.setInterval(renderTheme,30000);
+ }
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",initThemeControl,{once:true});
+ else initThemeControl();
+})();</script></head><body>
 <div id="sib-startup" role="status" aria-live="polite"><div class="sib-startup-inner"><div class="sib-startup-logo" aria-hidden="true">SIB</div><div class="sib-startup-name">SIB Gestion</div><div class="sib-startup-label">Chargement de votre espace…</div><div class="sib-startup-track" aria-hidden="true"></div></div></div>
 <div class="app">
 <nav aria-label="Menu principal"><div class="br"><div class="mk">SIB</div><div><b id="bnm">SIB Gestion</b><small>Innover • Connecter • Développer</small></div></div><div id="nv"></div><div class="ft"><div class="me" data-go="prof" title="Mon profil"><span class="av2" id="unm0"></span><div><b id="unm"></b><small id="urr"></small></div></div><button class="lob" data-u="out">Se déconnecter</button></div></nav>
