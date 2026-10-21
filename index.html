@@ -605,19 +605,35 @@ nav .lob{min-height:34px;font-size:11px}
  100%{background-position:100% 85%}
 }
 @keyframes sibAuroraFlow{
- 0%{transform:translate3d(-2%,0,0) scale(1);opacity:.45}
- 50%{transform:translate3d(2%,1.5%,0) scale(1.05);opacity:.78}
- 100%{transform:translate3d(-1%,3%,0) scale(1.02);opacity:.58}
+ 0%{transform:translate3d(-2%,0,0) scale(1);opacity:.42}
+ 35%{transform:translate3d(1.5%,-1%,0) scale(1.04);opacity:.7}
+ 70%{transform:translate3d(3%,2%,0) scale(1.07);opacity:.8}
+ 100%{transform:translate3d(-1%,3%,0) scale(1.02);opacity:.52}
+}
+:root[data-theme="dark"] body::before{
+ background:rgba(10,17,32,.92);
+ backdrop-filter:blur(12px);
+ -webkit-backdrop-filter:blur(12px)
+}
+:root[data-theme="dark"] .top h1{
+ text-shadow:0 0 22px rgba(91,147,240,.18)
+}
+:root[data-theme="dark"] .mk{
+ box-shadow:0 0 22px rgba(37,99,235,.28),0 8px 22px rgba(0,0,0,.2)
 }
 @media(prefers-reduced-motion:reduce){
  :root[data-theme="dark"] body,:root[data-theme="dark"] body::after{animation:none!important}
 }
-:root[data-theme="dark"] body,
+/* Le fond animé doit rester visible derrière les zones de travail, sans gêner la lecture. */
+:root[data-theme="dark"] body{color:var(--tx)}
 :root[data-theme="dark"] .app,
+:root[data-theme="dark"] .col,
 :root[data-theme="dark"] main,
 :root[data-theme="dark"] section,
 :root[data-theme="dark"] .content,
-:root[data-theme="dark"] .page,
+:root[data-theme="dark"] .page{
+ background-color:transparent!important;color:var(--tx)
+}
 :root[data-theme="dark"] .panel,
 :root[data-theme="dark"] .card,
 :root[data-theme="dark"] .modal,
@@ -627,7 +643,28 @@ nav .lob{min-height:34px;font-size:11px}
 :root[data-theme="dark"] .table-container,
 :root[data-theme="dark"] .form-card,
 :root[data-theme="dark"] .stat-card{
- background-color:var(--bg);color:var(--tx)
+ background-color:rgba(14,24,43,.86);color:var(--tx);
+ border-color:var(--ln);
+ backdrop-filter:blur(12px);
+ -webkit-backdrop-filter:blur(12px)
+}
+:root[data-theme="dark"] .top{
+ background:rgba(11,18,32,.72)!important;
+ border-bottom:1px solid rgba(112,151,210,.16);
+ backdrop-filter:blur(16px);
+ -webkit-backdrop-filter:blur(16px)
+}
+:root[data-theme="dark"] nav{
+ background:rgba(8,15,30,.94);
+ border-right:1px solid rgba(112,151,210,.14)
+}
+:root[data-theme="dark"] .table-wrap,
+:root[data-theme="dark"] .table-container{overflow:auto}
+:root[data-theme="dark"] .panel:hover,
+:root[data-theme="dark"] .card:hover,
+:root[data-theme="dark"] .stat-card:hover{
+ border-color:rgba(91,147,240,.42);
+ box-shadow:0 12px 35px rgba(0,0,0,.16),0 0 22px rgba(37,99,235,.07)
 }
 :root[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]),
 :root[data-theme="dark"] select,
