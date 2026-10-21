@@ -554,18 +554,61 @@ nav .lob{min-height:34px;font-size:11px}
 
 :root[data-theme="dark"]{color-scheme:dark}
 :root[data-theme="light"]{color-scheme:light}
+
+/* Thème horaire : harmonise aussi les composants qui utilisaient des couleurs fixes. */
+:root[data-theme="dark"] body,
+:root[data-theme="dark"] .app,
+:root[data-theme="dark"] main,
+:root[data-theme="dark"] section,
+:root[data-theme="dark"] .content,
+:root[data-theme="dark"] .page,
+:root[data-theme="dark"] .panel,
+:root[data-theme="dark"] .card,
+:root[data-theme="dark"] .modal,
+:root[data-theme="dark"] .modal-content,
+:root[data-theme="dark"] .box,
+:root[data-theme="dark"] .table-wrap,
+:root[data-theme="dark"] .table-container,
+:root[data-theme="dark"] .form-card,
+:root[data-theme="dark"] .stat-card{
+ background-color:var(--bg);color:var(--tx)
+}
+:root[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]),
+:root[data-theme="dark"] select,
+:root[data-theme="dark"] textarea{
+ background-color:var(--sf);color:var(--tx);border-color:var(--ln);color-scheme:dark
+}
+:root[data-theme="dark"] table{color:var(--tx);border-color:var(--ln)}
+:root[data-theme="dark"] th{background-color:#1a2941;color:#e8eef9}
+:root[data-theme="dark"] td,
+:root[data-theme="dark"] tr,
+:root[data-theme="dark"] fieldset{border-color:var(--ln)}
+:root[data-theme="dark"] td{background-color:var(--sf)}
+:root[data-theme="dark"] hr{border-color:var(--ln)}
+:root[data-theme="dark"] .muted,
+:root[data-theme="dark"] .hint,
+:root[data-theme="dark"] small{color:var(--mu)}
+:root[data-theme="light"] body{background:var(--bg);color:var(--tx)}
 </style>
 <script>
 /* Thème automatique selon l'heure locale : clair de 07 h à 18 h 59, sombre de 19 h à 06 h 59. */
 (function(){
+ "use strict";
  function sibApplyHourlyTheme(){
   var hour=new Date().getHours();
   var theme=(hour>=7&&hour<19)?"light":"dark";
-  document.documentElement.setAttribute("data-theme",theme);
-  document.documentElement.style.colorScheme=theme;
+  var root=document.documentElement;
+  if(root.getAttribute("data-theme")!==theme){
+   root.setAttribute("data-theme",theme);
+   root.style.colorScheme=theme;
+  }
  }
  sibApplyHourlyTheme();
- window.setInterval(sibApplyHourlyTheme,60000);
+ window.addEventListener("focus",sibApplyHourlyTheme);
+ document.addEventListener("visibilitychange",function(){
+  if(!document.hidden)sibApplyHourlyTheme();
+ });
+ window.setInterval(sibApplyHourlyTheme,30000);
 })();
 </script></head><body>
 <div id="sib-startup" role="status" aria-live="polite"><div class="sib-startup-inner"><div class="sib-startup-logo" aria-hidden="true">SIB</div><div class="sib-startup-name">SIB Gestion</div><div class="sib-startup-label">Chargement de votre espace…</div><div class="sib-startup-track" aria-hidden="true"></div></div></div>
