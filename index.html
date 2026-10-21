@@ -1057,6 +1057,20 @@ body,.top,main,.box,.k,.pp,.md>.box,input,select,textarea,button.s,.theme-manual
  :root[data-theme="dark"] body,
  :root[data-theme="dark"] body::after{animation:none!important;will-change:auto}
 }
+/* Le chargement doit toujours rester au-dessus de l’application, jamais dans le tableau de bord. */
+#sib-refresh-overlay{
+ position:fixed!important;
+ inset:0!important;
+ z-index:2147483000!important;
+ isolation:isolate;
+}
+:root[data-theme="dark"] #sib-refresh-overlay{
+ background:rgba(3,8,20,.82)!important;
+}
+#sib-refresh-overlay .sib-refresh-card{
+ position:relative;
+ z-index:1;
+}
 /* Voile d’actualisation adapté au thème clair et sombre. */
 #sib-refresh-overlay{position:fixed;inset:0;z-index:99990;display:grid;place-items:center;padding:20px;background:rgba(239,244,252,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .2s ease,visibility .2s ease}
 #sib-refresh-overlay.sib-refresh-visible{opacity:1;visibility:visible;pointer-events:auto}
