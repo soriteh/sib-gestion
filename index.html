@@ -814,7 +814,7 @@ function cancel2(id){const o=S.e.find(x=>x.id==id);if(!o)return;
 function draw(){
  S=repairState(S);
  const b=bal(),live=S.e.filter(e=>e&&typeof e==="object"&&!e.rev&&!gone(e)),mo=new Date().toISOString().slice(0,7);
- const R=live.filter(e=>e.t=="recette"),D=live.filter(e=>e.t=="depense"),sm=a=>a.reduce((s,e)=>s+e.m,0),inM=a=>a.filter(e=>e.d.slice(0,7)==mo);
+ const R=live.filter(e=>e.t=="recette"),D=live.filter(e=>e.t=="depense"),sm=a=>a.reduce((s,e)=>s+(Number(e.m)||0),0),inM=a=>a.filter(e=>typeof e.d==="string"&&e.d.slice(0,7)==mo);
  const rM=sm(inM(R)),dM=sm(inM(D)),top={};R.forEach(e=>(Array.isArray(e.lines)?e.lines:[]).forEach(l=>{if(l&&typeof l.s==="string")top[l.s]=(top[l.s]||0)+(Number(l.q)||0)*(Number(l.p)||0)}));
  const tp=Object.entries(top).sort((x,y)=>y[1]-x[1]).slice(0,5);
  $("dash").innerHTML=`<h2>Tableau de bord</h2><div class="row" style="margin-bottom:14px">${AC.map((a,i)=>`<div class="k" style="--card-delay:${i*70}ms"><span>${a}</span><b>${fm(b[a])}</b></div>`).join("")}<div class="k" style="--card-delay:210ms"><span>Total disponible</span><b>${fm(b.Caisse+b.Banque+b["Mobile Money"])}</b></div></div>
