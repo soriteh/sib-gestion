@@ -996,6 +996,23 @@ body,.top,main,.box,.k,.pp,.md>.box,input,select,textarea,button.s,.theme-manual
  :root[data-theme="dark"] body,
  :root[data-theme="dark"] body::after{animation:none!important;will-change:auto}
 }
+/* Voile d’actualisation adapté au thème clair et sombre. */
+#sib-refresh-overlay{position:fixed;inset:0;z-index:99990;display:grid;place-items:center;padding:20px;background:rgba(239,244,252,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .2s ease,visibility .2s ease}
+#sib-refresh-overlay.sib-refresh-visible{opacity:1;visibility:visible;pointer-events:auto}
+#sib-refresh-overlay.sib-refresh-out{opacity:0;visibility:hidden;pointer-events:none}
+.sib-refresh-card{display:flex;flex-direction:column;align-items:center;gap:10px;min-width:230px;padding:26px 30px;border:1px solid rgba(91,147,240,.22);border-radius:20px;background:rgba(255,255,255,.94);color:#14213a;box-shadow:0 22px 70px rgba(17,40,82,.18);text-align:center}
+.sib-refresh-spinner{width:34px;height:34px;border:3px solid rgba(46,108,214,.16);border-top-color:#2e6cd6;border-right-color:#ed7d31;border-radius:50%;animation:sibRefreshSpin .8s linear infinite}
+.sib-refresh-card strong{font-size:14px;letter-spacing:.01em}
+.sib-refresh-subtitle{font-size:12px;opacity:.72}
+.sib-refresh-track{width:145px;height:3px;border-radius:9px;overflow:hidden;background:rgba(46,108,214,.12);margin-top:3px}
+.sib-refresh-track i{display:block;width:40%;height:100%;border-radius:9px;background:linear-gradient(90deg,#2e6cd6,#7b61ff,#ed7d31);animation:sibRefreshProgress 1.2s ease-in-out infinite}
+@keyframes sibRefreshSpin{to{transform:rotate(360deg)}}
+@keyframes sibRefreshProgress{0%{transform:translateX(-110%)}100%{transform:translateX(370%)}}
+:root[data-theme="dark"] #sib-refresh-overlay{background:rgba(3,8,20,.62)}
+:root[data-theme="dark"] .sib-refresh-card{background:rgba(12,22,41,.92);color:#e8eef9;border-color:rgba(91,147,240,.3);box-shadow:0 25px 90px rgba(0,0,0,.42),0 0 38px rgba(37,99,235,.12)}
+:root[data-theme="dark"] .sib-refresh-spinner{border-color:rgba(91,147,240,.18);border-top-color:#7cb0ff;border-right-color:#a78bfa}
+:root[data-theme="dark"] .sib-refresh-track{background:rgba(91,147,240,.18)}
+@media(prefers-reduced-motion:reduce){.sib-refresh-spinner,.sib-refresh-track i{animation:none!important}#sib-refresh-overlay{transition:none!important}}
 </style>
 </head><body>
 <div id="sib-startup" role="status" aria-live="polite"><div class="sib-startup-inner"><div class="sib-startup-logo" aria-hidden="true">SIB</div><div class="sib-startup-name">SIB Gestion</div><div class="sib-startup-label">Chargement de votre espace…</div><div class="sib-startup-track" aria-hidden="true"></div></div></div>
@@ -1516,7 +1533,29 @@ const dl=(c,p,inv)=>{if(!c&&!p)return"";if(!p)return'<span class="bd mu">Nouveau
 const dx=(c,p,inv,a,col)=>`<div class="dl">${dl(c,p,inv)}<small>vs période précédente</small></div>${spk(a,col)}`;
 const hv=a=>{const m=Math.max(1,...a.map(x=>x[1]));return a.map((x,i)=>`<div class="hb" style="grid-template-columns:120px 1fr auto"><span>${esc(x[0])}</span><div><i style="width:${x[1]/m*100}%;background:${CL[i%6]};animation-delay:${i*100}ms"></i></div><b>${fm(x[1])}</b></div>`).join("")||'<p style="color:var(--mu)">Aucune donnée sur cette période.</p>'};
 const SK=`<div class="gd"><div class="s12" style="height:70px"></div>${"<div class='k s3 sk' style='height:92px'></div>".repeat(8)}<div class="box s8 sk" style="height:240px"></div><div class="box s4 sk" style="height:240px"></div></div>`;
-function ld(){const d=$("dash");d.innerHTML=SK;setTimeout(()=>{d.classList.add("in2");dash();setTimeout(()=>d.classList.remove("in2"),1500)},450)}
+function ld(){
+ const d=$("dash");
+ let overlay=document.getElementById("sib-refresh-overlay");
+ if(!overlay){
+  overlay=document.createElement("div");
+  overlay.id="sib-refresh-overlay";
+  overlay.setAttribute("role","status");
+  overlay.setAttribute("aria-live","polite");
+  overlay.innerHTML='<div class="sib-refresh-card"><span class="sib-refresh-spinner" aria-hidden="true"></span><strong>Actualisation en cours</strong><span class="sib-refresh-subtitle">Mise à jour de votre espace…</span><span class="sib-refresh-track"><i></i></span></div>';
+  document.body.appendChild(overlay);
+ }
+ overlay.classList.remove("sib-refresh-out");
+ overlay.classList.add("sib-refresh-visible");
+ d.setAttribute("aria-busy","true");
+ setTimeout(function(){
+  try { dash(); d.classList.add("in2"); setTimeout(function(){d.classList.remove("in2");},1500); }
+  finally {
+   d.removeAttribute("aria-busy");
+   overlay.classList.add("sib-refresh-out");
+   setTimeout(function(){if(overlay&&overlay.parentNode)overlay.remove();},260);
+  }
+ },220);
+}
 const CL=["#2e6cd6","#ed7d31","#1fa38a","#8a5cf5","#c9a227","#d6457a"],MN={Caisse:"Espèces","Mobile Money":"Mobile Money",Banque:"Virement bancaire"};
 const grp=(a,k,v)=>{const o={};a.forEach(x=>o[k(x)]=(o[k(x)]||0)+v(x));return Object.entries(o).sort((x,y)=>y[1]-x[1]).slice(0,6)};
 function donut(it,vide){const ts=sum(it.map(x=>x[1]));if(!ts)return`<p style="color:var(--mu)">${vide}</p>`;let off=0;
