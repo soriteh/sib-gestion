@@ -906,6 +906,60 @@ body,.top,main,.box,.k,.pp,.md>.box,input,select,textarea,button.s,.theme-manual
  :root[data-theme="dark"] .k,:root[data-theme="dark"] .box,:root[data-theme="dark"] .lgcard{transition:none!important}
 }
 </style>
+<style id="sib-dark-premium-animated-background">
+/* Fond premium animé réservé au mode sombre : halos bleus, violets et cyan en mouvement lent. */
+:root[data-theme="dark"] body{
+ background-color:#070d19!important;
+ background-image:
+  radial-gradient(ellipse 42% 38% at 8% 12%,rgba(30,104,235,.23),transparent 72%),
+  radial-gradient(ellipse 38% 45% at 92% 18%,rgba(119,54,221,.20),transparent 70%),
+  radial-gradient(ellipse 45% 38% at 75% 95%,rgba(0,183,220,.14),transparent 72%),
+  radial-gradient(ellipse 32% 30% at 28% 82%,rgba(38,75,183,.14),transparent 74%),
+  linear-gradient(135deg,#070d19 0%,#0a1426 48%,#080d1b 100%)!important;
+ background-size:145% 145%,155% 155%,160% 160%,150% 150%,100% 100%!important;
+ background-attachment:fixed!important;
+ animation:sibPremiumBgFlow 24s ease-in-out infinite alternate;
+}
+:root[data-theme="dark"] body::after{
+ inset:-8%!important;opacity:.85!important;z-index:0!important;pointer-events:none!important;
+ background:
+  radial-gradient(ellipse at 18% 30%,rgba(41,133,255,.16) 0,transparent 34%),
+  radial-gradient(ellipse at 82% 22%,rgba(155,75,255,.14) 0,transparent 32%),
+  radial-gradient(ellipse at 68% 78%,rgba(0,212,226,.10) 0,transparent 35%),
+  radial-gradient(ellipse at 32% 88%,rgba(53,87,222,.11) 0,transparent 32%),
+  repeating-linear-gradient(125deg,transparent 0 110px,rgba(105,153,255,.018) 111px 112px,transparent 113px 220px)!important;
+ background-size:140% 140%,150% 150%,160% 160%,145% 145%,auto!important;
+ animation:sibPremiumAurora 20s ease-in-out infinite alternate!important;
+ will-change:transform,background-position,opacity;
+}
+:root[data-theme="dark"] main{
+ background:transparent!important;
+}
+:root[data-theme="dark"] .top{
+ backdrop-filter:blur(18px) saturate(140%);
+ -webkit-backdrop-filter:blur(18px) saturate(140%);
+}
+:root[data-theme="dark"] .k,
+:root[data-theme="dark"] .box,
+:root[data-theme="dark"] .lgcard{
+ backdrop-filter:blur(12px) saturate(125%);
+ -webkit-backdrop-filter:blur(12px) saturate(125%);
+}
+@keyframes sibPremiumBgFlow{
+ 0%{background-position:0% 0%,100% 0%,100% 100%,0% 100%,50% 50%}
+ 50%{background-position:35% 20%,65% 35%,55% 75%,25% 65%,50% 50%}
+ 100%{background-position:12% 38%,85% 12%,35% 100%,65% 55%,50% 50%}
+}
+@keyframes sibPremiumAurora{
+ 0%{transform:translate3d(-1.4%,-.8%,0) scale(1);background-position:0% 15%,100% 0%,70% 100%,15% 80%,0 0;opacity:.66}
+ 50%{transform:translate3d(1.2%,.7%,0) scale(1.025);background-position:45% 35%,55% 25%,40% 70%,65% 50%,0 0;opacity:.92}
+ 100%{transform:translate3d(-.4%,1.2%,0) scale(1.015);background-position:20% 80%,80% 65%,15% 30%,35% 10%,0 0;opacity:.76}
+}
+@media(prefers-reduced-motion:reduce){
+ :root[data-theme="dark"] body,
+ :root[data-theme="dark"] body::after{animation:none!important;will-change:auto}
+}
+</style>
 </head><body>
 <div id="sib-startup" role="status" aria-live="polite"><div class="sib-startup-inner"><div class="sib-startup-logo" aria-hidden="true">SIB</div><div class="sib-startup-name">SIB Gestion</div><div class="sib-startup-label">Chargement de votre espace…</div><div class="sib-startup-track" aria-hidden="true"></div></div></div>
 <div class="app">
