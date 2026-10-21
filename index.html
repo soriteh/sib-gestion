@@ -620,6 +620,8 @@ function repairState(input){
  out.set.rh={...defaults.set.rh,...(out.set.rh&&typeof out.set.rh==="object"&&!Array.isArray(out.set.rh)?out.set.rh:{})};
  out.dis=out.dis&&typeof out.dis==="object"&&!Array.isArray(out.dis)?out.dis:{};
  for(const k of ["sv","emp","cg","bl","us","e","c","dv","fa","fo","ac","st","fz","pj","jr","etudiants"])if(Array.isArray(out[k]))out[k]=out[k].filter(x=>x&&typeof x==="object"&&!Array.isArray(x));
+ // Compatibilité avec les anciennes opérations/documents qui n’avaient pas de lignes détaillées.
+ for(const k of ["e","dv","fa"])if(Array.isArray(out[k]))out[k].forEach(x=>{if(!Array.isArray(x.lines))x.lines=[];});
  for(const k of ["pt","n","dis"])if(!out[k]||typeof out[k]!=="object"||Array.isArray(out[k]))out[k]={};
  return out;
 }
