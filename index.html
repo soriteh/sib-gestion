@@ -565,11 +565,11 @@ nav .lob{min-height:34px;font-size:11px}
 :root[data-theme="dark"] main h6,
 :root[data-theme="dark"] .page-title,
 :root[data-theme="dark"] .section-title{color:var(--tx)!important}
-.theme-manual{min-height:36px;padding:0 10px;border:1px solid var(--ln);border-radius:10px;background:var(--sf);color:var(--tx);font:600 12px/1.2 inherit;white-space:nowrap;cursor:pointer;flex:none}
+.theme-manual{min-height:36px;padding:0 10px;border:1px solid var(--ln);border-radius:10px;background:var(--sf);color:var(--tx);font:inherit;font-size:12px;font-weight:600;line-height:1.2;white-space:nowrap;cursor:pointer;flex:none}
 .theme-manual:hover{border-color:var(--ac);background:var(--ac2)}
 .theme-manual:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
 #dd{white-space:nowrap;font-variant-numeric:tabular-nums}
-@media(max-width:520px){.theme-manual{padding:0 7px;font-size:10px;min-height:34px}.top{gap:6px}#dd{font-size:11px!important}}
+@media(max-width:720px){.top #dd{display:inline-block!important;max-width:120px;overflow:hidden;text-overflow:ellipsis;font-size:11px!important}.theme-manual{padding:0 7px;font-size:10px;min-height:34px}.top{gap:6px}}
 /* Thème horaire : harmonise aussi les composants qui utilisaient des couleurs fixes. */
 :root[data-theme="dark"] body,
 :root[data-theme="dark"] .app,
