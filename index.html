@@ -774,6 +774,97 @@ body,.top,main,.box,.k,.pp,.md>.box,input,select,textarea,button.s,.theme-manual
  body,.top,main,.box,.k,.pp,.md>.box,input,select,textarea,button.s,.theme-manual{transition:none!important}
 }
 </style>
+
+<style id="sib-card-motion-refresh">
+/* Nouveau style des cards : verre fumé, halo au survol et lueur qui traverse la carte. */
+:root[data-theme="dark"] .k,
+:root[data-theme="dark"] .box,
+:root[data-theme="dark"] .lgcard{
+ position:relative;isolation:isolate;overflow:hidden;
+ border:1px solid rgba(128,165,226,.2)!important;
+ background:linear-gradient(135deg,rgba(24,42,69,.94),rgba(12,24,42,.97) 58%,rgba(19,32,54,.96))!important;
+ box-shadow:0 10px 26px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.045);
+ transition:transform .32s cubic-bezier(.2,.75,.25,1),border-color .32s ease,box-shadow .32s ease,background .32s ease
+}
+:root[data-theme="dark"] .k::before,
+:root[data-theme="dark"] .box::before,
+:root[data-theme="dark"] .lgcard::before{
+ content:"";position:absolute;inset:-1px;z-index:-1;pointer-events:none;
+ background:linear-gradient(112deg,transparent 10%,rgba(104,157,255,.04) 30%,rgba(104,157,255,.13) 47%,rgba(255,177,119,.07) 53%,transparent 72%);
+ transform:translateX(-125%);transition:transform .8s cubic-bezier(.2,.75,.25,1)
+}
+:root[data-theme="dark"] .k::after{
+ content:"";position:absolute;left:0;right:0;bottom:0;height:2px;
+ background:linear-gradient(90deg,transparent,#6ea2ff 28%,#a1c4ff 52%,#ffb178 78%,transparent);
+ opacity:.36;transform:scaleX(.28);transform-origin:center;
+ transition:transform .35s ease,opacity .35s ease
+}
+:root[data-theme="dark"] .k:hover,
+:root[data-theme="dark"] .box:hover,
+:root[data-theme="dark"] .lgcard:hover{
+ transform:translateY(-4px);
+ border-color:rgba(128,174,255,.43)!important;
+ box-shadow:0 18px 38px rgba(0,0,0,.28),0 0 24px rgba(65,123,221,.09),inset 0 1px 0 rgba(255,255,255,.07)
+}
+:root[data-theme="dark"] .k:hover::before,
+:root[data-theme="dark"] .box:hover::before,
+:root[data-theme="dark"] .lgcard:hover::before{transform:translateX(125%)}
+:root[data-theme="dark"] .k:hover::after{opacity:.95;transform:scaleX(.92)}
+:root[data-theme="dark"] .k b{color:#f0f5ff;transition:transform .3s ease,text-shadow .3s ease}
+:root[data-theme="dark"] .k:hover b{transform:translateY(-1px);text-shadow:0 0 18px rgba(113,164,255,.16)}
+:root[data-theme="dark"] .k span{color:#a9bbd7}
+:root[data-theme="dark"] .box h2,:root[data-theme="dark"] .box h3{color:#edf3ff}
+:root[data-theme="dark"] .hero{
+ background:radial-gradient(ellipse at 82% 0%,rgba(96,148,255,.26),transparent 38%),radial-gradient(ellipse at 4% 110%,rgba(255,166,104,.12),transparent 42%),linear-gradient(125deg,#0b172a,#152b4c 54%,#101e35)!important;
+ background-size:150% 150%;animation:sibHeroAurora 13s ease-in-out infinite alternate;
+ border:1px solid rgba(138,174,235,.2);box-shadow:0 18px 42px rgba(0,0,0,.2)
+}
+:root[data-theme="dark"] .tw{border-color:rgba(128,165,226,.18);box-shadow:0 8px 24px rgba(0,0,0,.1)}
+:root[data-theme="dark"] .bd{box-shadow:inset 0 1px rgba(255,255,255,.07)}
+@keyframes sibHeroAurora{0%{background-position:0% 40%;filter:saturate(.94)}100%{background-position:100% 60%;filter:saturate(1.12)}}
+
+/* Fond animé : particules flottantes et halos lents, sans bloquer les clics. */
+.sib-cell-field{
+ position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;
+ opacity:0;transition:opacity .8s ease;
+}
+:root[data-theme="dark"] .sib-cell-field{opacity:1}
+.sib-cell-field::before,.sib-cell-field::after{
+ content:"";position:absolute;border-radius:50%;filter:blur(55px);will-change:transform;
+}
+.sib-cell-field::before{
+ width:42vw;height:42vw;min-width:260px;min-height:260px;left:-12vw;top:8vh;
+ background:radial-gradient(circle,rgba(55,112,220,.12),rgba(55,112,220,0) 70%);
+ animation:sibGlowDriftA 24s ease-in-out infinite alternate
+}
+.sib-cell-field::after{
+ width:38vw;height:38vw;min-width:240px;min-height:240px;right:-10vw;bottom:-8vh;
+ background:radial-gradient(circle,rgba(134,83,188,.105),rgba(134,83,188,0) 70%);
+ animation:sibGlowDriftB 29s ease-in-out infinite alternate
+}
+.sib-cell{
+ position:absolute;left:var(--x);top:var(--y);width:var(--size);height:var(--size);
+ border:1px solid rgba(127,170,240,.13);border-radius:35%;
+ background:linear-gradient(145deg,rgba(112,160,239,.035),rgba(255,255,255,.006));
+ box-shadow:inset 0 1px rgba(255,255,255,.025),0 0 18px rgba(69,124,222,.025);
+ opacity:0;transform:translate3d(0,14px,0) rotate(0deg);
+ animation:sibCellDrift var(--duration) ease-in-out var(--delay) infinite alternate;
+}
+:root[data-theme="dark"] .sib-cell{opacity:.72}
+:root[data-theme="light"] .sib-cell{opacity:0}
+@keyframes sibCellDrift{
+ 0%{transform:translate3d(0,12px,0) rotate(-8deg);opacity:.18}
+ 50%{opacity:.7}
+ 100%{transform:translate3d(0,-22px,0) rotate(12deg);opacity:.42}
+}
+@keyframes sibGlowDriftA{from{transform:translate3d(0,0,0) scale(.92)}to{transform:translate3d(12vw,8vh,0) scale(1.12)}}
+@keyframes sibGlowDriftB{from{transform:translate3d(0,0,0) scale(1.08)}to{transform:translate3d(-10vw,-9vh,0) scale(.9)}}
+@media(prefers-reduced-motion:reduce){
+ .sib-cell-field::before,.sib-cell-field::after,.sib-cell,.sib-cell-field{animation:none!important;transition:none!important}
+ :root[data-theme="dark"] .hero{animation:none!important}
+ :root[data-theme="dark"] .k,:root[data-theme="dark"] .box,:root[data-theme="dark"] .lgcard{transition:none!important}
+}
+</style>
 </head><body>
 <div id="sib-startup" role="status" aria-live="polite"><div class="sib-startup-inner"><div class="sib-startup-logo" aria-hidden="true">SIB</div><div class="sib-startup-name">SIB Gestion</div><div class="sib-startup-label">Chargement de votre espace…</div><div class="sib-startup-track" aria-hidden="true"></div></div></div>
 <div class="app">
