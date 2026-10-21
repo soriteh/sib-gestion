@@ -555,6 +555,21 @@ nav .lob{min-height:34px;font-size:11px}
 :root[data-theme="dark"]{color-scheme:dark}
 :root[data-theme="light"]{color-scheme:light}
 
+/* Contrôle du thème et titres lisibles dans les deux modes. */
+:root[data-theme="dark"] .top h1,
+:root[data-theme="dark"] main h1,
+:root[data-theme="dark"] main h2,
+:root[data-theme="dark"] main h3,
+:root[data-theme="dark"] main h4,
+:root[data-theme="dark"] main h5,
+:root[data-theme="dark"] main h6,
+:root[data-theme="dark"] .page-title,
+:root[data-theme="dark"] .section-title{color:var(--tx)!important}
+.theme-manual{min-height:36px;padding:0 10px;border:1px solid var(--ln);border-radius:10px;background:var(--sf);color:var(--tx);font:600 12px/1.2 inherit;white-space:nowrap;cursor:pointer;flex:none}
+.theme-manual:hover{border-color:var(--ac);background:var(--ac2)}
+.theme-manual:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+#dd{white-space:nowrap;font-variant-numeric:tabular-nums}
+@media(max-width:520px){.theme-manual{padding:0 7px;font-size:10px;min-height:34px}.top{gap:6px}#dd{font-size:11px!important}}
 /* Thème horaire : harmonise aussi les composants qui utilisaient des couleurs fixes. */
 :root[data-theme="dark"] body,
 :root[data-theme="dark"] .app,
@@ -591,30 +606,43 @@ nav .lob{min-height:34px;font-size:11px}
 :root[data-theme="light"] body{background:var(--bg);color:var(--tx)}
 </style>
 <script>
-/* Thème automatique selon l'heure locale : clair de 07 h à 18 h 59, sombre de 19 h à 06 h 59. */
+/* Thème automatique selon l'heure locale : clair de 07 h à 18 h 59, sombre de 19 h à 06 h 59.
+   Le bouton permet de passer en manuel et de choisir clair/sombre, puis de revenir en automatique. */
 (function(){
  "use strict";
- function sibApplyHourlyTheme(){
-  var hour=new Date().getHours();
-  var theme=(hour>=7&&hour<19)?"light":"dark";
-  var root=document.documentElement;
-  if(root.getAttribute("data-theme")!==theme){
-   root.setAttribute("data-theme",theme);
-   root.style.colorScheme=theme;
+ var root=document.documentElement;
+ var button=document.getElementById("themeModeButton");
+ var manualMode=null;
+ try{manualMode=localStorage.getItem("sib-theme-manual");}catch(e){}
+ function applyTheme(theme){root.setAttribute("data-theme",theme);root.style.colorScheme=theme;}
+ function hourlyTheme(){var h=new Date().getHours();return(h>=7&&h<19)?"light":"dark";}
+ function renderTheme(){
+  var theme=manualMode==="light"||manualMode==="dark"?manualMode:hourlyTheme();
+  applyTheme(theme);
+  if(button){
+   if(manualMode==="light"){button.textContent="Manuel · Clair";button.title="Mode manuel : thème clair. Cliquer pour passer au sombre.";}
+   else if(manualMode==="dark"){button.textContent="Manuel · Sombre";button.title="Mode manuel : thème sombre. Cliquer pour revenir à l’automatique.";}
+   else{button.textContent="Mode manuel";button.title="Mode automatique selon l’heure. Cliquer pour choisir un thème manuel.";}
+   button.setAttribute("aria-pressed",manualMode==="light"||manualMode==="dark"?"true":"false");
   }
  }
- sibApplyHourlyTheme();
- window.addEventListener("focus",sibApplyHourlyTheme);
- document.addEventListener("visibilitychange",function(){
-  if(!document.hidden)sibApplyHourlyTheme();
+ if(button)button.addEventListener("click",function(){
+  if(manualMode===null){manualMode=hourlyTheme()==="light"?"dark":"light";}
+  else if(manualMode==="light"){manualMode="dark";}
+  else{manualMode=null;}
+  try{if(manualMode===null)localStorage.removeItem("sib-theme-manual");else localStorage.setItem("sib-theme-manual",manualMode);}catch(e){}
+  renderTheme();
  });
- window.setInterval(sibApplyHourlyTheme,30000);
+ renderTheme();
+ window.addEventListener("focus",renderTheme);
+ document.addEventListener("visibilitychange",function(){if(!document.hidden)renderTheme();});
+ window.setInterval(renderTheme,30000);
 })();
 </script></head><body>
 <div id="sib-startup" role="status" aria-live="polite"><div class="sib-startup-inner"><div class="sib-startup-logo" aria-hidden="true">SIB</div><div class="sib-startup-name">SIB Gestion</div><div class="sib-startup-label">Chargement de votre espace…</div><div class="sib-startup-track" aria-hidden="true"></div></div></div>
 <div class="app">
 <nav aria-label="Menu principal"><div class="br"><div class="mk">SIB</div><div><b id="bnm">SIB Gestion</b><small>Innover • Connecter • Développer</small></div></div><div id="nv"></div><div class="ft"><div class="me" data-go="prof" title="Mon profil"><span class="av2" id="unm0"></span><div><b id="unm"></b><small id="urr"></small></div></div><button class="lob" data-u="out">Se déconnecter</button></div></nav>
-<div class="col"><header class="top"><button id="mb" aria-label="Ouvrir le menu"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button><button id="cbt" class="ib" aria-label="Réduire ou agrandir le menu"><svg viewBox="0 0 24 24"><path d="M11 17l-5-5 5-5M18 17l-5-5 5-5"/></svg></button><h1 id="pt"></h1><span class="sp"></span><span id="dd"></span><button class="ib" id="rfb" aria-label="Actualiser"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 11-3-6.7L21 8M21 3v5h-5"/></svg></button><span class="rel"><button class="ib" id="blb" aria-label="Notifications"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0"/></svg><i class="bg hide" id="bcn"></i></button><div class="pp hide" id="npp"></div></span><span class="rel"><button class="av" id="avb" aria-label="Profil utilisateur"></button><div class="pp hide" id="amm"></div></span></header><main>
+<div class="col"><header class="top"><button id="mb" aria-label="Ouvrir le menu"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button><button id="cbt" class="ib" aria-label="Réduire ou agrandir le menu"><svg viewBox="0 0 24 24"><path d="M11 17l-5-5 5-5M18 17l-5-5 5-5"/></svg></button><h1 id="pt"></h1><span class="sp"></span><span id="dd" aria-live="off"></span><button class="theme-manual" id="themeModeButton" type="button" aria-label="Changer le mode du thème" title="Mode automatique selon l’heure"></button><button class="ib" id="rfb" aria-label="Actualiser"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 11-3-6.7L21 8M21 3v5h-5"/></svg></button><span class="rel"><button class="ib" id="blb" aria-label="Notifications"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0"/></svg><i class="bg hide" id="bcn"></i></button><div class="pp hide" id="npp"></div></span><span class="rel"><button class="av" id="avb" aria-label="Profil utilisateur"></button><div class="pp hide" id="amm"></div></span></header><main>
 <section id="dash"></section>
 <section id="sale" class="hide">
 <h2>Nouvel encaissement</h2>
@@ -1099,7 +1127,14 @@ function mk(){
  const ok=PM[RO]||P.map(p=>p[0]),nm=Object.fromEntries(P);
  $("nv").innerHTML=GR.map(([g,ids])=>{const it=ids.filter(i=>ok.includes(i));return it.length?`<p class="gt">${g}</p>`+it.map(i=>`<button data-v="${i}" title="${nm[i]}">${svg(i)}<span>${nm[i]}</span></button>`).join(""):""}).join("");
  $("nv").querySelectorAll("button").forEach(b=>b.onclick=()=>nav(b.dataset.v));nav(ok[0])}
-$("dd").textContent=new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
+function sibUpdateDateTime(){
+ const now=new Date();
+ const time=now.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit",hour12:false});
+ const date=now.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
+ $("dd").textContent=time+" · "+date;
+}
+sibUpdateDateTime();
+window.setInterval(sibUpdateDateTime,15000);
 $("mb").onclick=()=>document.body.classList.toggle("mo");$("bk").onclick=()=>document.body.classList.remove("mo");
 const PV={},RM2=matchMedia("(prefers-reduced-motion:reduce)");
 function cu(){document.querySelectorAll("[data-n]").forEach(el=>{const to=+el.dataset.n,k=el.dataset.k,from=PV[k]||0,f=x=>el.dataset.m?fm(x):String(Math.round(x));PV[k]=to;
