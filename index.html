@@ -660,6 +660,29 @@ nav .lob{min-height:34px;font-size:11px}
 }
 :root[data-theme="dark"] .table-wrap,
 :root[data-theme="dark"] .table-container{overflow:auto}
+/* En mode sombre, supprimer les effets hover et les animations sur les 8 cartes KPI. */
+:root[data-theme="dark"] #dash .k,
+:root[data-theme="dark"] #dash .k:hover{
+ transform:none!important;
+ animation:none!important;
+ box-shadow:none!important;
+ transition:none!important;
+ border-color:var(--ln)!important;
+}
+:root[data-theme="dark"] #dash .k::before,
+:root[data-theme="dark"] #dash .k::after,
+:root[data-theme="dark"] #dash .k:hover::before,
+:root[data-theme="dark"] #dash .k:hover::after{
+ animation:none!important;
+ transform:none!important;
+ opacity:0!important;
+ box-shadow:none!important;
+}
+:root[data-theme="dark"] #dash .k b,
+:root[data-theme="dark"] #dash .k:hover b{
+ transform:none!important;
+ text-shadow:none!important;
+}
 :root[data-theme="dark"] .panel:hover,
 :root[data-theme="dark"] .card:hover,
 :root[data-theme="dark"] .stat-card:hover{
