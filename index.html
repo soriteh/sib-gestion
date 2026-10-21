@@ -660,26 +660,37 @@ nav .lob{min-height:34px;font-size:11px}
 }
 :root[data-theme="dark"] .table-wrap,
 :root[data-theme="dark"] .table-container{overflow:auto}
-/* Effets premium des 8 cartes KPI en mode sombre. */
+/* Effets premium réactivés pour les 8 indicateurs du tableau de bord en thème sombre. */
 :root[data-theme="dark"] #dash .k{
  position:relative;
+ overflow:hidden;
+ isolation:isolate;
+ border:1px solid var(--ln);
  transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease!important;
  animation:sibCardIn .55s cubic-bezier(.2,.7,.2,1) both!important;
- animation-delay:var(--card-delay,0ms)!important;
 }
+:root[data-theme="dark"] #dash .k:nth-of-type(1){animation-delay:0ms!important}
+:root[data-theme="dark"] #dash .k:nth-of-type(2){animation-delay:70ms!important}
+:root[data-theme="dark"] #dash .k:nth-of-type(3){animation-delay:140ms!important}
+:root[data-theme="dark"] #dash .k:nth-of-type(4){animation-delay:210ms!important}
+:root[data-theme="dark"] #dash .k:nth-of-type(5){animation-delay:280ms!important}
+:root[data-theme="dark"] #dash .k:nth-of-type(6){animation-delay:350ms!important}
+:root[data-theme="dark"] #dash .k:nth-of-type(7){animation-delay:420ms!important}
+:root[data-theme="dark"] #dash .k:nth-of-type(8){animation-delay:490ms!important}
 :root[data-theme="dark"] #dash .k::before{
  content:"";
  position:absolute;
+ z-index:0;
  inset:0;
  pointer-events:none;
- background:linear-gradient(115deg,transparent 15%,rgba(124,176,255,.12) 45%,transparent 75%);
- transform:translateX(-120%);
- transition:transform .55s ease;
- opacity:1;
+ background:linear-gradient(115deg,transparent 15%,rgba(124,176,255,.18) 45%,rgba(167,139,250,.10) 55%,transparent 75%);
+ transform:translateX(-125%);
+ transition:transform .6s ease;
 }
 :root[data-theme="dark"] #dash .k::after{
  content:"";
  position:absolute;
+ z-index:0;
  left:12px;
  right:12px;
  bottom:0;
@@ -692,16 +703,15 @@ nav .lob{min-height:34px;font-size:11px}
  transition:transform .3s ease,opacity .3s ease;
  pointer-events:none;
 }
+:root[data-theme="dark"] #dash .k>*{position:relative;z-index:1}
 :root[data-theme="dark"] #dash .k:hover{
  transform:translateY(-4px)!important;
- border-color:rgba(124,176,255,.58)!important;
- box-shadow:0 12px 28px rgba(37,99,235,.18),0 0 22px rgba(124,176,255,.12)!important;
+ border-color:rgba(124,176,255,.7)!important;
+ box-shadow:0 12px 28px rgba(37,99,235,.2),0 0 24px rgba(124,176,255,.16)!important;
 }
-:root[data-theme="dark"] #dash .k:hover::before{transform:translateX(120%)}
+:root[data-theme="dark"] #dash .k:hover::before{transform:translateX(125%)}
 :root[data-theme="dark"] #dash .k:hover::after{transform:scaleX(1);opacity:1}
-:root[data-theme="dark"] #dash .k b{
- transition:transform .25s ease!important;
-}
+:root[data-theme="dark"] #dash .k b{transition:transform .25s ease!important}
 :root[data-theme="dark"] #dash .k:hover b{transform:translateX(2px)!important}
 @media(prefers-reduced-motion:reduce){
  :root[data-theme="dark"] #dash .k,
