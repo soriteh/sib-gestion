@@ -869,7 +869,8 @@ body,.top,main,.box,.k,.pp,.md>.box,input,select,textarea,button.s,.theme-manual
  background:radial-gradient(600px 420px at 15% 25%,rgba(61,117,224,.055),transparent 70%),radial-gradient(540px 380px at 88% 72%,rgba(222,133,78,.035),transparent 72%);
  animation:sibDarkAmbient 16s ease-in-out infinite alternate
 }
-:root[data-theme="dark"] .app,:root[data-theme="dark"] #sib-startup{position:relative;z-index:1}
+:root[data-theme="dark"] .app{position:relative;z-index:1}
+:root[data-theme="dark"] #sib-startup{position:fixed!important;inset:0!important;z-index:2147483647!important;display:grid;place-items:center}
 :root[data-theme="dark"] header.top{
  background:rgba(13,24,42,.82)!important;border-bottom-color:rgba(126,158,208,.18);
  box-shadow:0 8px 28px rgba(0,0,0,.16),inset 0 -1px rgba(255,255,255,.018)
