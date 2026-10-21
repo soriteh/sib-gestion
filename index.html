@@ -654,8 +654,14 @@ nav .lob{min-height:34px;font-size:11px}
   function hourlyTheme(){var h=new Date().getHours();return(h>=7&&h<19)?"light":"dark";}
   function renderTheme(){
    var theme=manualMode||hourlyTheme();
-   root.setAttribute("data-theme",theme);
-   root.style.colorScheme=theme;
+   var previousTheme=root.getAttribute("data-theme");
+   if(previousTheme!==theme){
+    root.setAttribute("data-theme",theme);
+    root.style.colorScheme=theme;
+    root.classList.remove("sib-theme-enter-dark","sib-theme-enter-light");
+    void root.offsetWidth;
+    root.classList.add(theme==="dark"?"sib-theme-enter-dark":"sib-theme-enter-light");
+   }
    button.innerHTML=manualMode===null?icons.auto:(manualMode==="light"?icons.sun:icons.moon);
    button.title=manualMode===null
     ?"Mode automatique selon l’heure. Cliquer pour forcer le thème clair ou sombre."
@@ -678,7 +684,97 @@ nav .lob{min-height:34px;font-size:11px}
  }
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",initThemeControl,{once:true});
  else initThemeControl();
-})();</script></head><body>
+})();</script>
+<style id="sib-premium-dark-theme">
+/* SIB Premium Dark: fond vivant, profondeur, lueurs discrètes et transitions fluides. */
+:root{--sib-dark-glow:rgba(63,119,225,.16);--sib-dark-amber:rgba(238,139,69,.075)}
+:root[data-theme="dark"]{
+ --bg:#080f1d;--sf:#101b2e;--tx:#edf3ff;--mu:#9aaac4;--ln:#253650;
+ --ac:#72a4ff;--ac2:#182c4d;--or:#ffad70;--rd:#ff9298;--gr:#70e0a0;
+ --sh:0 8px 26px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.025);
+ color-scheme:dark
+}
+:root[data-theme="light"]{color-scheme:light}
+body,.top,main,.box,.k,.pp,.md>.box,input,select,textarea,button.s,.theme-manual{
+ transition:background-color .42s ease,color .35s ease,border-color .35s ease,box-shadow .4s ease
+}
+:root[data-theme="dark"] body{
+ background:
+  radial-gradient(ellipse at 8% -10%,rgba(49,100,196,.2),transparent 42%),
+  radial-gradient(ellipse at 92% 4%,rgba(115,71,170,.12),transparent 34%),
+  radial-gradient(ellipse at 55% 110%,rgba(29,105,138,.09),transparent 42%),
+  linear-gradient(145deg,#080f1d 0%,#0b1425 48%,#080f1d 100%);
+ background-attachment:fixed;color:var(--tx)
+}
+:root[data-theme="dark"] body::after{
+ content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+ background:radial-gradient(600px 420px at 15% 25%,rgba(61,117,224,.055),transparent 70%),radial-gradient(540px 380px at 88% 72%,rgba(222,133,78,.035),transparent 72%);
+ animation:sibDarkAmbient 16s ease-in-out infinite alternate
+}
+:root[data-theme="dark"] .app,:root[data-theme="dark"] #sib-startup{position:relative;z-index:1}
+:root[data-theme="dark"] header.top{
+ background:rgba(13,24,42,.82)!important;border-bottom-color:rgba(126,158,208,.18);
+ box-shadow:0 8px 28px rgba(0,0,0,.16),inset 0 -1px rgba(255,255,255,.018)
+}
+:root[data-theme="dark"] nav{
+ background:linear-gradient(160deg,#091426 0%,#101e35 50%,#0a172a 100%)!important;
+ border-right-color:rgba(126,158,208,.14);
+ box-shadow:10px 0 40px rgba(0,0,0,.22)
+}
+:root[data-theme="dark"] .box,:root[data-theme="dark"] .md>.box,:root[data-theme="dark"] .pp{
+ background:linear-gradient(145deg,rgba(18,31,52,.97),rgba(13,24,42,.98))!important;
+ border-color:rgba(119,151,201,.2)!important;
+ box-shadow:0 12px 34px rgba(0,0,0,.18),inset 0 1px rgba(255,255,255,.035)
+}
+:root[data-theme="dark"] .k{
+ background:linear-gradient(145deg,rgba(22,38,63,.98),rgba(14,27,47,.98))!important;
+ border-color:rgba(117,154,214,.22)!important;
+ box-shadow:0 8px 24px rgba(0,0,0,.18),inset 0 1px rgba(255,255,255,.035)
+}
+:root[data-theme="dark"] .k::before{
+ background:linear-gradient(115deg,transparent 10%,rgba(93,148,255,.12) 43%,rgba(255,173,112,.09) 55%,transparent 88%)
+}
+:root[data-theme="dark"] .k::after{background:linear-gradient(90deg,#75a7ff,#ffad70);opacity:.7}
+:root[data-theme="dark"] .k:hover{
+ transform:translateY(-3px);border-color:rgba(117,167,255,.48)!important;
+ box-shadow:0 16px 34px rgba(0,0,0,.25),0 0 24px rgba(73,128,226,.075),inset 0 1px rgba(255,255,255,.055)
+}
+:root[data-theme="dark"] h1,:root[data-theme="dark"] h2,:root[data-theme="dark"] h3,
+:root[data-theme="dark"] h4,:root[data-theme="dark"] h5,:root[data-theme="dark"] h6,
+:root[data-theme="dark"] #pt,:root[data-theme="dark"] label{color:#edf3ff!important}
+:root[data-theme="dark"] p,:root[data-theme="dark"] .k span,:root[data-theme="dark"] small{color:var(--mu)}
+:root[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]),
+:root[data-theme="dark"] select,:root[data-theme="dark"] textarea{
+ background:rgba(8,17,31,.82)!important;color:var(--tx)!important;border-color:#2a3d5b!important
+}
+:root[data-theme="dark"] input:focus,:root[data-theme="dark"] select:focus,:root[data-theme="dark"] textarea:focus{
+ border-color:#72a4ff!important;box-shadow:0 0 0 3px rgba(114,164,255,.17)!important
+}
+:root[data-theme="dark"] table thead th{background:#172640;color:#b6c8e4;border-bottom-color:#2a3d5b}
+:root[data-theme="dark"] table tbody td{border-bottom-color:rgba(123,151,190,.13)}
+:root[data-theme="dark"] table tbody tr:hover{background:rgba(70,119,202,.12)}
+:root[data-theme="dark"] button.s,:root[data-theme="dark"] .theme-manual,:root[data-theme="dark"] .ib{
+ background:linear-gradient(145deg,#192b47,#122139);color:#d9e7ff;border-color:rgba(121,158,215,.22)
+}
+:root[data-theme="dark"] button.s:hover,:root[data-theme="dark"] .theme-manual:hover,:root[data-theme="dark"] .ib:hover{
+ border-color:rgba(114,164,255,.58);box-shadow:0 0 0 3px rgba(114,164,255,.08),0 8px 20px rgba(0,0,0,.2)
+}
+:root[data-theme="dark"] .theme-manual{box-shadow:0 0 0 1px rgba(114,164,255,.06),0 4px 12px rgba(0,0,0,.18)}
+:root[data-theme="dark"] .hero{box-shadow:0 16px 38px rgba(0,0,0,.2);border:1px solid rgba(142,176,239,.16)}
+:root[data-theme="dark"] #nv button.on{background:linear-gradient(100deg,rgba(65,119,218,.32),rgba(65,119,218,.1));border-color:rgba(114,164,255,.2);box-shadow:inset 3px 0 #ffad70,0 6px 18px rgba(0,0,0,.14)}
+:root[data-theme="dark"].sib-theme-enter-dark main{animation:sibDarkEnter .65s cubic-bezier(.2,.7,.2,1) both}
+:root[data-theme="dark"].sib-theme-enter-dark .top h1{animation:sibDarkTitle .7s ease both}
+:root[data-theme="light"].sib-theme-enter-light main{animation:sibLightEnter .45s ease both}
+@keyframes sibDarkAmbient{0%{opacity:.55;transform:scale(1)}100%{opacity:1;transform:scale(1.035)}}
+@keyframes sibDarkEnter{from{opacity:.75;filter:brightness(.78);transform:translateY(5px)}to{opacity:1;filter:brightness(1);transform:translateY(0)}}
+@keyframes sibDarkTitle{0%{text-shadow:0 0 0 rgba(114,164,255,0);transform:translateY(3px)}45%{text-shadow:0 0 20px rgba(114,164,255,.25)}100%{text-shadow:0 0 0 rgba(114,164,255,0);transform:translateY(0)}}
+@keyframes sibLightEnter{from{opacity:.86}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){
+ :root[data-theme="dark"] body::after,:root.sib-theme-enter-dark main,:root.sib-theme-enter-dark .top h1,:root.sib-theme-enter-light main{animation:none!important}
+ body,.top,main,.box,.k,.pp,.md>.box,input,select,textarea,button.s,.theme-manual{transition:none!important}
+}
+</style>
+</head><body>
 <div id="sib-startup" role="status" aria-live="polite"><div class="sib-startup-inner"><div class="sib-startup-logo" aria-hidden="true">SIB</div><div class="sib-startup-name">SIB Gestion</div><div class="sib-startup-label">Chargement de votre espace…</div><div class="sib-startup-track" aria-hidden="true"></div></div></div>
 <div class="app">
 <nav aria-label="Menu principal"><div class="br"><div class="mk">SIB</div><div><b id="bnm">SIB Gestion</b><small>Innover • Connecter • Développer</small></div></div><div id="nv"></div><div class="ft"><div class="me" data-go="prof" title="Mon profil"><span class="av2" id="unm0"></span><div><b id="unm"></b><small id="urr"></small></div></div><button class="lob" data-u="out">Se déconnecter</button></div></nav>
