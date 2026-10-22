@@ -60,6 +60,48 @@ Deno.serve(async (req) => {
     const secret = env("ATTENDANCE_CRON_SECRET");
     if (!secret || req.headers.get("x-cron-secret") !== secret) return json({ error: "Non autorisé." }, 401);
     const action = url.searchParams.get("action");
+    if (action === "send-reminders") {
+      const date = todayGN();
+      const templateName = env("WHATSAPP_ATTENDANCE_TEMPLATE");
+      const language = env("WHATSAPP_TEMPLATE_LANGUAGE", "fr");
+      if (!templateName) return json({ error: "Définissez WHATSAPP_ATTENDANCE_TEMPLATE avec le nom d'un modèle Meta approuvé." }, 400);
+      const { data: employees, error: listError } = await db.from("whatsapp_attendance_employees")
+        .select("employee_id,full_name,phone_e164").eq("active", true);
+      if (listError) return json({ error: listError.message }, 500);
+      let sent = 0, skipped = 0, failed = 0;
+      for (const employee of employees || []) {
+        const { data: existing } = await db.from("whatsapp_attendance_sessions")
+          .select("id,status").eq("employee_id", employee.employee_id).eq("work_date", date).maybeSingle();
+        if (existing) { skipped++; continue; }
+        const { data: created, error: insertError } = await db.from("whatsapp_attendance_sessions")
+          .insert({ employee_id: employee.employee_id, work_date: date, status: "pending" })
+          .select("id").single();
+        if (insertError || !created) { failed++; continue; }
+        try {
+          const result = await sendWhatsApp(employee.phone_e164, {
+            type: "template",
+            template: { name: templateName, language: { code: language },
+              components: [{ type: "body", parameters: [{ type: "text", text: employee.full_name }] }] },
+          });
+          await db.from("whatsapp_attendance_sessions").update({
+            message_sent_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+          }).eq("id", created.id);
+          await db.from("whatsapp_attendance_events").insert({
+            employee_id: employee.employee_id, phone_e164: employee.phone_e164,
+            event_type: "reminder_sent", payload: { message_id: result?.messages?.[0]?.id || null },
+          });
+          sent++;
+        } catch (err) {
+          await db.from("whatsapp_attendance_sessions").update({ status: "error", updated_at: new Date().toISOString() }).eq("id", created.id);
+          await db.from("whatsapp_attendance_events").insert({
+            employee_id: employee.employee_id, phone_e164: employee.phone_e164,
+            event_type: "reminder_failed", payload: { error: String(err).slice(0, 500) },
+          });
+          failed++;
+        }
+      }
+      return json({ date, sent, skipped, failed });
+    }
     if (action === "sync-employees") {
       const body = await req.json().catch(() => ({}));
       if (!Array.isArray(body.employees)) return json({ error: "employees doit être une liste." }, 400);
