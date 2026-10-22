@@ -1239,7 +1239,7 @@ function montantEnLettres(value){
  function under100(x){
   if(x<20)return u[x];
   if(x<70){const d=Math.floor(x/10),r=x%10;return ["","","vingt","trente","quarante","cinquante","soixante"][d]+(r===0?"":r===1?" et un":"-"+u[r]);}
-  if(x<80)return "soixante-"+u[10+x-70];
+  if(x<80)return x===71?"soixante et onze":"soixante-"+u[10+x-70];
   if(x===80)return "quatre-vingts";
   return "quatre-vingt-"+u[x-80];
  }
@@ -1249,7 +1249,7 @@ function montantEnLettres(value){
   return (h===1?"cent":u[h]+" cent")+(r===0&&h>1?"s":r?" "+under100(r):"");
  }
  const groups=[];
- const scales=["","mille","million","milliard"];
+ const scales=["","mille","million","milliard","billion","billiard"];
  let g=0;
  while(n>0&&g<scales.length){const part=n%1000;if(part){let w=under1000(part);if(g===1)w=part===1?"mille":w+" mille";else if(g>1)w+=" "+scales[g]+(part>1?"s":"");groups.unshift(w);}n=Math.floor(n/1000);g++;}
  return groups.join(" ").replace(/\s+/g," ").trim();
