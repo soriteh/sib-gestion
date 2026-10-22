@@ -1451,8 +1451,12 @@ function printFinancialList(sectionId,title){
  if(!w)return toast("Autorisez les fenêtres contextuelles pour imprimer la liste.","wa");
  const copy=table.cloneNode(true);
  copy.querySelectorAll("button,.noprint").forEach(el=>el.remove());
- // Retire uniquement les colonnes entièrement vides dans toutes les lignes.
- const printRows=Array.from(copy.rows),maxColumns=Math.max(0,...printRows.map(row=>row.children.length)),emptyColumns=[];
+ // Retire la colonne Actions même si son en-tête reste après suppression des boutons.
+ const printRows=Array.from(copy.rows),headerRow=copy.tHead?.rows?.[0]||printRows[0],actionIndexes=[];
+ if(headerRow)Array.from(headerRow.children).forEach((cell,index)=>{if(/^(actions?|opérations?)$/i.test((cell.textContent||"").trim()))actionIndexes.push(index)});
+ actionIndexes.reverse().forEach(col=>printRows.forEach(row=>row.children[col]?.remove()));
+ // Retire ensuite les colonnes réellement vides dans toutes les lignes.
+ const maxColumns=Math.max(0,...printRows.map(row=>row.children.length)),emptyColumns=[];
  for(let col=0;col<maxColumns;col++){if(printRows.length&&printRows.every(row=>{const cell=row.children[col];return !cell||(!cell.textContent.trim()&&!cell.querySelector("input,select,textarea,img"))}))emptyColumns.push(col)}
  emptyColumns.reverse().forEach(col=>printRows.forEach(row=>row.children[col]?.remove()));
  const heading=typeof coHead==="function"?coHead():"";
