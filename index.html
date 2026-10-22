@@ -1459,12 +1459,23 @@ async function askAssistant(){
  out.innerHTML="<span>Réflexion en cours…</span>";
  try {
   const cloud=window.SIBCloud;
-  if(CU?.cloud&&cloud?.ready&&cloud.client()){
+  if(CU&&cloud?.ready&&typeof cloud.client==="function"&&cloud.client()){
    const {data,error}=await cloud.client().functions.invoke("sib-assistant",{body:{question:raw,history:SIB_AGENT_HISTORY.slice(-8),context:{month,recettesMois:rev,depensesMois:exp,resultatMois:result,facturesRestantAPayer:unpaid,soldeCaisse:Number(cash.Caisse)||0,soldeBanque:Number(cash.Banque)||0,soldeMobileMoney:Number(cash["Mobile Money"])||0}}});
-   if(!error&&data?.answer){SIB_AGENT_HISTORY.push({role:"user",content:raw},{role:"assistant",content:data.answer});if(SIB_AGENT_HISTORY.length>12)SIB_AGENT_HISTORY.splice(0,SIB_AGENT_HISTORY.length-12);out.textContent=data.answer;return}
-   if(data?.error&&/OPENAI_API_KEY|service IA n\x27est pas encore configuré/i.test(data.error)){out.textContent=data.error;return}
+   if(error){
+    console.error("SIB Assistant function error:",error);
+    out.textContent="L’assistant IA n’a pas pu joindre son service. Vérifiez que la fonction Supabase « sib-assistant » est déployée et que le secret OPENAI_API_KEY est configuré. Détail : "+(error.message||"erreur réseau ou session invalide");
+    return;
+   }
+   if(data?.answer){SIB_AGENT_HISTORY.push({role:"user",content:raw},{role:"assistant",content:data.answer});if(SIB_AGENT_HISTORY.length>12)SIB_AGENT_HISTORY.splice(0,SIB_AGENT_HISTORY.length-12);out.textContent=data.answer;return}
+   if(data?.error){out.textContent=data.error;return}
+   out.textContent="Le service IA a répondu sans contenu. Vérifiez le déploiement de la fonction sib-assistant puis réessayez.";
+   return;
   }
- } catch(err) { console.warn("SIB AI unavailable; using local help:",err); }
+ } catch(err) {
+  console.error("SIB Assistant unavailable:",err);
+  out.textContent="Connexion au service IA impossible. Vérifiez votre connexion et la configuration Supabase, puis réessayez.";
+  return;
+ }
  const has=(...words)=>words.some(w=>q.includes(w));
  const answer=(title,body)=>{out.innerHTML="<b>"+esc(title)+"</b><p>"+body+"</p>"};
  const navAnswer=(module,detail)=>answer("Comment faire",detail+" Vous pouvez ouvrir le module correspondant dans le menu principal.");
