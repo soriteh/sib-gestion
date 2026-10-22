@@ -1429,16 +1429,53 @@ function renderAssistant(){
 }
 function askAssistant(){
  const input=$("ia-question"),out=$("ia-answer");if(!input||!out)return;
- const q=(input.value||"").trim().toLocaleLowerCase("fr");if(!q){out.textContent="Saisissez une question.";return}
- renderAssistant();
- const month=new Date().toISOString().slice(0,7),rows=(Array.isArray(S.e)?S.e:[]).filter(e=>e&&typeof e==="object"&&!e.rev&&!gone(e)&&String(e.d||"").slice(0,7)===month);
- const sum=a=>a.reduce((n,e)=>n+(Number(e.m)||0),0),rev=sum(rows.filter(e=>e.t==="recette")),exp=sum(rows.filter(e=>e.t==="depense")),result=rev-exp;
+ const raw=(input.value||"").trim();if(!raw){out.textContent="Saisissez une question sur SIB Gestion.";return}
+ const q=raw.toLocaleLowerCase("fr").normalize("NFD").replace(/[\u0300-\u036f]/g," ");
+ const money=n=>esc(fm(n));
+ const month=new Date().toISOString().slice(0,7);
+ const rows=(Array.isArray(S.e)?S.e:[]).filter(e=>e&&typeof e==="object"&&!e.rev&&!gone(e)&&String(e.d||"").slice(0,7)===month);
+ const sum=a=>a.reduce((n,e)=>n+(Number(e.m)||0),0);
+ const rev=sum(rows.filter(e=>e.t==="recette")),exp=sum(rows.filter(e=>e.t==="depense")),result=rev-exp;
  const invoices=(Array.isArray(S.fa)?S.fa:[]).filter(f=>f&&!f.x),unpaid=invoices.reduce((n,f)=>n+Math.max(0,(Number(f.m)||0)-paid(f)),0);
- if(q.includes("impay")||q.includes("facture"))out.innerHTML='<b>Factures restant à payer :</b> '+esc(fm(unpaid))+'. Consultez le module Factures pour le détail par client.';
- else if(q.includes("dépense")||q.includes("depense"))out.innerHTML='<b>Dépenses du mois :</b> '+esc(fm(exp))+'.';
- else if(q.includes("recette")||q.includes("encaiss"))out.innerHTML='<b>Recettes du mois :</b> '+esc(fm(rev))+'.';
- else if(q.includes("bilan")||q.includes("mois")||q.includes("résultat")||q.includes("resultat"))out.innerHTML='<b>Bilan du mois :</b> recettes '+esc(fm(rev))+', dépenses '+esc(fm(exp))+' et résultat '+esc(fm(result))+'. '+(result<0?'Attention : les dépenses dépassent les recettes.':result===0?'Les recettes et dépenses sont équilibrées.':'Les recettes dépassent les dépenses.')+'<br><small>Ce résultat est calculé à partir des opérations enregistrées pour le mois en cours.</small>';
- else out.textContent="Je peux actuellement calculer le bilan du mois, les recettes, les dépenses et le total des factures restant à payer. Les réponses génératives complètes seront disponibles après configuration du service IA sécurisé.";
+ const cash=bal();
+ const has=(...words)=>words.some(w=>q.includes(w));
+ const answer=(title,body)=>{out.innerHTML="<b>"+esc(title)+"</b><p>"+body+"</p>"};
+ const navAnswer=(module,detail)=>answer("Comment faire",detail+" Vous pouvez ouvrir le module correspondant dans le menu principal.");
+ if(has("bonjour","salut","bonsoir","coucou"))return answer("Bonjour !","Je suis l’assistant SIB Gestion. Posez-moi une question sur l’utilisation de l’application, les modules, les devis et factures, la caisse, la banque, les paiements ou les rapports.");
+ if(has("bilan","resultat","résultat","recette","depense","dépense","chiffre d affaire","chiffre d'affaires")){
+  if(has("depense","dépense")&&!has("bilan","resultat","résultat","recette"))return answer("Dépenses du mois","Total enregistré : <b>"+money(exp)+"</b>. Ce calcul utilise les opérations de dépenses enregistrées pour le mois en cours.");
+  if(has("recette")&&!has("bilan","resultat","résultat","depense","dépense"))return answer("Recettes du mois","Total enregistré : <b>"+money(rev)+"</b>. Ce calcul utilise les recettes enregistrées pour le mois en cours.");
+  return answer("Bilan du mois","Recettes : <b>"+money(rev)+"</b><br>Dépenses : <b>"+money(exp)+"</b><br>Résultat recettes − dépenses : <b>"+money(result)+"</b><br><small>Calculé à partir des opérations du mois en cours ; ce n’est pas un état comptable certifié.</small>");
+ }
+ if(has("impaye","impayé","reste a payer","reste à payer","facture non payee","facture non payée"))return answer("Factures restant à payer","Solde estimé : <b>"+money(unpaid)+"</b>. Ouvrez le module Factures pour consulter chaque facture et enregistrer un règlement.");
+ if(has("facture","devis")){
+  if(has("whatsapp","envoyer","partager"))return answer("Envoyer un devis ou une facture par WhatsApp","Ouvrez le devis ou la facture, cliquez sur « Envoyer par WhatsApp ». WhatsApp s’ouvre avec un message préparé. Pour joindre le fichier, enregistrez d’abord le document en PDF via « Imprimer A5 / PDF », puis joignez ce PDF dans WhatsApp.");
+  if(has("imprimer","impression","pdf","thermique","a5"))return answer("Imprimer un document","Ouvrez le devis ou la facture, puis utilisez « Imprimer A5 / PDF » pour enregistrer ou imprimer le document. Pour une imprimante de tickets, utilisez « Imprimer thermique (sans signature) ».");
+  if(has("annul","refus","statut"))return answer("Statut d’un devis","Dans la liste des devis, utilisez les actions disponibles sur la ligne du devis. Les devis facturés, annulés ou refusés peuvent avoir certaines actions désactivées afin de préserver l’historique.");
+  return navAnswer("Documents","Le module Devis sert à créer des devis, ajouter des lignes, définir les quantités, prix, validité et remise, puis enregistrer et consulter les devis. Le module Factures permet de consulter les factures et d’enregistrer les règlements. Ouvrez une ligne pour afficher le document et ses options d’impression.");
+ }
+ if(has("caisse","banque","tresorerie","trésorerie","solde")){
+  if(has("separ","sépar","difference","différence"))return answer("Séparation caisse et banque","La caisse représente les espèces disponibles ; la banque représente les fonds détenus sur les comptes bancaires. Les distinguer évite de mélanger les espèces, les virements et les soldes bancaires. Sélectionnez le compte ou le mode de paiement adapté à chaque opération.");
+  return answer("Caisse et banque","Consultez le module Caisse et banque pour les soldes disponibles. Enregistrez chaque opération avec le bon compte ou mode de paiement afin de suivre séparément la caisse, la banque et Mobile Money.");
+ }
+ if(has("paiement","reglement","règlement","encaissement","transaction")){
+  return answer("Paiements et transactions","Pour encaisser un règlement, ouvrez le module Factures si le paiement concerne une facture, puis sélectionnez la facture et saisissez le montant reçu. Pour un encaissement de vente, utilisez le module d’encaissement et choisissez le mode de paiement correspondant.");
+ }
+ if(has("client","ajouter un client","modifier un client"))return navAnswer("Clients","Ouvrez le module Clients pour consulter la liste. Utilisez l’action de création ou de modification proposée par l’écran, puis enregistrez les coordonnées du client. Le client pourra ensuite être sélectionné dans les devis et factures.");
+ if(has("employ","salaire","paie","bulletin"))return navAnswer("Employés et paie","Le module Employés sert à gérer les fiches du personnel. Le module Paie permet de préparer les bulletins et de consulter les éléments de rémunération selon les informations enregistrées et les droits de votre compte.");
+ if(has("stock","inventaire","produit","service"))return navAnswer("Services et articles","Utilisez le module correspondant aux services, articles ou stocks disponibles dans votre menu. Vérifiez les libellés, quantités et prix avant d’enregistrer une opération.");
+ if(has("utilisateur","mot de passe","motdepasse","connexion","connecter","compte","role","rôle","permission","administrateur"))return answer("Compte et accès","Connectez-vous avec votre compte SIB Gestion. Les droits disponibles dépendent de votre rôle. Si vous avez oublié votre mot de passe ou si votre accès est bloqué, contactez l’administrateur de votre organisation plutôt que de partager votre mot de passe.");
+ if(has("hors ligne","offline","sans internet","internet","synchronis","synchronis"))return answer("Mode hors ligne","Certaines fonctions peuvent utiliser les données déjà disponibles sur cet appareil. La synchronisation avec le serveur nécessite une connexion Internet. Évitez de supprimer les données du navigateur et vérifiez la reconnexion avant de conclure qu’une opération a été synchronisée.");
+ if(has("sombre","mode clair","theme","thème","couleur","affichage"))return answer("Affichage et thème","Utilisez le bouton de thème dans la barre supérieure pour changer le mode clair ou sombre. Si l’affichage semble bloqué, rechargez avec Ctrl + Maj + R. Si le problème persiste, notez le message d’erreur et le module concerné.");
+ if(has("erreur","bug","bloque","bloqué","chargement","ne fonctionne","panne")){
+  return answer("Dépannage","Essayez d’abord Ctrl + Maj + R. Si le chargement reste bloqué, vérifiez la connexion Internet et rechargez la page. Notez le texte exact de l’erreur et le nom du module ; ne transmettez pas de mot de passe ni de clé secrète.");
+ }
+ if(has("rapport","export","statistique","statistiques","tableau de bord","dashboard"))return navAnswer("Tableau de bord et rapports","Le tableau de bord présente des indicateurs calculés à partir des données enregistrées. Vérifiez la période sélectionnée et l’exhaustivité des opérations avant d’interpréter les totaux.");
+ if(has("parametre","paramètre","entreprise","logo","devise","gnf","configuration"))return navAnswer("Paramètres","Ouvrez les paramètres pour modifier les informations de l’entreprise, les coordonnées, le logo et les préférences disponibles. Vérifiez les informations avant de les enregistrer : certaines apparaissent sur les documents imprimés.");
+ if(has("aide","fonction","module","comment utiliser","que peut faire","application","sib gestion")){
+  return answer("Aide SIB Gestion","Je peux vous guider sur le tableau de bord, les clients, les devis et factures, les paiements, la caisse et la banque, les employés, les rapports, les paramètres, l’impression PDF/thermique, WhatsApp, le mode hors ligne et le dépannage. Posez une question précise, par exemple : « Comment imprimer une facture ? » ou « Pourquoi séparer la caisse et la banque ? ».");
+ }
+ out.textContent="Je n’ai pas trouvé de réponse suffisamment précise dans le guide intégré. Reformulez votre question en précisant le module concerné (devis, factures, caisse, banque, clients, paie, paramètres ou connexion). Pour répondre librement à toute question nouvelle, il faut connecter un véritable service d’IA côté serveur avec une clé API sécurisée ; aucune clé secrète ne doit être placée dans le navigateur.";
 }
 function nav(v){if(v!==CUR&&gate(()=>nav(v)))return;document.querySelectorAll("main section").forEach(s=>{const on=s.id==v;s.classList.toggle("hide",!on);if(on){s.classList.remove("in2");void s.offsetWidth;s.classList.add("in2");setTimeout(()=>s.classList.remove("in2"),1500)}});document.querySelectorAll("#nv button").forEach(b=>b.classList.toggle("on",b.dataset.v==v));$("pt").textContent=(P.find(p=>p[0]==v)||[])[1]||"";if(v=="dash")for(const k in PV)delete PV[k];document.body.classList.remove("mo");CUR=v;if(v==="cli")renderClients();if(v==="ia")renderAssistant();try{draw()}catch(err){console.error("SIB interface draw error:",err);const target=document.getElementById(v);if(target){target.classList.remove("hide");target.innerHTML='<div class="box" style="border:1px solid #e7a5a5"><h2>Erreur de chargement</h2><p>Cette page n’a pas pu être affichée. Rechargez l’application. Si le problème continue, transmettez le message ci-dessous au support.</p><pre style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></div>';const pre=target.querySelector("pre");if(pre)pre.textContent=err&& (err.stack||err.message)||String(err)}if(v==="cli")toast("Erreur pendant le chargement de la page Clients.","wa")}}
 
