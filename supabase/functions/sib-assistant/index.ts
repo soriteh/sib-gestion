@@ -25,7 +25,7 @@ Deno.serve(async (req: Request) => {
   const { data: userData, error: userError } = await supabase.auth.getUser();
   if (userError || !userData.user) return reply(401, { error: "Session invalide. Reconnectez-vous puis réessayez." });
 
-  let body: { question?: unknown; context?: unknown };
+  let body: { question?: unknown; context?: unknown; history?: unknown };
   try { body = await req.json(); } catch { return reply(400, { error: "Requête invalide." }); }
   const question = typeof body.question === "string" ? body.question.trim().slice(0, 4000) : "";
   if (!question) return reply(400, { error: "Saisissez une question." });
@@ -35,13 +35,17 @@ Deno.serve(async (req: Request) => {
     : "{}";
 
   try {
+    const history = Array.isArray(body.history) ? body.history.slice(-8).flatMap((item: any) => {
+      if (!item || !["user", "assistant"].includes(item.role) || typeof item.content !== "string") return [];
+      return [{ role: item.role, content: [{ type: item.role === "assistant" ? "output_text" : "input_text", text: item.content.slice(0, 2000) }] }];
+    }) : [];
     const response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
       headers: { "Authorization": "Bearer " + apiKey, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: Deno.env.get("OPENAI_MODEL") || "gpt-4.1-mini",
-        instructions: `Tu es SIB Assistant, l'assistant d'aide intégré à SIB Gestion, une application de gestion d'entreprise. Réponds en français par défaut, clairement, étape par étape et en termes simples. Tu aides sur les modules et leur usage : tableau de bord, clients, devis, factures, encaissements, paiements, caisse, banque, trésorerie, employés, paie, rapports, paramètres, impression A5/PDF/thermique, partage WhatsApp, connexion, dépannage et mode hors ligne. Utilise le contexte fourni seulement pour les questions sur les chiffres. Ne prétends jamais avoir effectué une action dans l'application. N'invente pas de fonctionnalités ou de chiffres ; précise quand tu n'as pas les informations. Ne demande jamais de mot de passe, clé API ou autre secret. Pour les opérations financières, indique que les chiffres sont indicatifs et proviennent du contexte fourni. Si une demande dépasse l'application, dis-le et réponds utilement si possible.`,
-        input: [{ role: "user", content: [{ type: "input_text", text: "Contexte non sensible de l'application : " + safeContext + "\n\nQuestion : " + question }] }],
+        instructions: `Tu es SIB Assistant, l'agent d'aide intégré à SIB Gestion. Réponds en français par défaut, clairement, étape par étape et en termes simples. Tu aides sur les modules et leur usage : tableau de bord, clients, devis, factures, encaissements, paiements, caisse, banque, trésorerie, employés, paie, rapports, paramètres, impression A5/PDF/thermique, partage WhatsApp, connexion, dépannage et mode hors ligne. Utilise le contexte fourni seulement pour les questions sur les chiffres. Garde le fil de la conversation et tiens compte des messages précédents. Ne prétends jamais avoir effectué une action dans l'application. N'invente pas de fonctionnalités ou de chiffres ; précise quand tu n'as pas les informations. Ne demande jamais de mot de passe, clé API ou autre secret. Pour les opérations financières, indique que les chiffres sont indicatifs et proviennent du contexte fourni. Si une demande dépasse l'application, dis-le et réponds utilement si possible.`,
+        input: [...history, { role: "user", content: [{ type: "input_text", text: "Contexte non sensible de l'application : " + safeContext + "\n\nQuestion : " + question }] }],
         max_output_tokens: 800,
       }),
     });
