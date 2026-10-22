@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<rect width="512" height="512" rx="112" fill="#0057b9"/>
+<path d="M80 150h352v42H80zm0 85h352v42H80zm0 85h240v42H80z" fill="#8dc5ff" opacity=".9"/>
+<text x="256" y="395" text-anchor="middle" font-family="Arial,sans-serif" font-size="116" font-weight="800" fill="#fff">SIB</text>
+</svg>
