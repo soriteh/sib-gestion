@@ -32,7 +32,7 @@ Dans Supabase → Edge Functions → Secrets, ajouter les secrets suivants. Ne l
 
 - `WHATSAPP_ACCESS_TOKEN` : jeton Cloud API Meta.
 - `WHATSAPP_PHONE_NUMBER_ID` : Phone Number ID Meta.
-- `WHATSAPP_WEBHOOK_VERIFY_TOKEN` : chaîne aléatoire choisie pour la vérification du webhook.
+- `WHATSAPP_WEBHOOK_VERIFY_TOKEN` : chaîne aléatoire choisie pour la vérification du webhook GET.\n- `WHATSAPP_APP_SECRET` : App Secret de l'application Meta, utilisé pour vérifier la signature cryptographique `X-Hub-Signature-256` des événements entrants.
 - `WHATSAPP_ATTENDANCE_TEMPLATE` : nom exact du modèle approuvé, par défaut suggéré `sib_presence_check`.
 - `WHATSAPP_TEMPLATE_LANGUAGE` : code de langue approuvé par Meta, généralement `fr`.
 - `ATTENDANCE_CRON_SECRET` : chaîne aléatoire longue utilisée pour les appels internes.
