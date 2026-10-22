@@ -131,7 +131,23 @@ Deno.serve(async (req) => {
     return json({ date, markedAbsent: ids.length });
   }
 
-  const body = await req.json().catch(() => null);
+  const rawBody = await req.text();
+  const appSecret = env("WHATSAPP_APP_SECRET");
+  const signature = req.headers.get("x-hub-signature-256") || "";
+  if (!appSecret) return json({ error: "Secret de signature Meta non configuré côté serveur." }, 500);
+  if (!signature.startsWith("sha256=")) return json({ error: "Signature webhook absente." }, 401);
+  const key = await crypto.subtle.importKey(
+    "raw", new TextEncoder().encode(appSecret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"],
+  );
+  const digest = new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(rawBody)));
+  const expected = "sha256=" + Array.from(digest, (b) => b.toString(16).padStart(2, "0")).join("");
+  const a = new TextEncoder().encode(signature);
+  const b = new TextEncoder().encode(expected);
+  let diff = a.length ^ b.length;
+  for (let i = 0; i < Math.min(a.length, b.length); i++) diff |= a[i] ^ b[i];
+  if (diff !== 0) return json({ error: "Signature webhook invalide." }, 401);
+  let body: any;
+  try { body = JSON.parse(rawBody); } catch { return json({ error: "JSON invalide." }, 400); }
   if (!body || body.object !== "whatsapp_business_account") return json({ received: true });
 
   for (const entry of body.entry || []) for (const change of entry.changes || []) {
