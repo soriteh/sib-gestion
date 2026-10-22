@@ -1484,7 +1484,7 @@ function processMonthlyBankDebits(){
  (S.prelevements||[]).forEach(p=>{
   if(!p||p.active===false||!p.id||!(+p.montant>0)||!p.libelle)return;
   if(month<(p.debut||month)||today<Math.min(28,Math.max(1,+p.jour||1))||p.dernierMois===month)return;
-  const exists=S.e.some(e=>e.prelevementId===p.id&&e.prelevementMois===month&&!gone(e));if(exists){p.dernierMois=month;changed=true;return;}
+  const exists=S.e.some(e=>e&&e.prelevementId===p.id&&e.prelevementMois===month);if(exists){p.dernierMois=month;changed=true;return;}
   if(bal().Banque<(+p.montant))return;
   const e={id:nw(),t:"depense",no:num("PREL"),m:+p.montant,a:"Banque",cat:"Prélèvement bancaire mensuel",l:p.libelle,d:new Date().toISOString(),prelevementId:p.id,prelevementMois:month};
   S.e.push(e);p.dernierMois=month;lg("Prélèvement bancaire enregistré : "+p.libelle+" ("+month+")");changed=true;
