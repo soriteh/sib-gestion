@@ -1427,7 +1427,7 @@ function renderAssistant(){
  const card=(title,value,desc,cls="")=>'<div class="k"><span>'+title+'</span><b class="'+cls+'">'+esc(fm(value))+'</b><span>'+desc+'</span></div>';
  root.innerHTML='<h3>Bilan financier · '+esc(label)+'</h3><div class="row">'+card("Recettes du mois",rev,"Opérations enregistrées","in")+card("Dépenses du mois",exp,"Opérations enregistrées","out")+card("Résultat net",result,"Recettes moins dépenses",result<0?"out":"in")+card("Factures restant à payer",unpaid,"Solde estimé des factures","")+'</div><div class="box"><b>Trésorerie disponible</b><div class="row" style="margin-top:10px">'+card("Caisse",b.Caisse,"Solde actuel")+card("Banque",b.Banque,"Solde actuel")+card("Mobile Money",b["Mobile Money"],"Solde actuel")+'</div><p style="color:var(--mu);font-size:12px;margin-bottom:0">Calculs basés sur les données actuellement disponibles dans SIB Gestion. Le résultat présenté n’est pas un état comptable certifié.</p></div>';
 }
-function askAssistant(){
+async function askAssistant(){
  const input=$("ia-question"),out=$("ia-answer");if(!input||!out)return;
  const raw=(input.value||"").trim();if(!raw){out.textContent="Saisissez une question sur SIB Gestion.";return}
  const q=raw.toLocaleLowerCase("fr").normalize("NFD").replace(/[\u0300-\u036f]/g," ");
@@ -1438,6 +1438,15 @@ function askAssistant(){
  const rev=sum(rows.filter(e=>e.t==="recette")),exp=sum(rows.filter(e=>e.t==="depense")),result=rev-exp;
  const invoices=(Array.isArray(S.fa)?S.fa:[]).filter(f=>f&&!f.x),unpaid=invoices.reduce((n,f)=>n+Math.max(0,(Number(f.m)||0)-paid(f)),0);
  const cash=bal();
+ out.innerHTML="<span>Réflexion en cours…</span>";
+ try {
+  const cloud=window.SIBCloud;
+  if(CU?.cloud&&cloud?.ready&&cloud.client()){
+   const {data,error}=await cloud.client().functions.invoke("sib-assistant",{body:{question:raw,context:{month,recettesMois:rev,depensesMois:exp,resultatMois:result,facturesRestantAPayer:unpaid,soldeCaisse:Number(cash.Caisse)||0,soldeBanque:Number(cash.Banque)||0,soldeMobileMoney:Number(cash["Mobile Money"])||0}}});
+   if(!error&&data?.answer){out.textContent=data.answer;return}
+   if(data?.error&&/OPENAI_API_KEY|service IA n\x27est pas encore configuré/i.test(data.error)){out.textContent=data.error;return}
+  }
+ } catch(err) { console.warn("SIB AI unavailable; using local help:",err); }
  const has=(...words)=>words.some(w=>q.includes(w));
  const answer=(title,body)=>{out.innerHTML="<b>"+esc(title)+"</b><p>"+body+"</p>"};
  const navAnswer=(module,detail)=>answer("Comment faire",detail+" Vous pouvez ouvrir le module correspondant dans le menu principal.");
