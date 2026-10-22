@@ -1183,6 +1183,7 @@ body,.top,main,.box,.k,.pp,.md>.box,input,select,textarea,button.s,.theme-manual
 
 <script src="./offline-register.js" defer></script>
 </head><body>
+<button id="sib-ai-fab" type="button" aria-label="Ouvrir SIB Assistant" title="SIB Assistant"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8l2.1 6.1L20.2 11l-6.1 2.1L12 19.2l-2.1-6.1L3.8 11l6.1-2.1z"/><path d="M19 16.5l.7 1.8 1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/></svg><span class="fab-tip">SIB Assistant IA</span></button>
 <div id="sib-startup" role="status" aria-live="polite"><div class="sib-startup-inner"><div class="sib-startup-logo" aria-hidden="true">SIB</div><div class="sib-startup-name">SIB Gestion</div><div class="sib-startup-label">Chargement de votre espace…</div><div class="sib-startup-track" aria-hidden="true"></div></div></div>
 <div class="app">
 <nav aria-label="Menu principal"><div class="br"><div class="mk">SIB</div><div><b id="bnm">SIB Gestion</b><small>Innover • Connecter • Développer</small></div></div><div id="nv"></div><div class="ft"><div class="me" data-go="prof" title="Mon profil"><span class="av2" id="unm0"></span><div><b id="unm"></b><small id="urr"></small></div></div><button class="lob" data-u="out">Se déconnecter</button></div></nav>
@@ -2169,4 +2170,4 @@ $("lgc").addEventListener("keydown",e=>{if(e.key=="Enter")doGo()});
 })();
 
 drawCart();boot().catch(err=>{console.error("SIB startup error:",err);const d=document.getElementById("dash");if(d){d.classList.remove("hide");d.innerHTML='<div class="box"><h2>Erreur au démarrage</h2><pre style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></div>';d.querySelector("pre").textContent=err&&(err.stack||err.message)||String(err)}}).finally(()=>{const splash=document.getElementById("sib-startup");if(splash){splash.classList.add("done");setTimeout(()=>splash.remove(),350)}});
-</script><button id="sib-ai-fab" type="button" aria-label="Ouvrir SIB Assistant" title="SIB Assistant"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8l2.1 6.1L20.2 11l-6.1 2.1L12 19.2l-2.1-6.1L3.8 11l6.1-2.1z"/><path d="M19 16.5l.7 1.8 1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/></svg><span class="fab-tip">SIB Assistant IA</span></button></body></html>
+</script></body></html>
