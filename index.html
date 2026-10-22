@@ -1879,7 +1879,7 @@ async function doGo(){const m=LM;if($("lbt").classList.contains("ld"))return;
   if(window.SIBCloud?.ready){
    try{
     const result=await window.SIBCloud.signIn(l,p);
-    const remote=await window.SIBCloud.loadAppState();
+    const remote=result.appState;
     if(remote){S=repairState(remote.state);}else{S=D0();}
     const email=result.user.email||l,parts=(email.split("@")[0]||"Administrateur").split(/[._-]+/).filter(Boolean);
     CU={id:result.user.id,pn:parts[0]||"Administrateur",nm:parts.slice(1).join(" "),nom:[parts[0]||"Administrateur",...parts.slice(1)].join(" "),mail:email,login:email,role:result.membership.role,actif:true,cloud:true,last:null};
