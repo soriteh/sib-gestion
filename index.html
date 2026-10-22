@@ -1370,9 +1370,10 @@ setInterval(()=>{if(!CU)return;const i=Date.now()-LA;
  else if(i>=WARN_MS&&!SW)SW=toast("Votre session va expirer dans "+Math.max(1,Math.ceil((IDLE_MS-i)/6e4))+" minute(s) par manque d'activité.","wa",{sticky:true,act:{label:"Rester connecté",fn:()=>{LA=Date.now();SW=null}}})},5000);
 document.addEventListener("click",e=>{const b=e.target.closest("[data-dis]");if(!b)return;const[k,s]=b.dataset.dis.split("|");S.dis[dk(k)]=s;save();draw()});
 function num(p){const y=new Date().getFullYear(),k=p+y;S.n[k]=(S.n[k]||0)+1;return((S.set.pre&&S.set.pre[p])||p)+"-"+y+"-"+String(S.n[k]).padStart(6,"0")}
-function eff(e){if(!e||typeof e!=="object")return[];if(e.rev){const o=(Array.isArray(S.e)?S.e:[]).find(x=>x&&x.id==e.rev);return o?eff(o).map(([a,d])=>[a,-d]):[]}const m=Number(e.m);if(!Number.isFinite(m)||m<=0||!AC.includes(e.a))return[];if(e.t==="recette")return[[e.a,m]];if(e.t==="depense")return[[e.a,-m]];if(e.t==="transfert"&&AC.includes(e.b)&&e.a!==e.b)return[[e.a,-m],[e.b,m]];return[]}
-const gone=e=>Array.isArray(S.e)&&S.e.some(x=>x&&x.rev==e.id);
-function bal(){const b={Caisse:0,Banque:0,"Mobile Money":0};(Array.isArray(S.e)?S.e:[]).forEach(e=>eff(e).forEach(([a,d])=>{if(Object.prototype.hasOwnProperty.call(b,a))b[a]+=d}));return b}
+function eff(e){if(e.rev){const o=S.e.find(x=>x.id==e.rev);return o?eff(o).map(([a,d])=>[a,-d]):[]}
+ if(e.t=="recette")return[[e.a,e.m]];if(e.t=="depense")return[[e.a,-e.m]];return[[e.a,-e.m],[e.b,e.m]]}
+const gone=e=>S.e.some(x=>x.rev==e.id);
+function bal(){const b={Caisse:0,Banque:0,"Mobile Money":0};S.e.forEach(e=>eff(e).forEach(([a,d])=>b[a]+=d));return b}
 function add(e){if(!e||typeof e!=="object")return toast("Opération invalide : données manquantes.","er");const m=Number(e.m);if(!Number.isFinite(m)||m<=0)return toast("Opération refusée : le montant doit être un nombre positif valide.","er");if(!AC.includes(e.a))return toast("Opération refusée : compte source invalide.","er");if(e.t==="transfert"&&(!AC.includes(e.b)||e.a===e.b))return toast("Virement refusé : choisissez deux comptes valides et différents.","er");if(!e.no||!e.t)return toast("Opération refusée : référence ou type manquant.","er");e.m=m;e.id=Date.now()+Math.random();e.d=new Date().toISOString();S.e.push(e);lg(e.no+" · "+e.t+" · "+fm(e.m));save()}
 function ctx(e){const r=S.e.find(x=>x.id==e.rev);return r}
 function renderClients(){const invoicesFor=c=>S.fa.filter(f=>f&&f.c==c.id&&!f.x);$("cli").innerHTML="<h2>Clients</h2>"+bx("Nouveau client",F("cn","Nom complet")+F("cposte","Poste / fonction")+F("ct","Téléphone")+F("ca","Adresse"),'<button class="p" data-a="cadd">Ajouter</button>')+'<div class="box">'+T(["Client","Téléphone","Adresse","Facturé","Reste dû"],S.c.map(c=>{const fs=invoicesFor(c),billed=fs.reduce((sum,f)=>sum+Math.max(0,Number(f.m)||0),0),due=fs.reduce((sum,f)=>sum+Math.max(0,(Number(f.m)||0)-paid(f)),0);return "<tr><td>"+esc(c.n)+"</td><td>"+esc(c.t||"")+"</td><td>"+esc(c.a||"")+"</td><td class='r'>"+fm(billed)+"</td><td class='r'>"+fm(due)+"</td></tr>"}))+"</div>"}
@@ -1474,11 +1475,7 @@ $("tok").onclick=()=>{const m=+$("ta").value,k=$("to").value;if(!(m>0))return to
 $("dok").onclick=()=>{const m=+$("dm").value,a=$("da").value;if(!(m>0))return toast("Montant invalide");if(bal()[a]<m)return toast("Solde insuffisant sur "+a);
  add({t:"depense",no:num("DEP"),m,a,cat:$("dc").value,l:$("dl").value});$("dm").value="";$("dl").value="";toast("Dépense enregistrée")};
 function cancel(id){const o=S.e.find(x=>x.id==id);if(!o||gone(o)||o.rev)return;ask("Annuler "+o.no+" ? Une opération corrective sera créée ; l'original reste dans l'historique.",()=>cancel2(id),{title:"Annuler cette opération",danger:1,ok:"Confirmer l'annulation",warn:"Cette modification peut affecter les soldes de vos comptes et vos rapports."})}
-function cancel2(id){const o=S.e.find(x=>x.id==id);if(!o||o.rev||gone(o))return toast("Cette opération est déjà annulée ou introuvable.","er");
- const current=bal();if(o.t!="depense"&&Object.values(current).some(v=>v<0))return toast("Annulation refusée : un compte présente déjà un solde négatif.","er");
- const projected={...current};eff(o).forEach(([a,d])=>{if(Object.prototype.hasOwnProperty.call(projected,a))projected[a]-=d});
- if(Object.values(projected).some(v=>v<0))return toast("Annulation impossible : elle rendrait le solde d’un compte négatif.","er");
- add({t:"annulation",no:num("AV"),rev:o.id,m:o.m,a:o.a});if(o.ach){const a=S.ac.find(z=>z.no==o.ach),st=a&&S.st.find(z=>z.n==a.st);if(st)st.q-=a.q;save()}toast("Annulation enregistrée");draw()}
+function cancel2(id){const o=S.e.find(x=>x.id==id);if(!o||gone(o)||o.rev)return; if(o.t!="depense"&&Object.values(bal()).some(v=>v<0))return; add({t:"annulation",no:num("AV"),rev:o.id,m:o.m,a:o.a});const b=bal(); if(Object.values(b).some(v=>v<0)){S.e.pop();save();return toast("Annulation impossible : solde négatif")}if(o.ach){const a=S.ac.find(z=>z.no==o.ach),s=a&&S.st.find(z=>z.n==a.st);if(s)s.q-=a.q;save()}toast("Annulation enregistrée");draw()}
 function processMonthlyBankDebits(){
  const month=new Date().toISOString().slice(0,7),today=+new Date().toISOString().slice(8,10);let changed=false;
  (S.prelevements||[]).forEach(p=>{
@@ -1576,7 +1573,7 @@ const bx=(t,f,b)=>`<div class="box"><b>${t}</b><div class="row" style="margin-to
 const V=i=>$(i).value,tot=l=>l.reduce((s,x)=>s+x.q*x.p,0),AM=a=>S.c.map(c=>c.n);
 const cnm=id=>(S.c.find(x=>x.id==id)||{}).n||"—",cid=n=>(S.c.find(x=>x.n==n)||{}).id;
 const sibLoggedEmployeePoste=()=>{const norm=v=>String(v||"").trim().toLocaleLowerCase("fr");const mail=norm(CU?.mail||CU?.login),full=norm(CU?.nom||[CU?.pn,CU?.nm].filter(Boolean).join(" "));const emp=(S.emp||[]).find(e=>mail&&(norm(e.mail)===mail||norm(e.email)===mail))||(S.emp||[]).find(e=>full&&norm(eN(e))===full);return emp?.poste||CU?.role||RO||"—"};
-const paid=f=>S.e.filter(e=>e&&e.t==="recette"&&e.fac==f.id&&!e.rev&&!gone(e)&&Number.isFinite(Number(e.m))&&Number(e.m)>0).reduce((sum,e)=>sum+Number(e.m),0);
+const paid=f=>S.e.filter(e=>e&&e.t=="recette"&&e.fac==f.id&&!e.rev&&!gone(e)).reduce((sum,e)=>sum+(Number(e.m)||0),0);
 const stt=f=>{const p=paid(f),[t,c]=f.x?["Annulée","mu"]:p>=f.m?["Payée","ok"]:p>0?["Partielle","wa"]:["Impayée","no"];return`<span class="bd ${c}">${t}</span>`};
 function lg(a){S.jr.unshift({d:new Date().toISOString(),u:(CU?CU.nom+" · ":"")+RO,a});S.jr=S.jr.slice(0,300)}
 
