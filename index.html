@@ -1451,6 +1451,8 @@ function printFinancialList(sectionId,title){
  if(!w)return toast("Autorisez les fenêtres contextuelles pour imprimer la liste.","wa");
  const copy=table.cloneNode(true);
  copy.querySelectorAll("button,.noprint").forEach(el=>el.remove());
+ // Supprime les colonnes d’actions devenues vides après retrait des boutons.
+ copy.querySelectorAll("tr").forEach(row=>{const cells=Array.from(row.children);for(let i=cells.length-1;i>=0;i--){const cell=cells[i];if(cell.matches("th,td")&&!cell.textContent.trim()&&!cell.querySelector("input,select,textarea,img")){const columnIndex=i;const allRows=Array.from(copy.rows);if(allRows.every(r=>!r.children[columnIndex]||!r.children[columnIndex].textContent.trim()||r.children[columnIndex].querySelector("button")))cell.remove();}}});
  const heading=typeof coHead==="function"?coHead():"";
  const css='@page{size:A4 landscape;margin:12mm}*{box-sizing:border-box}body{margin:0;padding:0;background:#fff;color:#111;font:11px/1.45 Arial,sans-serif}.sib-doc-head{display:flex;gap:12px;align-items:center;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #bbb}.sib-doc-head img{max-width:110px;max-height:48px;object-fit:contain}.sib-doc-head b{font-size:14px}.sib-doc-head small{font-size:10px;color:#333}h1{font-size:18px;margin:12px 0 4px}p{margin:0 0 12px;color:#444;font-size:10px}table{width:100%;border-collapse:collapse;font-size:10px}thead{display:table-header-group}tr{break-inside:avoid}th,td{border:1px solid #cbd5e1;padding:7px 8px;text-align:left;color:#111;white-space:normal;overflow-wrap:anywhere}th{background:#eef2f7;font-weight:bold}.r{text-align:right}';
  w.document.open();
