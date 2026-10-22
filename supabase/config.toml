@@ -1,0 +1,4 @@
+project_id = "sib-gestion"
+
+[functions.whatsapp-attendance]
+verify_jwt = false
