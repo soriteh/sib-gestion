@@ -1910,7 +1910,7 @@ async function boot(){applyLogo();
  if(window.SIBCloud?.ready){
   cloudSessionReady=false;
   try{
-   const current=await window.SIBCloud.currentUser(),remote=await window.SIBCloud.loadAppState();
+   const onlineData=await Promise.race([Promise.all([window.SIBCloud.currentUser(),window.SIBCloud.loadAppState()]),new Promise((_,reject)=>setTimeout(()=>reject(new Error("Délai de connexion dépassé : tentative de démarrage hors ligne.")),7000))]);const current=onlineData[0],remote=onlineData[1];
    let pendingCloud=null;try{pendingCloud=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null")}catch(_){}
    sibPendingConflict=!!(pendingCloud?.state&&remote?.state);
    if(sibPendingConflict){
