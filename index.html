@@ -1858,11 +1858,12 @@ async function doGo(){const m=LM;if($("lbt").classList.contains("ld"))return;
 function enter(resume){const prev=CU.last;RO=CU.role;PF="mois";fDay=L(new Date());fMon=fDay.slice(0,7);fYr=new Date().getFullYear();CU.last=iso();try{sessionStorage.setItem("sib-uid",CU.id)}catch(_){}document.body.classList.remove("lo");
  lg("Connexion");save();mk();drawAm();const welcomeName=(CU.pn||CU.nom||"").trim();if(welcomeName)toast("Bienvenue, "+welcomeName+" ! Heureux de vous retrouver dans SIB Gestion.", "ok",{ms:5000})}
 function out(force){if(!force&&gate(()=>out()))return;const nm0=CU?(CU.pn||CU.nom):"";if(CU){lg(force?"Session expirée (inactivité)":"Déconnexion");save()}const wasCloud=!!CU?.cloud;CU=null;cloudSessionReady=false;CUR="";try{sessionStorage.removeItem("sib-uid")}catch(_){}if(wasCloud&&window.SIBCloud?.ready){const finishSignOut=()=>window.SIBCloud.signOut().catch(err=>console.warn("SIB sign-out:",err));Promise.resolve(cloudSaveChain).then(finishSignOut,finishSignOut)}DL=[];cart=[];drawCart();["npp","amm"].forEach(i=>$(i).classList.add("hide"));document.body.classList.add("lo");document.body.classList.remove("mo");$("mdl").classList.add("hide");lgv("login");if(!force&&nm0)toast("Au revoir, "+nm0+" ! Vous avez été déconnecté. À bientôt.","ok",{ms:4500})}
+function sibWithTimeout(promise,ms,label){return new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error(label+" : délai dépassé après "+Math.round(ms/1000)+" secondes. Vérifiez votre connexion Internet et la disponibilité de Supabase.")),ms);Promise.resolve(promise).then(value=>{clearTimeout(timer);resolve(value)},error=>{clearTimeout(timer);reject(error)})})}
 async function boot(){applyLogo();
  if(window.SIBCloud?.ready){
   cloudSessionReady=false;
   try{
-   const current=await window.SIBCloud.currentUser(),remote=await window.SIBCloud.loadAppState();
+   const current=await sibWithTimeout(window.SIBCloud.currentUser(),12000,"Vérification de la session"),remote=await sibWithTimeout(window.SIBCloud.loadAppState(),12000,"Chargement des données centrales");
    let pendingCloud=null;try{pendingCloud=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null")}catch(_){}
    sibPendingConflict=!!(pendingCloud?.state&&remote?.state);
    if(sibPendingConflict){
@@ -1873,7 +1874,7 @@ async function boot(){applyLogo();
    const email=current.user.email||"",parts=(email.split("@")[0]||"Administrateur").split(/[._-]+/).filter(Boolean),profile=(S.profile&&typeof S.profile==="object")?S.profile:{};
    CU={id:current.user.id,pn:profile.pn||parts[0]||"Administrateur",nm:profile.nm||parts.slice(1).join(" "),nom:profile.nom||[profile.pn||parts[0]||"Administrateur",profile.nm||parts.slice(1).join(" ")].filter(Boolean).join(" "),mail:email,login:email,role:current.membership.role,actif:true,cloud:true,last:null,tel:profile.tel||"",ph:profile.ph||""};
    S.us=[CU];RO=CU.role;cloudSessionReady=true;applyLogo();activateCloudRealtime();enter(true);if(!remote)await cloudSaveChain;return;
-  }catch(err){console.warn("SIB cloud session unavailable:",err);}
+  }catch(err){console.error("SIB cloud session unavailable:",err);LNOTE="Impossible de terminer le chargement des données centrales. "+String(err?.message||err||"Erreur inconnue")+" Si le problème persiste, vérifiez la connexion Supabase et les droits du compte."}
   document.body.classList.add("lo");lgv("login");return;
  }
  if(!window.SIBCloud?.ready){document.body.classList.add("lo");LNOTE="Connexion centrale non configurée. Pour éviter de créer un compte local différent sur chaque appareil, renseignez l’URL du projet et la clé publique dans supabase-config.js, puis exécutez supabase/04_shared_app_state.sql dans Supabase.";lgv("login");const b=$("lbt");if(b)b.disabled=true;const a=$("llg"),p=$("lpw");if(a)a.disabled=true;if(p)p.disabled=true;return;}
