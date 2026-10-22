@@ -1180,17 +1180,7 @@ body,.top,main,.box,.k,.pp,.md>.box,input,select,textarea,button.s,.theme-manual
 }
 </style>
 
-<script>
-/* SIB offline cache registration */
-(function(){
-  if(!("serviceWorker" in navigator)) return;
-  window.addEventListener("load",function(){
-    navigator.serviceWorker.register("./service-worker.js",{scope:"./"}).catch(function(err){
-      console.warn("SIB offline cache registration failed:",err);
-    });
-  });
-})();
-</script>
+<script src="./offline-register.js" defer></script>
 </head><body>
 <div id="sib-startup" role="status" aria-live="polite"><div class="sib-startup-inner"><div class="sib-startup-logo" aria-hidden="true">SIB</div><div class="sib-startup-name">SIB Gestion</div><div class="sib-startup-label">Chargement de votre espace…</div><div class="sib-startup-track" aria-hidden="true"></div></div></div>
 <div class="app">
