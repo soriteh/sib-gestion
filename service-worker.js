@@ -7,7 +7,8 @@ const SHELL = [
   "./supabase-config.js",
   "./supabase-client.js",
   "./manifest.webmanifest",
-  "./icons/sib-icon.svg"
+  "./icons/sib-icon.svg",
+  "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
 ];
 self.addEventListener("install", event => {
   event.waitUntil((async () => {
