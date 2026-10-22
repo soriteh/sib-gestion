@@ -1921,7 +1921,22 @@ async function boot(){applyLogo();
    const email=current.user.email||"",parts=(email.split("@")[0]||"Administrateur").split(/[._-]+/).filter(Boolean),profile=(S.profile&&typeof S.profile==="object")?S.profile:{};
    CU={id:current.user.id,pn:profile.pn||parts[0]||"Administrateur",nm:profile.nm||parts.slice(1).join(" "),nom:profile.nom||[profile.pn||parts[0]||"Administrateur",profile.nm||parts.slice(1).join(" ")].filter(Boolean).join(" "),mail:email,login:email,role:current.membership.role,actif:true,cloud:true,last:null,tel:profile.tel||"",ph:profile.ph||""};
    S.us=[CU];RO=CU.role;cloudSessionReady=true;try{localStorage.setItem("sib-offline-profile-v1",JSON.stringify({id:CU.id,email:CU.mail,pn:CU.pn,nm:CU.nm,nom:CU.nom,role:CU.role,savedAt:Date.now()}));localStorage.setItem("sib-offline-state-v1",JSON.stringify({savedAt:Date.now(),state:cloudSnapshot()}));}catch(cacheErr){console.warn("SIB offline snapshot unavailable:",cacheErr)}applyLogo();activateCloudRealtime();enter(true);if(!remote)await cloudSaveChain;return;
-  }catch(err){console.warn("SIB cloud session unavailable:",err);try{{const cachedUser=JSON.parse(localStorage.getItem("sib-offline-profile-v1")||"null");const pending=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null");const cachedState=JSON.parse(localStorage.getItem("sib-offline-state-v1")||"null");const offlineState=pending&&pending.state?pending.state:(cachedState&&cachedState.state?cachedState.state:null);if(cachedUser&&offlineState){S=repairState(offlineState);CU={id:cachedUser.id,pn:cachedUser.pn||"Administrateur",nm:cachedUser.nm||"",nom:cachedUser.nom||cachedUser.pn||"Administrateur",mail:cachedUser.email||"",login:cachedUser.email||"",role:cachedUser.role||"user",actif:true,cloud:true,offline:true,last:null};S.us=[CU];RO=CU.role;cloudSessionReady=true;applyLogo();document.body.classList.add("sib-offline-mode");enter(true);if(typeof toast==="function")toast("Mode hors ligne : les changements restent sur cet appareil et devront être synchronisés au retour d’Internet.","wa",{sticky:true});return;}}catch(offlineErr){console.warn("SIB offline recovery failed:",offlineErr)}}
+  }catch(err){
+  console.warn("SIB cloud session unavailable:",err);
+  try {
+   const cachedUser=JSON.parse(localStorage.getItem("sib-offline-profile-v1")||"null");
+   const pending=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null");
+   const cachedState=JSON.parse(localStorage.getItem("sib-offline-state-v1")||"null");
+   const offlineState=pending&&pending.state?pending.state:(cachedState&&cachedState.state?cachedState.state:null);
+   if(cachedUser&&offlineState){
+    S=repairState(offlineState);
+    CU={id:cachedUser.id,pn:cachedUser.pn||"Administrateur",nm:cachedUser.nm||"",nom:cachedUser.nom||cachedUser.pn||"Administrateur",mail:cachedUser.email||"",login:cachedUser.email||"",role:cachedUser.role||"user",actif:true,cloud:true,offline:true,last:null};
+    S.us=[CU];RO=CU.role;cloudSessionReady=true;applyLogo();document.body.classList.add("sib-offline-mode");enter(true);
+    if(typeof toast==="function")toast("Mode hors ligne : les changements restent sur cet appareil et devront être synchronisés au retour d’Internet.","wa",{sticky:true});
+    return;
+   }
+  } catch(offlineErr) { console.warn("SIB offline recovery failed:",offlineErr); }
+ }
   document.body.classList.add("lo");lgv("login");return;
  }
  if(!window.SIBCloud?.ready){document.body.classList.add("lo");LNOTE="Connexion centrale non configurée. Pour éviter de créer un compte local différent sur chaque appareil, renseignez l’URL du projet et la clé publique dans supabase-config.js, puis exécutez supabase/04_shared_app_state.sql dans Supabase.";lgv("login");const b=$("lbt");if(b)b.disabled=true;const a=$("llg"),p=$("lpw");if(a)a.disabled=true;if(p)p.disabled=true;return;}
