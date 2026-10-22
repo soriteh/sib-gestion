@@ -8,6 +8,30 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"></noscript>
+<script>
+/* Secours indépendant du script principal : éviter un écran de démarrage éternel. */
+(function(){
+ var timer=setTimeout(function(){
+  var splash=document.getElementById("sib-startup");
+  if(!splash||splash.classList.contains("done"))return;
+  var label=splash.querySelector(".sib-startup-label");
+  if(label)label.textContent="Le démarrage est bloqué. Vérifiez Internet, puis rechargez la page (Ctrl + F5).";
+  splash.style.zIndex="999999";
+  splash.style.background="#f2f5fa";
+  splash.style.color="#14213a";
+  var old=splash.querySelector("[data-sib-recovery]");
+  if(!old){
+   var box=document.createElement("div");box.setAttribute("data-sib-recovery","1");
+   box.style.cssText="margin-top:18px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap";
+   var btn=document.createElement("button");btn.type="button";btn.textContent="Recharger l’application";
+   btn.style.cssText="padding:10px 16px;border:0;border-radius:9px;background:#245fc5;color:#fff;font-weight:700;cursor:pointer";
+   btn.onclick=function(){window.location.reload()};
+   box.appendChild(btn);splash.querySelector(".sib-startup-inner")?.appendChild(box);
+  }
+ },18000);
+ window.addEventListener("sib-startup-finished",function(){clearTimeout(timer)},{once:true});
+})();
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./supabase-config.js"></script>
 <script src="./supabase-client.js"></script>
@@ -2100,5 +2124,5 @@ $("lgc").addEventListener("keydown",e=>{if(e.key=="Enter")doGo()});
  document.body.appendChild(field);
 })();
 
-drawCart();boot().catch(err=>{console.error("SIB startup error:",err);const d=document.getElementById("dash");if(d){d.classList.remove("hide");d.innerHTML='<div class="box"><h2>Erreur au démarrage</h2><pre style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></div>';d.querySelector("pre").textContent=err&&(err.stack||err.message)||String(err)}}).finally(()=>{const splash=document.getElementById("sib-startup");if(splash){splash.classList.add("done");setTimeout(()=>splash.remove(),350)}});
+drawCart();boot().catch(err=>{console.error("SIB startup error:",err);const d=document.getElementById("dash");if(d){d.classList.remove("hide");d.innerHTML='<div class="box"><h2>Erreur au démarrage</h2><pre style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></div>';d.querySelector("pre").textContent=err&&(err.stack||err.message)||String(err)}}).finally(()=>{window.dispatchEvent(new Event("sib-startup-finished"));const splash=document.getElementById("sib-startup");if(splash){splash.classList.add("done");setTimeout(()=>splash.remove(),350)}});
 </script></body></html>
