@@ -1,0 +1,20 @@
+{
+  "id": "./",
+  "name": "SIB Gestion",
+  "short_name": "SIB Gestion",
+  "description": "Application de gestion d’entreprise SIB, avec prise en charge hors ligne sur cet appareil.",
+  "lang": "fr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f7fb",
+  "theme_color": "#0057b9",
+  "icons": [
+    {
+      "src": "./icons/sib-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
