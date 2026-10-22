@@ -1513,8 +1513,9 @@ function shareDocumentWhatsApp(kind,id){
  const amount=fm(doc.m);
  const message="Bonjour "+(cnm(doc.c)||"")+",\n\nVeuillez trouver les informations de votre "+type+" "+(doc.no||"")+" de "+amount+".\n\nJe vous transmets le document en pièce jointe.\nMerci.";
  const url="https://wa.me/"+phone+"?text="+encodeURIComponent(message);
- const opened=window.open(url,"_blank","noopener,noreferrer");
+ const opened=window.open(url,"_blank");
  if(!opened){toast("WhatsApp n’a pas pu s’ouvrir. Autorisez les fenêtres contextuelles puis réessayez.","wa");return}
+ try{opened.opener=null}catch(_){}
  toast("WhatsApp est ouvert. Pour joindre le document, enregistrez d’abord le PDF avec « Imprimer A5 / PDF », puis ajoutez-le dans la conversation WhatsApp.","in",{ms:8000});
 }
 function printReceipt(){printSibDocument("rc","receipt")}
