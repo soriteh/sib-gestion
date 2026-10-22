@@ -1576,7 +1576,7 @@ const bx=(t,f,b)=>`<div class="box"><b>${t}</b><div class="row" style="margin-to
 const V=i=>$(i).value,tot=l=>l.reduce((s,x)=>s+x.q*x.p,0),AM=a=>S.c.map(c=>c.n);
 const cnm=id=>(S.c.find(x=>x.id==id)||{}).n||"—",cid=n=>(S.c.find(x=>x.n==n)||{}).id;
 const sibLoggedEmployeePoste=()=>{const norm=v=>String(v||"").trim().toLocaleLowerCase("fr");const mail=norm(CU?.mail||CU?.login),full=norm(CU?.nom||[CU?.pn,CU?.nm].filter(Boolean).join(" "));const emp=(S.emp||[]).find(e=>mail&&(norm(e.mail)===mail||norm(e.email)===mail))||(S.emp||[]).find(e=>full&&norm(eN(e))===full);return emp?.poste||CU?.role||RO||"—"};
-const paid=f=>S.e.filter(e=>e&&e.t=="recette"&&e.fac==f.id&&!e.rev&&!gone(e)).reduce((sum,e)=>sum+(Number(e.m)||0),0);
+const paid=f=>S.e.filter(e=>e&&e.t==="recette"&&e.fac==f.id&&!e.rev&&!gone(e)&&Number.isFinite(Number(e.m))&&Number(e.m)>0).reduce((sum,e)=>sum+Number(e.m),0);
 const stt=f=>{const p=paid(f),[t,c]=f.x?["Annulée","mu"]:p>=f.m?["Payée","ok"]:p>0?["Partielle","wa"]:["Impayée","no"];return`<span class="bd ${c}">${t}</span>`};
 function lg(a){S.jr.unshift({d:new Date().toISOString(),u:(CU?CU.nom+" · ":"")+RO,a});S.jr=S.jr.slice(0,300)}
 
