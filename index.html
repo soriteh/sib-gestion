@@ -8,30 +8,6 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"></noscript>
-<script>
-/* Secours indépendant du script principal : éviter un écran de démarrage éternel. */
-(function(){
- var timer=setTimeout(function(){
-  var splash=document.getElementById("sib-startup");
-  if(!splash||splash.classList.contains("done"))return;
-  var label=splash.querySelector(".sib-startup-label");
-  if(label)label.textContent="Le démarrage est bloqué. Vérifiez Internet, puis rechargez la page (Ctrl + F5).";
-  splash.style.zIndex="999999";
-  splash.style.background="#f2f5fa";
-  splash.style.color="#14213a";
-  var old=splash.querySelector("[data-sib-recovery]");
-  if(!old){
-   var box=document.createElement("div");box.setAttribute("data-sib-recovery","1");
-   box.style.cssText="margin-top:18px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap";
-   var btn=document.createElement("button");btn.type="button";btn.textContent="Recharger l’application";
-   btn.style.cssText="padding:10px 16px;border:0;border-radius:9px;background:#245fc5;color:#fff;font-weight:700;cursor:pointer";
-   btn.onclick=function(){window.location.reload()};
-   box.appendChild(btn);splash.querySelector(".sib-startup-inner")?.appendChild(box);
-  }
- },18000);
- window.addEventListener("sib-startup-finished",function(){clearTimeout(timer)},{once:true});
-})();
-</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./supabase-config.js"></script>
 <script src="./supabase-client.js"></script>
@@ -1398,9 +1374,9 @@ function eff(e){if(e.rev){const o=S.e.find(x=>x.id==e.rev);return o?eff(o).map((
  if(e.t=="recette")return[[e.a,e.m]];if(e.t=="depense")return[[e.a,-e.m]];return[[e.a,-e.m],[e.b,e.m]]}
 const gone=e=>S.e.some(x=>x.rev==e.id);
 function bal(){const b={Caisse:0,Banque:0,"Mobile Money":0};S.e.forEach(e=>eff(e).forEach(([a,d])=>b[a]+=d));return b}
-function add(e){if(!e||typeof e!=="object")return toast("Opération invalide : données manquantes.","er");const m=Number(e.m);if(!Number.isFinite(m)||m<=0)return toast("Opération refusée : le montant doit être un nombre positif valide.","er");if(!AC.includes(e.a))return toast("Opération refusée : compte source invalide.","er");if(e.t==="transfert"&&(!AC.includes(e.b)||e.a===e.b))return toast("Virement refusé : choisissez deux comptes valides et différents.","er");if(!e.no||!e.t)return toast("Opération refusée : référence ou type manquant.","er");e.m=m;e.id=Date.now()+Math.random();e.d=new Date().toISOString();S.e.push(e);lg(e.no+" · "+e.t+" · "+fm(e.m));save()}
+function add(e){e.id=Date.now()+Math.random();e.d=new Date().toISOString();S.e.push(e);lg(e.no+" · "+e.t+" · "+fm(e.m));save()}
 function ctx(e){const r=S.e.find(x=>x.id==e.rev);return r}
-function renderClients(){const invoicesFor=c=>S.fa.filter(f=>f&&f.c==c.id&&!f.x);$("cli").innerHTML="<h2>Clients</h2>"+bx("Nouveau client",F("cn","Nom complet")+F("cposte","Poste / fonction")+F("ct","Téléphone")+F("ca","Adresse"),'<button class="p" data-a="cadd">Ajouter</button>')+'<div class="box">'+T(["Client","Téléphone","Adresse","Facturé","Reste dû"],S.c.map(c=>{const fs=invoicesFor(c),billed=fs.reduce((sum,f)=>sum+Math.max(0,Number(f.m)||0),0),due=fs.reduce((sum,f)=>sum+Math.max(0,(Number(f.m)||0)-paid(f)),0);return "<tr><td>"+esc(c.n)+"</td><td>"+esc(c.t||"")+"</td><td>"+esc(c.a||"")+"</td><td class='r'>"+fm(billed)+"</td><td class='r'>"+fm(due)+"</td></tr>"}))+"</div>"}
+function renderClients(){const invoicesFor=c=>S.fa.filter(f=>f.c==c.id&&!f.x);$("cli").innerHTML="<h2>Clients</h2>"+bx("Nouveau client",F("cn","Nom complet")+F("cposte","Poste / fonction")+F("ct","Téléphone")+F("ca","Adresse"),'<button class="p" data-a="cadd">Ajouter</button>')+'<div class="box">'+T(["Client","Téléphone","Adresse","Facturé","Reste dû"],S.c.map(c=>{const fs=invoicesFor(c),billed=fs.reduce((sum,f)=>sum+f.m,0),due=fs.reduce((sum,f)=>sum+f.m-paid(f),0);return "<tr><td>"+esc(c.n)+"</td><td>"+esc(c.t||"")+"</td><td>"+esc(c.a||"")+"</td><td class='r'>"+fm(billed)+"</td><td class='r'>"+fm(due)+"</td></tr>"}))+"</div>"}
 function renderAssistant(){
  const root=$("ia-report");if(!root)return;
  const now=new Date(),month=now.toISOString().slice(0,7),label=now.toLocaleDateString("fr-FR",{month:"long",year:"numeric"});
@@ -1499,13 +1475,16 @@ $("tok").onclick=()=>{const m=+$("ta").value,k=$("to").value;if(!(m>0))return to
 $("dok").onclick=()=>{const m=+$("dm").value,a=$("da").value;if(!(m>0))return toast("Montant invalide");if(bal()[a]<m)return toast("Solde insuffisant sur "+a);
  add({t:"depense",no:num("DEP"),m,a,cat:$("dc").value,l:$("dl").value});$("dm").value="";$("dl").value="";toast("Dépense enregistrée")};
 function cancel(id){const o=S.e.find(x=>x.id==id);if(!o||gone(o)||o.rev)return;ask("Annuler "+o.no+" ? Une opération corrective sera créée ; l'original reste dans l'historique.",()=>cancel2(id),{title:"Annuler cette opération",danger:1,ok:"Confirmer l'annulation",warn:"Cette modification peut affecter les soldes de vos comptes et vos rapports."})}
-function cancel2(id){const o=S.e.find(x=>x.id==id);if(!o||gone(o)||o.rev)return; if(o.t!="depense"&&Object.values(bal()).some(v=>v<0))return; add({t:"annulation",no:num("AV"),rev:o.id,m:o.m,a:o.a});const b=bal(); if(Object.values(b).some(v=>v<0)){S.e.pop();save();return toast("Annulation impossible : solde négatif")}if(o.ach){const a=S.ac.find(z=>z.no==o.ach),s=a&&S.st.find(z=>z.n==a.st);if(s)s.q-=a.q;save()}toast("Annulation enregistrée");draw()}
+function cancel2(id){const o=S.e.find(x=>x.id==id);if(!o)return;
+ if(o.t!="depense"&&Object.values(bal()).some(v=>v<0))return;
+ add({t:"annulation",no:num("AV"),rev:o.id,m:o.m,a:o.a});const b=bal();
+ if(Object.values(b).some(v=>v<0)){S.e.pop();save();return toast("Annulation impossible : solde négatif")}if(o.ach){const a=S.ac.find(z=>z.no==o.ach),s=a&&S.st.find(z=>z.n==a.st);if(s)s.q-=a.q;save()}toast("Annulation enregistrée");draw()}
 function processMonthlyBankDebits(){
  const month=new Date().toISOString().slice(0,7),today=+new Date().toISOString().slice(8,10);let changed=false;
  (S.prelevements||[]).forEach(p=>{
   if(!p||p.active===false||!p.id||!(+p.montant>0)||!p.libelle)return;
   if(month<(p.debut||month)||today<Math.min(28,Math.max(1,+p.jour||1))||p.dernierMois===month)return;
-  const exists=S.e.some(e=>e&&e.prelevementId===p.id&&e.prelevementMois===month);if(exists){p.dernierMois=month;changed=true;return;}
+  const exists=S.e.some(e=>e.prelevementId===p.id&&e.prelevementMois===month&&!gone(e));if(exists){p.dernierMois=month;changed=true;return;}
   if(bal().Banque<(+p.montant))return;
   const e={id:nw(),t:"depense",no:num("PREL"),m:+p.montant,a:"Banque",cat:"Prélèvement bancaire mensuel",l:p.libelle,d:new Date().toISOString(),prelevementId:p.id,prelevementMois:month};
   S.e.push(e);p.dernierMois=month;lg("Prélèvement bancaire enregistré : "+p.libelle+" ("+month+")");changed=true;
@@ -1655,7 +1634,7 @@ dsave(){const c=cid(V("vc"));if(!c)return toast("Choisissez un client");if(!DL.l
 dvstatus(i){const [id,status]=i.split(":");const d=S.dv.find(x=>x.id==id),current=d&&(d.status||(d.fa?"Facturé":"En attente"));if(!d||d.fa||current!=="En attente"||!["Accepté","Refusé"].includes(status))return;ask("Confirmer le statut « "+status+" » pour le devis "+d.no+" ?",()=>{d.status=status;d.statusDate=iso().slice(0,10);d.statusBy=CU&&CU.nom||RO;d.history=Array.isArray(d.history)?d.history:[];d.history.push({status, date:d.statusDate, by:d.statusBy});lg("Devis "+d.no+" : "+status);save();draw();toast("Devis "+status.toLowerCase())},{title:status+" le devis",ok:"Confirmer",danger:status==="Refusé",warn:status==="Refusé"?"Le devis restera dans l’historique et ne pourra pas être facturé.":""})},
  dvcancel(id){const d=S.dv.find(x=>x.id==id),current=d&&(d.status||(d.fa?"Facturé":"En attente"));if(!d||d.fa||!["En attente","Accepté"].includes(current))return;ask("Annuler le devis "+d.no+" ? Il restera consultable dans l’historique et ne pourra plus être modifié ni facturé.",()=>{d.status="Annulé";d.statusDate=iso().slice(0,10);d.statusBy=CU&&CU.nom||RO;d.history=Array.isArray(d.history)?d.history:[];d.history.push({status:"Annulé",date:d.statusDate,by:d.statusBy});lg("Devis annulé : "+d.no);save();draw();toast("Devis annulé")},{title:"Annuler le devis",ok:"Annuler le devis",danger:true,warn:"Cette action est définitive pour ce devis."})},
 dvedit(id){const d=S.dv.find(x=>x.id==id);if(!d||d.fa)return;const opts=(id,label,val,type="text")=>`<div><label for="${id}">${label}</label><input id="${id}" type="${type}" value="${esc(val??"")}" /></div>`;$("mdc").innerHTML=`<h2>Modifier le devis ${esc(d.no)}</h2><div class="lf">${opts("dve_valid","Valide jusqu’au",d.validUntil||"","date")}${opts("dve_days","Durée de validité (jours)",d.validDays||30,"number")}${opts("dve_rem","Remise (%)",d.discount||0,"number")}${opts("dve_notes","Conditions / notes",d.notes||"")}</div><p>La modification de ces paramètres ne change pas les lignes du devis.</p><div class="acts"><button class="s" data-u="no">Annuler</button><button class="p" data-m="dvesave" data-i="${id}">Enregistrer</button></div>`;$("mdl").classList.remove("hide")},
-dvesave:id=>{const d=S.dv.find(x=>x.id==id);if(!d||d.fa)return;const daysRaw=V("dve_days"),remRaw=V("dve_rem"),days=Number(daysRaw),rem=Number(remRaw),validUntil=V("dve_valid")||new Date(Date.now()+Math.max(1,Math.min(365,Number.isInteger(days)?days:30))*864e5).toISOString().slice(0,10);if(!Number.isInteger(days)||days<1||days>365)return toast("La durée de validité doit être un nombre entier entre 1 et 365 jours.","er");if(remRaw===""||!Number.isFinite(rem)||rem<0||rem>100)return toast("La remise doit être comprise entre 0 et 100 %.","er");if(!/^\d{4}-\d{2}-\d{2}$/.test(validUntil)||Number.isNaN(Date.parse(validUntil))||new Date(validUntil).toISOString().slice(0,10)!==validUntil)return toast("La date de validité est invalide.","er");const lines=Array.isArray(d.lines)?d.lines:[];if(!lines.length||lines.some(l=>!Number.isFinite(Number(l.q))||Number(l.q)<=0||!Number.isFinite(Number(l.p))||Number(l.p)<0))return toast("Les lignes du devis sont invalides. Corrigez-les avant l’enregistrement.","er");const subtotal=lines.reduce((a,l)=>a+Number(l.q)*Number(l.p),0);if(!Number.isFinite(subtotal)||subtotal<=0)return toast("Le sous-total du devis doit être supérieur à zéro.","er");d.validDays=days;d.validUntil=validUntil;d.discount=rem;d.notes=V("dve_notes").trim();d.subtotal=subtotal;d.m=Math.round(subtotal*(1-rem/100));save();$("mdl").classList.add("hide");draw();toast("Devis modifié")},
+dvesave:id=>{const d=S.dv.find(x=>x.id==id),days=Math.max(1,Math.min(365,+V("dve_days")||30)),rem=Math.max(0,Math.min(100,+V("dve_rem")||0));if(!d||d.fa)return;d.validDays=days;d.validUntil=V("dve_valid")||new Date(Date.now()+days*864e5).toISOString().slice(0,10);d.discount=rem;d.notes=V("dve_notes").trim();d.subtotal=d.lines.reduce((a,l)=>a+l.q*l.p,0);d.m=Math.round(d.subtotal*(1-rem/100));save();$("mdl").classList.add("hide");draw();toast("Devis modifié")},
 tofac(id){const d=S.dv.find(x=>x.id==id);if(!d)return toast("Devis introuvable");const existing=S.fa.find(x=>x.dv==d.no||x.quoteId==d.id);if(d.fa||existing){d.fa=d.fa||existing.no;save();draw();return toast("Ce devis possède déjà la facture "+d.fa,"wa")}if((d.status||"En attente")!=="Accepté")return toast("Seul un devis accepté peut être converti en facture");if(d.status==="Annulé"||d.status==="Refusé")return toast("Un devis refusé ou annulé ne peut pas être facturé");if(d.validUntil&&d.validUntil<iso().slice(0,10))return toast("Ce devis est expiré et ne peut pas être facturé","wa");const total=Number(d.m),lines=Array.isArray(d.lines)?d.lines:[];if(!Number.isFinite(total)||total<=0)return toast("Le montant du devis doit être strictement positif avant la facturation.","er");if(!lines.length||lines.some(l=>!l||!Number.isFinite(Number(l.q))||Number(l.q)<=0||!Number.isFinite(Number(l.p))||Number(l.p)<0))return toast("Les lignes du devis sont invalides. Corrigez le devis avant de créer la facture.","er");const no=num("FAC");S.fa.push({id:nw(),no,d:iso(),c:d.c,lines:lines.map(l=>({...l})),m:Math.round(total),dv:d.no,quoteId:d.id,notes:d.notes||""});d.fa=no;d.status="Facturé";lg("Facture "+no+" créée depuis "+d.no);save();draw();toast("Facture "+no+" créée")},
 fpay(){const f=S.fa.find(x=>x.no==V("fi").split(" ")[0]);if(!f)return toast("Aucune facture à encaisser");if(f.x)return toast("Cette facture est annulée : aucun règlement ne peut être enregistré.","er");const m=Number(V("fa2")),a=V("fk");
  if(!Number.isFinite(m)||!Number.isInteger(m)||m<=0)return toast("Montant invalide : saisissez un montant entier strictement positif.","er");if(!AC.includes(a))return toast("Choisissez un compte d’encaissement valide.","er");const totalFacture=Number(f.m)||0,solde=Math.max(0,totalFacture-paid(f));if(!(totalFacture>0))return toast("Le total de cette facture est invalide. Corrigez la facture avant l’encaissement.","er");if(m>solde)return toast("Le montant dépasse le reste dû.","er");
@@ -1882,12 +1861,11 @@ async function doGo(){const m=LM;if($("lbt").classList.contains("ld"))return;
 function enter(resume){const prev=CU.last;RO=CU.role;PF="mois";fDay=L(new Date());fMon=fDay.slice(0,7);fYr=new Date().getFullYear();CU.last=iso();try{sessionStorage.setItem("sib-uid",CU.id)}catch(_){}document.body.classList.remove("lo");
  lg("Connexion");save();mk();drawAm();const welcomeName=(CU.pn||CU.nom||"").trim();if(welcomeName)toast("Bienvenue, "+welcomeName+" ! Heureux de vous retrouver dans SIB Gestion.", "ok",{ms:5000})}
 function out(force){if(!force&&gate(()=>out()))return;const nm0=CU?(CU.pn||CU.nom):"";if(CU){lg(force?"Session expirée (inactivité)":"Déconnexion");save()}const wasCloud=!!CU?.cloud;CU=null;cloudSessionReady=false;CUR="";try{sessionStorage.removeItem("sib-uid")}catch(_){}if(wasCloud&&window.SIBCloud?.ready){const finishSignOut=()=>window.SIBCloud.signOut().catch(err=>console.warn("SIB sign-out:",err));Promise.resolve(cloudSaveChain).then(finishSignOut,finishSignOut)}DL=[];cart=[];drawCart();["npp","amm"].forEach(i=>$(i).classList.add("hide"));document.body.classList.add("lo");document.body.classList.remove("mo");$("mdl").classList.add("hide");lgv("login");if(!force&&nm0)toast("Au revoir, "+nm0+" ! Vous avez été déconnecté. À bientôt.","ok",{ms:4500})}
-function sibWithTimeout(promise,ms,label){return new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error(label+" : délai dépassé après "+Math.round(ms/1000)+" secondes. Vérifiez votre connexion Internet et la disponibilité de Supabase.")),ms);Promise.resolve(promise).then(value=>{clearTimeout(timer);resolve(value)},error=>{clearTimeout(timer);reject(error)})})}
 async function boot(){applyLogo();
  if(window.SIBCloud?.ready){
   cloudSessionReady=false;
   try{
-   const current=await sibWithTimeout(window.SIBCloud.currentUser(),12000,"Vérification de la session"),remote=await sibWithTimeout(window.SIBCloud.loadAppState(),12000,"Chargement des données centrales");
+   const current=await window.SIBCloud.currentUser(),remote=await window.SIBCloud.loadAppState();
    let pendingCloud=null;try{pendingCloud=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null")}catch(_){}
    sibPendingConflict=!!(pendingCloud?.state&&remote?.state);
    if(sibPendingConflict){
@@ -1898,7 +1876,7 @@ async function boot(){applyLogo();
    const email=current.user.email||"",parts=(email.split("@")[0]||"Administrateur").split(/[._-]+/).filter(Boolean),profile=(S.profile&&typeof S.profile==="object")?S.profile:{};
    CU={id:current.user.id,pn:profile.pn||parts[0]||"Administrateur",nm:profile.nm||parts.slice(1).join(" "),nom:profile.nom||[profile.pn||parts[0]||"Administrateur",profile.nm||parts.slice(1).join(" ")].filter(Boolean).join(" "),mail:email,login:email,role:current.membership.role,actif:true,cloud:true,last:null,tel:profile.tel||"",ph:profile.ph||""};
    S.us=[CU];RO=CU.role;cloudSessionReady=true;applyLogo();activateCloudRealtime();enter(true);if(!remote)await cloudSaveChain;return;
-  }catch(err){console.error("SIB cloud session unavailable:",err);LNOTE="Impossible de terminer le chargement des données centrales. "+String(err?.message||err||"Erreur inconnue")+" Si le problème persiste, vérifiez la connexion Supabase et les droits du compte."}
+  }catch(err){console.warn("SIB cloud session unavailable:",err);}
   document.body.classList.add("lo");lgv("login");return;
  }
  if(!window.SIBCloud?.ready){document.body.classList.add("lo");LNOTE="Connexion centrale non configurée. Pour éviter de créer un compte local différent sur chaque appareil, renseignez l’URL du projet et la clé publique dans supabase-config.js, puis exécutez supabase/04_shared_app_state.sql dans Supabase.";lgv("login");const b=$("lbt");if(b)b.disabled=true;const a=$("llg"),p=$("lpw");if(a)a.disabled=true;if(p)p.disabled=true;return;}
@@ -2124,5 +2102,5 @@ $("lgc").addEventListener("keydown",e=>{if(e.key=="Enter")doGo()});
  document.body.appendChild(field);
 })();
 
-drawCart();boot().catch(err=>{console.error("SIB startup error:",err);const d=document.getElementById("dash");if(d){d.classList.remove("hide");d.innerHTML='<div class="box"><h2>Erreur au démarrage</h2><pre style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></div>';d.querySelector("pre").textContent=err&&(err.stack||err.message)||String(err)}}).finally(()=>{window.dispatchEvent(new Event("sib-startup-finished"));const splash=document.getElementById("sib-startup");if(splash){splash.classList.add("done");setTimeout(()=>splash.remove(),350)}});
+drawCart();boot().catch(err=>{console.error("SIB startup error:",err);const d=document.getElementById("dash");if(d){d.classList.remove("hide");d.innerHTML='<div class="box"><h2>Erreur au démarrage</h2><pre style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></div>';d.querySelector("pre").textContent=err&&(err.stack||err.message)||String(err)}}).finally(()=>{const splash=document.getElementById("sib-startup");if(splash){splash.classList.add("done");setTimeout(()=>splash.remove(),350)}});
 </script></body></html>
