@@ -1515,7 +1515,7 @@ async function askAssistant(){
  }
  out.textContent="Je n’ai pas trouvé de réponse suffisamment précise dans le guide intégré. Reformulez votre question en précisant le module concerné (devis, factures, caisse, banque, clients, paie, paramètres ou connexion). Pour répondre librement à toute question nouvelle, il faut connecter un véritable service d’IA côté serveur avec une clé API sécurisée ; aucune clé secrète ne doit être placée dans le navigateur.";
 }
-function nav(v){if(v!==CUR&&gate(()=>nav(v)))return;document.querySelectorAll("main section").forEach(s=>{const on=s.id==v;s.classList.toggle("hide",!on);if(on){s.classList.remove("in2");void s.offsetWidth;s.classList.add("in2");setTimeout(()=>s.classList.remove("in2"),1500)}});document.querySelectorAll("#nv button").forEach(b=>b.classList.toggle("on",b.dataset.v==v));$("pt").textContent=(P.find(p=>p[0]==v)||[])[1]||"";if(v=="dash")for(const k in PV)delete PV[k];document.body.classList.remove("mo");CUR=v;if(v==="cli")renderClients();if(v==="ia")renderAssistant();if(v==="relance")renderRelances();try{draw()}catch(err){console.error("SIB interface draw error:",err);const target=document.getElementById(v);if(target){target.classList.remove("hide");target.innerHTML='<div class="box" style="border:1px solid #e7a5a5"><h2>Erreur de chargement</h2><p>Cette page n’a pas pu être affichée. Rechargez l’application. Si le problème continue, transmettez le message ci-dessous au support.</p><pre style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></div>';const pre=target.querySelector("pre");if(pre)pre.textContent=err&& (err.stack||err.message)||String(err)}if(v==="cli")toast("Erreur pendant le chargement de la page Clients.","wa")}}
+function nav(v){if(!CU||(window.SIBCloud?.ready&&!cloudSessionReady)){document.body.classList.add("lo");lgv("login");return;}if(v!==CUR&&gate(()=>nav(v)))return;document.querySelectorAll("main section").forEach(s=>{const on=s.id==v;s.classList.toggle("hide",!on);if(on){s.classList.remove("in2");void s.offsetWidth;s.classList.add("in2");setTimeout(()=>s.classList.remove("in2"),1500)}});document.querySelectorAll("#nv button").forEach(b=>b.classList.toggle("on",b.dataset.v==v));$("pt").textContent=(P.find(p=>p[0]==v)||[])[1]||"";if(v=="dash")for(const k in PV)delete PV[k];document.body.classList.remove("mo");CUR=v;if(v==="cli")renderClients();if(v==="ia")renderAssistant();if(v==="relance")renderRelances();try{draw()}catch(err){console.error("SIB interface draw error:",err);const target=document.getElementById(v);if(target){target.classList.remove("hide");target.innerHTML='<div class="box" style="border:1px solid #e7a5a5"><h2>Erreur de chargement</h2><p>Cette page n’a pas pu être affichée. Rechargez l’application. Si le problème continue, transmettez le message ci-dessous au support.</p><pre style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></div>';const pre=target.querySelector("pre");if(pre)pre.textContent=err&& (err.stack||err.message)||String(err)}if(v==="cli")toast("Erreur pendant le chargement de la page Clients.","wa")}}
 
 $("sib-ai-fab")?.addEventListener("click",()=>{if(CU){nav("ia");}else{lgv("login");toast("Connectez-vous pour accéder à SIB Assistant.","wa");}});
 $("ia-ask")?.addEventListener("click",askAssistant);$("ia-question")?.addEventListener("keydown",e=>{if(e.key==="Enter")askAssistant()});
@@ -2006,12 +2006,13 @@ async function boot(){applyLogo();
    S.us=[CU];RO=CU.role;cloudSessionReady=true;try{localStorage.setItem("sib-offline-profile-v1",JSON.stringify({id:CU.id,email:CU.mail,pn:CU.pn,nm:CU.nm,nom:CU.nom,role:CU.role,savedAt:Date.now()}));localStorage.setItem("sib-offline-state-v1",JSON.stringify({savedAt:Date.now(),state:cloudSnapshot()}));}catch(cacheErr){console.warn("SIB offline snapshot unavailable:",cacheErr)}applyLogo();activateCloudRealtime();enter(true);if(!remote)await cloudSaveChain;return;
   }catch(err){
   console.warn("SIB cloud session unavailable:",err);
+  const offlineNetworkFailure = navigator.onLine === false || /Délai de connexion dépassé|Failed to fetch|NetworkError|fetch failed|Load failed|Network request failed/i.test(String(err && err.message || err || ""));
   try {
    const cachedUser=JSON.parse(localStorage.getItem("sib-offline-profile-v1")||"null");
    const pending=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null");
    const cachedState=JSON.parse(localStorage.getItem("sib-offline-state-v1")||"null");
    const offlineState=pending&&pending.state?pending.state:(cachedState&&cachedState.state?cachedState.state:null);
-   if(cachedUser&&offlineState){
+   if(offlineNetworkFailure&&cachedUser&&offlineState){
     S=repairState(offlineState);
     CU={id:cachedUser.id,pn:cachedUser.pn||"Administrateur",nm:cachedUser.nm||"",nom:cachedUser.nom||cachedUser.pn||"Administrateur",mail:cachedUser.email||"",login:cachedUser.email||"",role:cachedUser.role||"user",actif:true,cloud:true,offline:true,last:null};
     S.us=[CU];RO=CU.role;cloudSessionReady=true;applyLogo();document.body.classList.add("sib-offline-mode");enter(true);
@@ -2247,6 +2248,8 @@ $("lgc").addEventListener("keydown",e=>{if(e.key=="Enter")doGo()});
  for(let i=0;i<cells;i++){const el=document.createElement("span");el.className="sib-cell";el.style.setProperty("--x",(3+Math.random()*94).toFixed(2)+"%");el.style.setProperty("--y",(3+Math.random()*94).toFixed(2)+"%");el.style.setProperty("--size",(12+Math.random()*30).toFixed(0)+"px");el.style.setProperty("--duration",(9+Math.random()*15).toFixed(1)+"s");el.style.setProperty("--delay",(-Math.random()*18).toFixed(1)+"s");field.appendChild(el)}
  document.body.appendChild(field);
 })();
+
+if(window.SIBCloud?.ready){try{const authClient=window.SIBCloud.client();authClient?.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT"&&CU?.cloud&&!CU?.offline){out(true);}});}catch(authWatchError){console.warn("SIB Auth state listener:",authWatchError);}}
 
 drawCart();boot().catch(err=>{console.error("SIB startup error:",err);const d=document.getElementById("dash");if(d){d.classList.remove("hide");d.innerHTML='<div class="box"><h2>Erreur au démarrage</h2><pre style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></div>';d.querySelector("pre").textContent=err&&(err.stack||err.message)||String(err)}}).finally(()=>{const splash=document.getElementById("sib-startup");if(splash){splash.classList.add("done");setTimeout(()=>splash.remove(),350)}});
 </script></body></html>
