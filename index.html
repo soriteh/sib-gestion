@@ -11,6 +11,36 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./supabase-config.js"></script>
 <script src="./supabase-client.js"></script>
+<script>
+/* SIB startup guard: keep a JavaScript parse/runtime failure from trapping the user behind the splash screen. */
+(function () {
+  "use strict";
+  var startupError = "";
+  window.addEventListener("error", function (event) {
+    var message = event && (event.message || (event.error && event.error.message));
+    if (message) startupError = String(message).slice(0, 500);
+  });
+  window.addEventListener("unhandledrejection", function (event) {
+    var reason = event && event.reason;
+    startupError = "Erreur asynchrone : " + String(reason && (reason.message || reason) || "inconnue").slice(0, 450);
+  });
+  function revealStartupFailure() {
+    var splash = document.getElementById("sib-startup");
+    if (!splash || !document.documentElement.contains(splash)) return;
+    splash.classList.add("sib-startup-recovery");
+    splash.style.cssText += ";position:fixed!important;inset:0!important;z-index:2147483647!important;display:grid!important;place-items:center!important;opacity:1!important;visibility:visible!important;background:#0b1426!important;color:#fff!important;padding:24px!important";
+    var message = startupError || "Le démarrage n’a pas répondu dans le délai prévu. Vérifiez la connexion Internet et la disponibilité du service de données.";
+    splash.innerHTML = '<div role="alert" style="width:min(520px,100%);padding:28px;border:1px solid #42516b;border-radius:16px;background:#14223a;color:#fff;font:15px/1.6 system-ui,sans-serif;box-shadow:0 18px 60px #0006"><h2 style="margin:0 0 10px;font-size:22px">SIB Gestion n’a pas démarré</h2><p style="margin:0 0 12px">L’application a détecté un problème pendant le chargement. Vos données locales ne sont pas effacées.</p><p style="margin:0 0 18px;padding:12px;border-radius:8px;background:#0b1426;overflow-wrap:anywhere;font-size:13px"></p><button type="button" id="sib-startup-retry" style="border:0;border-radius:8px;padding:11px 16px;background:#4f8df7;color:#fff;font-weight:700;cursor:pointer">Recharger l’application</button></div>';
+    var details = splash.querySelector("p:nth-of-type(2)");
+    if (details) details.textContent = message;
+    var retry = document.getElementById("sib-startup-retry");
+    if (retry) retry.addEventListener("click", function () { window.location.reload(); });
+  }
+  document.addEventListener("DOMContentLoaded", function () {
+    window.setTimeout(revealStartupFailure, 18000);
+  }, { once: true });
+})();
+</script>
 <style>
 :root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
 --bg:#f2f5fa;--sf:#fff;--tx:#14213a;--mu:#62718a;--ln:#e0e6f0;--ac:#2e6cd6;--ac2:#e8effc;--or:#ed7d31;--nv:#101b2e;--rd:#c4372c;--gr:#17803d;--sh:0 1px 2px rgba(16,27,46,.06),0 8px 24px rgba(16,27,46,.05)}
