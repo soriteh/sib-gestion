@@ -60,17 +60,21 @@
     if (!client) throw new Error("Connexion centrale non configurée. Renseignez l'URL et la clé publique dans supabase-config.js.");
     const { data, error } = await client.auth.signInWithPassword({ email, password });
     if (error) throw error;
-    try {
-      const membership = await getMembership(data.user.id);
-      return { user: data.user, membership };
-    } catch (error) {
+    const [membershipResult, stateResult] = await Promise.allSettled([
+      getMembership(data.user.id),
+      loadAppState()
+    ]);
+    if (membershipResult.status === "rejected") {
       await client.auth.signOut();
+      const error = membershipResult.reason;
       const message = String(error?.message || "");
       if (/membership|appartenance|organisation|organization/i.test(message)) {
         throw new Error("Mot de passe accepté, mais ce compte n'a pas d'appartenance active à Soritech Innov Business. Exécutez supabase/05_fix_admin_membership.sql dans le SQL Editor Supabase, puis reconnectez-vous.");
       }
       throw error;
     }
+    if (stateResult.status === "rejected") throw stateResult.reason;
+    return { user: data.user, membership: membershipResult.value, appState: stateResult.value };
   }
 
   async function signOut() {
