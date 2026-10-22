@@ -1474,10 +1474,11 @@ $("tok").onclick=()=>{const m=+$("ta").value,k=$("to").value;if(!(m>0))return to
 $("dok").onclick=()=>{const m=+$("dm").value,a=$("da").value;if(!(m>0))return toast("Montant invalide");if(bal()[a]<m)return toast("Solde insuffisant sur "+a);
  add({t:"depense",no:num("DEP"),m,a,cat:$("dc").value,l:$("dl").value});$("dm").value="";$("dl").value="";toast("Dépense enregistrée")};
 function cancel(id){const o=S.e.find(x=>x.id==id);if(!o||gone(o)||o.rev)return;ask("Annuler "+o.no+" ? Une opération corrective sera créée ; l'original reste dans l'historique.",()=>cancel2(id),{title:"Annuler cette opération",danger:1,ok:"Confirmer l'annulation",warn:"Cette modification peut affecter les soldes de vos comptes et vos rapports."})}
-function cancel2(id){const o=S.e.find(x=>x.id==id);if(!o)return;
- if(o.t!="depense"&&Object.values(bal()).some(v=>v<0))return;
- add({t:"annulation",no:num("AV"),rev:o.id,m:o.m,a:o.a});const b=bal();
- if(Object.values(b).some(v=>v<0)){S.e.pop();save();return toast("Annulation impossible : solde négatif")}if(o.ach){const a=S.ac.find(z=>z.no==o.ach),s=a&&S.st.find(z=>z.n==a.st);if(s)s.q-=a.q;save()}toast("Annulation enregistrée");draw()}
+function cancel2(id){const o=S.e.find(x=>x.id==id);if(!o||o.rev||gone(o))return toast("Cette opération est déjà annulée ou introuvable.","er");
+ const current=bal();if(o.t!="depense"&&Object.values(current).some(v=>v<0))return toast("Annulation refusée : un compte présente déjà un solde négatif.","er");
+ const projected={...current};eff(o).forEach(([a,d])=>{if(Object.prototype.hasOwnProperty.call(projected,a))projected[a]-=d});
+ if(Object.values(projected).some(v=>v<0))return toast("Annulation impossible : elle rendrait le solde d’un compte négatif.","er");
+ add({t:"annulation",no:num("AV"),rev:o.id,m:o.m,a:o.a});if(o.ach){const a=S.ac.find(z=>z.no==o.ach),st=a&&S.st.find(z=>z.n==a.st);if(st)st.q-=a.q;save()}toast("Annulation enregistrée");draw()}
 function processMonthlyBankDebits(){
  const month=new Date().toISOString().slice(0,7),today=+new Date().toISOString().slice(8,10);let changed=false;
  (S.prelevements||[]).forEach(p=>{
