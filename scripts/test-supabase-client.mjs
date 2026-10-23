@@ -5,11 +5,15 @@ import { resolve } from "node:path";
 
 const clientSource = readFileSync(resolve("supabase-client.js"), "utf8");
 
-function makeHarness({ membershipError = null, stateError = null } = {}) {
+function makeHarness({ membershipError = null, stateError = null, bootstrapError = null } = {}) {
   let signOutCalls = 0;
   const auth = {
     signInWithPassword: async () => ({
       data: { user: { id: "user-1", email: "admin@example.test" } },
+      error: null
+    }),
+    signUp: async () => ({
+      data: { user: { id: "user-1", email: "admin@example.test" }, session: { user: { id: "user-1" } } },
       error: null
     }),
     getSession: async () => ({
@@ -57,7 +61,8 @@ function makeHarness({ membershipError = null, stateError = null } = {}) {
     supabase: {
       createClient: () => ({
         auth,
-        from: queryFor
+        from: queryFor,
+        rpc: async () => ({ error: bootstrapError })
       })
     }
   };
@@ -78,4 +83,10 @@ function makeHarness({ membershipError = null, stateError = null } = {}) {
   assert.equal(h.signOutCalls, 1, "failed membership validation must close the Auth session");
 }
 
-console.log("Supabase sign-in failure-path tests passed (2 cases).");
+{
+  const h = makeHarness({ bootstrapError: { message: "bootstrap denied" } });
+  await assert.rejects(() => h.cloud.signUpFirstAdmin("admin@example.test", "password", "Admin SIB"), /bootstrap denied/);
+  assert.equal(h.signOutCalls, 1, "failed first-admin bootstrap must close the Auth session");
+}
+
+console.log("Supabase authentication failure-path tests passed (3 cases).");
