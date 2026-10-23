@@ -79,7 +79,7 @@ function makeHarness({ membershipError = null, stateError = null, bootstrapError
 
 {
   const h = makeHarness({ membershipError: { message: "membership unavailable" } });
-  await assert.rejects(() => h.cloud.signIn("admin@example.test", "password"), (error) => error?.message === "membership unavailable");
+  await assert.rejects(() => h.cloud.signIn("admin@example.test", "password"), (error) => /appartenance active/.test(error?.message || ""));
   assert.equal(h.signOutCalls, 1, "failed membership validation must close the Auth session");
 }
 
