@@ -146,6 +146,20 @@
       .subscribe();
   }
 
+  async function inviteUser(email, fullName, role) {
+    await requireSession();
+    if (!client) throw new Error("Supabase n'est pas configuré.");
+    const { data, error } = await client.functions.invoke("sib-invite-user", {
+      body: { email, full_name: fullName, role }
+    });
+    if (error) {
+      const detail = data?.error || error.message || "Erreur inconnue";
+      throw new Error("Invitation e-mail impossible : " + detail);
+    }
+    if (!data?.ok) throw new Error(data?.error || "Le service d'invitation n'a pas confirmé l'envoi.");
+    return data;
+  }
+
   async function signUpFirstAdmin(email, password, fullName) {
     if (!client) throw new Error("Supabase n'est pas configuré.");
     const { data, error } = await client.auth.signUp({
@@ -184,6 +198,7 @@
     client: () => client,
     signIn,
     signUpFirstAdmin,
+    inviteUser,
     signOut,
     currentUser,
     getMembership,
