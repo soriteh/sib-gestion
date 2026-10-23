@@ -89,4 +89,22 @@ function makeHarness({ membershipError = null, stateError = null, bootstrapError
   assert.equal(h.signOutCalls, 1, "failed first-admin bootstrap must close the Auth session");
 }
 
-console.log("Supabase authentication failure-path tests passed (3 cases).");
+{
+  const h = makeHarness({ membershipError: { code: "PGRST003", message: "Timed out acquiring connection from connection pool." } });
+  await assert.rejects(
+    () => h.cloud.signIn("admin@example.test", "password"),
+    (error) => /API de données est temporairement indisponible/.test(error?.message || "")
+  );
+  assert.equal(h.signOutCalls, 0, "transient membership API outage must preserve the Auth session");
+}
+
+{
+  const h = makeHarness({ stateError: { code: "PGRST002", message: "Could not query the database for the schema cache. Retrying." } });
+  await assert.rejects(
+    () => h.cloud.signIn("admin@example.test", "password"),
+    (error) => /chargement des données centrales est temporairement indisponible/.test(error?.message || "")
+  );
+  assert.equal(h.signOutCalls, 0, "transient app-state API outage must preserve the Auth session");
+}
+
+console.log("Supabase authentication failure-path tests passed (5 cases).");
