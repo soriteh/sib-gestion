@@ -1404,7 +1404,7 @@ async function retryPendingCloudSave(){
   console.warn("SIB pending save retry failed:",err);
   sibPendingRetryDelay=Math.min(Math.round(sibPendingRetryDelay*1.8),120000);
   schedulePendingCloudRetry(sibPendingRetryDelay);
- }finally{sibPendingRetryBusy=false}
+ }finally{sibPendingRetryBusy=false;if(cloudQueuedSnapshot&&cloudSessionReady&&!cloudWriteRunning)cloudSaveChain=drainCloudWrites()}
 }
 window.addEventListener("online",()=>{sibPendingRetryDelay=10000;schedulePendingCloudRetry(1500)});
 async function drainCloudWrites(){
