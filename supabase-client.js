@@ -157,13 +157,22 @@
     if (!data.session || !data.user) {
       throw new Error("Compte créé, mais Supabase exige une confirmation par e-mail avant l'activation. Confirmez l'e-mail, puis revenez vous connecter.");
     }
-    const { error: bootstrapError } = await client.rpc("sib_bootstrap_first_admin", {
-      p_organization_id: config.organizationId,
-      p_full_name: fullName || ""
-    });
-    if (bootstrapError) throw new Error(bootstrapError.message || "Impossible d'activer le premier administrateur.");
-    const membership = await getMembership(data.user.id);
-    return { user: data.user, membership };
+    try {
+      const { error: bootstrapError } = await client.rpc("sib_bootstrap_first_admin", {
+        p_organization_id: config.organizationId,
+        p_full_name: fullName || ""
+      });
+      if (bootstrapError) throw new Error(bootstrapError.message || "Impossible d'activer le premier administrateur.");
+      const membership = await getMembership(data.user.id);
+      return { user: data.user, membership };
+    } catch (setupError) {
+      // A partially completed bootstrap must not leave the browser authenticated
+      // as a user who has no verified SIB organization membership.
+      try { await client.auth.signOut(); } catch (signOutError) {
+        console.warn("SIB: sign-out after failed first-admin setup did not complete:", signOutError);
+      }
+      throw setupError;
+    }
   }
 
   window.SIBCloud = Object.freeze({
