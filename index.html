@@ -1746,7 +1746,6 @@ function draw2(){
  if($("vc")&&VC)$("vc").value=VC;dash();drawU();drawSet();drawProf();drawRH()}
 const bad=m=>{toast(m);return 1},nw=()=>Date.now()+Math.random(),iso=()=>new Date().toISOString();
 const ACT={
- "etu-clear"(){ETUQ="";drawStudents()},
  prelreset(){["prel_id","prel_libelle","prel_montant"].forEach(id=>$(id).value="");$("prel_jour").value="1";$("prel_debut").value=new Date().toISOString().slice(0,7);},
  preledit(id){const p=S.prelevements.find(x=>String(x.id)===String(id));if(!p)return;$("prel_id").value=p.id;$("prel_libelle").value=p.libelle||"";$("prel_montant").value=p.montant||"";$("prel_jour").value=p.jour||1;$("prel_debut").value=p.debut||new Date().toISOString().slice(0,7);$("prel_libelle").focus();},
  prelsave(){if(!can("banque"))return;const id=V("prel_id").trim(),libelle=V("prel_libelle").trim(),montant=+V("prel_montant"),jour=+V("prel_jour"),debut=V("prel_debut");if(!libelle||!(montant>0)||!Number.isFinite(montant)||!Number.isInteger(jour)||jour<1||jour>28||!/^[0-9]{4}-[0-9]{2}$/.test(debut))return toast("Renseignez le libellé, un montant positif, un jour entre 1 et 28 et le premier mois.");let p=id?S.prelevements.find(x=>String(x.id)===id):null;if(id&&!p)return toast("Ce prélèvement n’existe plus. Rechargez la page.");if(!p){p={id:nw(),active:true,dernierMois:""};S.prelevements.push(p);}Object.assign(p,{libelle,montant,jour,debut,active:p.active!==false});save();draw();toast("Prélèvement mensuel enregistré");},
