@@ -232,7 +232,7 @@
       const trainingId = byTitle.get(title.toLowerCase());
       const studentId = studentIds.get(String(s.id));
       if (!trainingId || !studentId) return null;
-      const status = s.statut === "Terminé" ? "Terminé" : s.statut === "Abandonné" ? "Abandonné" : s.statut === "En formation" ? "En cours" : "Inscrit";
+      const status = s.statut === "Terminé" ? "Réussi" : s.statut === "Abandonné" ? "Abandonné" : s.statut === "En formation" ? "En cours" : "Inscrit";
       return { organization_id: org, legacy_id: String(s.id) + "::" + title, training_id: trainingId, student_id: studentId, enrolled_at: /^\d{4}-\d{2}-\d{2}$/.test(String(s.date || "")) ? s.date : new Date().toISOString().slice(0, 10), agreed_price: Math.max(0, Number(s.montant) || 0), amount_paid: Math.max(0, Math.min(Number(s.montant) || 0, Number(s.paye) || 0)), status, certificate_number: s.certificateNumber || s.attestationNo || null, notes: String(s.notes || "") };
     }).filter(Boolean);
     if (enrollments.length) {
