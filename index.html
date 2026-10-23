@@ -1301,7 +1301,7 @@ body,.top,main,.box,.k,.pp,.md>.box,input,select,textarea,button.s,.theme-manual
 <script>
 const SV0=[["Saisie de texte (page)",500],["Impression noir (page)",300],["Impression couleur (page)",1000],["Scannage simple",1000],["Scannage + envoi",2000],["Flocage de maillot",50000],["Décoration de t-shirt",30000],["Confection de cachet",50000],["Plastification",3000],["Reliure",10000],["Cartes de visite (lot)",100000],["Installation caméra de surveillance",500000],["Déploiement wifi zone",2000000],["Création de site web",3000000],];
 const AC=["Caisse","Banque","Mobile Money"],K="sib-gestion-v1";
-const D0=()=>({set:{nom:"Soritech Innov Business",court:"SIB",pays:"",ville:"",adr:"",tel:"",mail:"",web:"",wa:"",rccm:"",nif:"",logo:"",fav:"",app:"SIB Gestion",cc:"GNF",cn:"Franc guinéen",sym:"FG",pre:{DEV:"DEV",FAC:"FAC",REC:"REC"},rh:{cgm:"2.5",sam:"non",cs:"0",cp:"0"}},dis:{},emp:[],cg:[],pt:{},bl:[],us:[],e:[],n:{},c:[],dv:[],fa:[],fo:[],ac:[],st:[],pj:[],jr:[],prelevements:[]});let S=D0();try{S={...S,...JSON.parse(localStorage.getItem(K))}}catch(_){}
+const D0=()=>({set:{nom:"Soritech Innov Business",court:"SIB",pays:"",ville:"",adr:"",tel:"",mail:"",web:"",wa:"",rccm:"",nif:"",logo:"",fav:"",app:"SIB Gestion",cc:"GNF",cn:"Franc guinéen",sym:"FG",pre:{DEV:"DEV",FAC:"FAC",REC:"REC"},rh:{cgm:"2.5",sam:"non",cs:"0",cp:"0"}},dis:{},emp:[],cg:[],pt:{},bl:[],us:[],e:[],n:{},c:[],dv:[],fa:[],fo:[],ac:[],st:[],pj:[],jr:[],prelevements:[],courses:[],etudiants:[],trainers:[],trainingSessions:[],trainingAttendance:[],trainingAssessments:[],trainingCertificates:[],trainingPayments:[]});let S=D0();try{S={...S,...JSON.parse(localStorage.getItem(K))}}catch(_){}
 S=repairState(S);
 S.set={...D0().set,...S.set};S.set.pre={...D0().set.pre,...S.set.pre};S.set.rh={...D0().set.rh,...S.set.rh};S.dis=S.dis||{};
 if(!Array.isArray(S.sv)||!S.sv.length)S.sv=SV0.map(([n,p])=>({id:String(Date.now()+Math.random()),n,p,active:true}));let SV=S.sv.filter(x=>x.active!==false).map(x=>[x.n,+x.p||0]);
@@ -1317,7 +1317,7 @@ function repairState(input){
  out.set.pre={...defaults.set.pre,...(out.set.pre&&typeof out.set.pre==="object"&&!Array.isArray(out.set.pre)?out.set.pre:{})};
  out.set.rh={...defaults.set.rh,...(out.set.rh&&typeof out.set.rh==="object"&&!Array.isArray(out.set.rh)?out.set.rh:{})};
  out.dis=out.dis&&typeof out.dis==="object"&&!Array.isArray(out.dis)?out.dis:{};
- for(const k of ["sv","emp","cg","bl","us","e","c","dv","fa","fo","ac","st","pj","jr","prelevements"])if(Array.isArray(out[k]))out[k]=out[k].filter(x=>x&&typeof x==="object"&&!Array.isArray(x));
+ for(const k of ["sv","emp","cg","bl","us","e","c","dv","fa","fo","ac","st","pj","jr","prelevements","courses","etudiants","trainers","trainingSessions","trainingAttendance","trainingAssessments","trainingCertificates","trainingPayments"])if(Array.isArray(out[k]))out[k]=out[k].filter(x=>x&&typeof x==="object"&&!Array.isArray(x));
  // Compatibilité avec les anciennes opérations/documents qui n’avaient pas de lignes détaillées.
  for(const k of ["e","dv","fa"])if(Array.isArray(out[k]))out[k].forEach(x=>{if(!Array.isArray(x.lines))x.lines=[];});
  for(const k of ["pt","n","dis"])if(!out[k]||typeof out[k]!=="object"||Array.isArray(out[k]))out[k]={};
