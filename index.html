@@ -1169,6 +1169,22 @@ body,.top,main,.box,.k,.pp,.md>.box,input,select,textarea,button.s,.theme-manual
  border-color:var(--ln)!important;
 }
 
+/* Réglage final du tableau Devis : neutralise les anciennes règles contradictoires */
+#dev .sib-devis-list .tw{width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden}
+#dev .sib-devis-list .tw>table,
+#dev .sib-devis-list table{width:100%!important;min-width:1080px!important;table-layout:fixed!important;border-collapse:collapse}
+#dev .sib-devis-list table th,#dev .sib-devis-list table td{box-sizing:border-box;vertical-align:middle!important;padding:12px 10px;white-space:nowrap!important;overflow-wrap:normal!important;word-break:normal!important}
+#dev .sib-devis-list table th:nth-child(1),#dev .sib-devis-list table td:nth-child(1){width:5%!important;text-align:center!important}
+#dev .sib-devis-list table th:nth-child(2),#dev .sib-devis-list table td:nth-child(2){width:15%!important;text-align:left!important}
+#dev .sib-devis-list table th:nth-child(3),#dev .sib-devis-list table td:nth-child(3){width:18%!important;text-align:left!important}
+#dev .sib-devis-list table th:nth-child(4),#dev .sib-devis-list table td:nth-child(4){width:12%!important;text-align:left!important}
+#dev .sib-devis-list table th:nth-child(5),#dev .sib-devis-list table td:nth-child(5){width:16%!important;text-align:right!important;font-variant-numeric:tabular-nums}
+#dev .sib-devis-list table th:nth-child(6),#dev .sib-devis-list table td:nth-child(6){width:10%!important;text-align:left!important;padding-left:18px!important}
+#dev .sib-devis-list table th:nth-child(7),#dev .sib-devis-list table td:nth-child(7){width:24%!important;text-align:left!important;padding-left:18px!important;padding-right:12px!important}
+#dev .sib-devis-list table td:nth-child(7) .sib-doc-actions{display:flex!important;align-items:center!important;justify-content:flex-start!important;flex-wrap:nowrap!important;gap:6px!important;width:max-content!important;min-width:0!important;max-width:none!important;white-space:nowrap!important;margin:0!important}
+#dev .sib-devis-list table td:nth-child(7) .sib-doc-actions button{box-sizing:border-box;display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 36px!important;width:36px!important;min-width:36px!important;height:36px!important;min-height:36px!important;margin:0!important;padding:4px!important;white-space:nowrap!important}
+#dev .sib-devis-list table td:nth-child(7) .sib-doc-actions button.sib-primary-action{flex:0 0 auto!important;width:auto!important;min-width:0!important;padding:4px 8px!important}
+@media(max-width:900px){#dev .sib-devis-list table{min-width:1080px!important}}
 /* Tableau Liste des devis : titres alignés sur leurs colonnes */
 #dev .sib-devis-list table{width:100%;table-layout:fixed;border-collapse:separate;border-spacing:0}
 #dev .sib-devis-list table th,#dev .sib-devis-list table td{box-sizing:border-box;vertical-align:middle;overflow-wrap:normal}
