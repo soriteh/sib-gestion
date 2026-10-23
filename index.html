@@ -1169,6 +1169,23 @@ body,.top,main,.box,.k,.pp,.md>.box,input,select,textarea,button.s,.theme-manual
  border-color:var(--ln)!important;
 }
 
+/* Mise en page du tableau Factures : en-têtes et cellules parfaitement alignés */
+#fac .box table{width:100%;table-layout:fixed;border-collapse:separate;border-spacing:0}
+#fac .box table th,#fac .box table td{box-sizing:border-box;vertical-align:middle;overflow-wrap:anywhere}
+#fac .box table th:nth-child(1),#fac .box table td:nth-child(1){width:5%;text-align:center}
+#fac .box table th:nth-child(2),#fac .box table td:nth-child(2){width:10%;text-align:left}
+#fac .box table th:nth-child(3),#fac .box table td:nth-child(3){width:12%;text-align:left}
+#fac .box table th:nth-child(4),#fac .box table td:nth-child(4){width:17%;text-align:left}
+#fac .box table th:nth-child(5),#fac .box table td:nth-child(5){width:12%;text-align:right}
+#fac .box table th:nth-child(6),#fac .box table td:nth-child(6){width:12%;text-align:right}
+#fac .box table th:nth-child(7),#fac .box table td:nth-child(7){width:12%;text-align:right}
+#fac .box table th:nth-child(8),#fac .box table td:nth-child(8){width:9%;text-align:center}
+#fac .box table th:nth-child(9),#fac .box table td:nth-child(9){width:11%;text-align:center}
+#fac .box table thead th:nth-child(5),#fac .box table thead th:nth-child(6),#fac .box table thead th:nth-child(7){text-align:right!important;white-space:nowrap;padding-right:12px}
+#fac .box table tbody td:nth-child(5),#fac .box table tbody td:nth-child(6),#fac .box table tbody td:nth-child(7){text-align:right!important;white-space:nowrap;padding-right:12px;font-variant-numeric:tabular-nums}
+#fac .box table td:nth-child(9){white-space:normal}
+#fac .box table td:nth-child(9) button{margin:2px 0;white-space:nowrap}
+@media(max-width:900px){#fac .box{overflow-x:auto}#fac .box table{min-width:1050px}}
 /* Alignement précis du tableau Clients : chaque intitulé suit sa colonne */
 #cli .box table{width:100%;table-layout:fixed;border-collapse:separate;border-spacing:0}
 #cli .box table th,#cli .box table td{box-sizing:border-box;vertical-align:middle}
