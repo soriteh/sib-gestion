@@ -1476,7 +1476,7 @@ async function askAssistant(){
   out.textContent="Connexion au service IA impossible. Vérifiez votre connexion et la configuration Supabase, puis réessayez.";
   return;
  }
- out.textContent="Le service IA n’est pas disponible dans cette session. Vérifiez que vous êtes connecté à SIB Gestion et que Supabase est prêt. Si le problème persiste, vérifiez le secret OPENAI_API_KEY dans Supabase puis rechargez l’application."; return;
+ out.textContent="Le service IA n’est pas disponible dans cette session. Mode de réponse locale activé : les questions courantes sur les modules et les indicateurs restent disponibles. Pour les réponses génératives, connectez-vous et vérifiez la configuration Supabase.";
  const has=(...words)=>words.some(w=>q.includes(w));
  const answer=(title,body)=>{out.innerHTML="<b>"+esc(title)+"</b><p>"+body+"</p>"};
  const navAnswer=(module,detail)=>answer("Comment faire",detail+" Vous pouvez ouvrir le module correspondant dans le menu principal.");
