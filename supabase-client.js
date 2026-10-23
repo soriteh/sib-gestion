@@ -159,7 +159,7 @@
       active: x.active !== false && x.actif !== false,
       created_by: userId
     }));
-    const services = (Array.isArray(state.s) ? state.s : []).filter(x => x && x.id != null && String(x.n || "").trim()).map(x => ({
+    const services = (Array.isArray(state.sv) ? state.sv : []).filter(x => x && x.id != null && String(x.n || "").trim()).map(x => ({
       organization_id: org,
       legacy_id: String(x.id),
       service_code: String(x.code || x.no || ""),
