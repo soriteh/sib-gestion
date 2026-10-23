@@ -4,6 +4,7 @@
   if (window.__SIB_AI_AGENT_LOADED) return;
   window.__SIB_AI_AGENT_LOADED = true;
   const css = `
+  body.lo #sib-ai-launch,body.lo #sib-ai-panel{display:none!important;visibility:hidden!important;pointer-events:none!important}
   #sib-ai-launch{position:fixed;right:22px;bottom:22px;z-index:9998;border:0;border-radius:999px;background:#0057b9;color:#fff;padding:14px 18px;font:600 14px system-ui;box-shadow:0 8px 28px #071a3640;cursor:pointer}
   #sib-ai-panel{position:fixed;right:22px;bottom:82px;z-index:9999;width:min(380px,calc(100vw - 28px));height:min(540px,calc(100vh - 115px));background:#ffffff!important;color:#071a36!important;opacity:1!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border:1px solid #cbd5e1;border-radius:16px;box-shadow:0 18px 60px #071a3670;display:none;overflow:hidden;font:14px system-ui;isolation:isolate}
   #sib-ai-panel.open{display:flex;flex-direction:column}
