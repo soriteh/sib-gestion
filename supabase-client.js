@@ -136,6 +136,53 @@
     return data ? { state: data.state, version: appStateVersion, updatedAt: data.updated_at } : null;
   }
 
+
+  let relationalSyncError = "";
+  async function syncCoreCollections(state) {
+    await requireSession();
+    if (!state || typeof state !== "object") return { clients: 0, services: 0 };
+    const org = config.organizationId;
+    const { data: authData, error: authError } = await client.auth.getUser();
+    if (authError) throw authError;
+    const userId = authData?.user?.id || null;
+    const clients = (Array.isArray(state.c) ? state.c : []).filter(x => x && x.id != null && String(x.n || "").trim()).map(x => ({
+      organization_id: org,
+      legacy_id: String(x.id),
+      client_code: String(x.code || x.no || ""),
+      name: String(x.n || "").trim(),
+      client_type: ["Particulier", "Entreprise", "Établissement scolaire", "Autre"].includes(x.type) ? x.type : "Entreprise",
+      phone: String(x.t || x.tel || x.phone || ""),
+      email: String(x.mail || x.email || ""),
+      address: String(x.a || x.adr || x.address || ""),
+      tax_id: String(x.nif || x.tax_id || ""),
+      notes: String(x.notes || ""),
+      active: x.active !== false && x.actif !== false,
+      created_by: userId
+    }));
+    const services = (Array.isArray(state.s) ? state.s : []).filter(x => x && x.id != null && String(x.n || "").trim()).map(x => ({
+      organization_id: org,
+      legacy_id: String(x.id),
+      service_code: String(x.code || x.no || ""),
+      name: String(x.n || "").trim(),
+      description: String(x.description || x.desc || ""),
+      category: String(x.category || x.cat || ""),
+      unit: String(x.unit || "unité"),
+      unit_price: Math.max(0, Number(x.p || x.price || 0) || 0),
+      currency: "GNF",
+      active: x.active !== false
+    }));
+    if (clients.length) {
+      const { error } = await client.from("sib_clients").upsert(clients, { onConflict: "organization_id,legacy_id" });
+      if (error) throw error;
+    }
+    if (services.length) {
+      const { error } = await client.from("sib_services").upsert(services, { onConflict: "organization_id,legacy_id" });
+      if (error) throw error;
+    }
+    relationalSyncError = "";
+    return { clients: clients.length, services: services.length };
+  }
+
   async function saveAppState(state) {
     await requireSession();
     if (!state || typeof state !== "object" || Array.isArray(state)) {
@@ -148,6 +195,13 @@
     });
     if (error) throw error;
     appStateVersion = Number(data);
+    // Best-effort relational mirror for Clients and Services; the canonical state
+    // save remains successful if the relational API is temporarily unavailable.
+    try { await syncCoreCollections(state); }
+    catch (syncError) {
+      relationalSyncError = String(syncError?.message || syncError);
+      console.error("SIB relational sync (clients/services) failed:", syncError);
+    }
     return appStateVersion;
   }
 
@@ -225,6 +279,8 @@
     query,
     loadAppState,
     saveAppState,
+    syncCoreCollections,
+    get relationalSyncError() { return relationalSyncError; },
     subscribeAppState,
     get appStateVersion() { return appStateVersion; }
   });
