@@ -1,6 +1,6 @@
 /* SIB Gestion offline support — GitHub Pages subpath safe. */
 "use strict";
-const VERSION = "sib-gestion-offline-v1";
+const VERSION = "sib-gestion-offline-v2";
 const SHELL = [
   "./",
   "./index.html",
