@@ -66,3 +66,17 @@ Ajoute des déclencheurs PostgreSQL pour journaliser les insertions/modification
 ## Mettre à jour le site
 
 Le site GitHub Pages se met à jour après publication des changements sur la branche utilisée par Pages. Tester les changements sur une branche dédiée avant de les intégrer à `main`.
+
+
+### Invitations par e-mail des nouveaux utilisateurs
+
+Le code serveur préparatoire de la fonction `supabase/functions/sib-invite-user/index.ts` vérifie la session Supabase et le rôle Administrateur actif avant d'inviter un utilisateur et de l'ajouter à `organization_memberships`. La clé `service_role` n'est jamais envoyée au navigateur.
+
+**État : code ajouté, déploiement et intégration à l'écran Utilisateurs non encore validés.** La page principale utilise toujours ses comptes locaux; ne considérez donc pas cette fonction comme une fonctionnalité disponible dans l'interface tant que le parcours complet n'a pas été relié et testé.
+
+Avant mise en production :
+1. Déployer `sib-invite-user` dans le projet Supabase avec vérification JWT activée.
+2. Vérifier que les secrets système `SUPABASE_URL`, `SUPABASE_ANON_KEY` et `SUPABASE_SERVICE_ROLE_KEY` sont disponibles côté Edge Function. Ne jamais copier la clé service_role dans GitHub ou le navigateur.
+3. Configurer les modèles d'e-mail, SMTP transactionnel et URL de redirection dans Supabase Authentication.
+4. Autoriser l'URL de redirection du site SIB dans Authentication → URL Configuration; si nécessaire, définir le secret `SIB_AUTH_REDIRECT_URL` côté fonction.
+5. Relier le formulaire Utilisateurs à cette fonction et à Supabase Auth, puis tester invitation, activation, appartenance, connexion et refus pour un non-administrateur.
