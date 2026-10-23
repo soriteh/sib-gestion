@@ -2008,7 +2008,7 @@ async function boot(){applyLogo();
    S.us=[CU];RO=CU.role;cloudSessionReady=true;try{localStorage.setItem("sib-offline-profile-v1",JSON.stringify({id:CU.id,email:CU.mail,pn:CU.pn,nm:CU.nm,nom:CU.nom,role:CU.role,savedAt:Date.now()}));localStorage.setItem("sib-offline-state-v1",JSON.stringify({savedAt:Date.now(),state:cloudSnapshot()}));}catch(cacheErr){console.warn("SIB offline snapshot unavailable:",cacheErr)}applyLogo();activateCloudRealtime();enter(true);if(!remote)await cloudSaveChain;return;
   }catch(err){
   console.warn("SIB cloud session unavailable:",err);
-  const offlineNetworkFailure = navigator.onLine === false || /Délai de connexion dépassé|PGRST002|PGRST003|schema cache|Timed out acquiring connection|HTTP 503|Failed to fetch|NetworkError|fetch failed|Load failed|Network request failed/i.test(String(err && err.message || err || ""));
+  const offlineNetworkFailure = navigator.onLine === false || /Délai de connexion dépassé|PGRST002|PGRST003|schema cache|Timed out acquiring connection|HTTP 5\d\d|status.?5\d\d|Failed to fetch|NetworkError|fetch failed|Load failed|Network request failed|CORS|cross-origin/i.test(String(err && err.message || err || ""));
   try {
    const cachedUser=JSON.parse(localStorage.getItem("sib-offline-profile-v1")||"null");
    const pending=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null");
