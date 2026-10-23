@@ -190,6 +190,58 @@
     return { clients: clients.length, services: services.length };
   }
 
+  async function syncTrainingCollections(state) {
+    await requireSession();
+    const org = config.organizationId;
+    const legacyCourses = [];
+    (Array.isArray(state?.courses) ? state.courses : []).forEach(c => {
+      if (c && c.id != null && String(c.nom || "").trim()) legacyCourses.push({
+        organization_id: org, legacy_id: String(c.id), training_code: String(c.id).slice(0, 80),
+        title: String(c.nom).trim(), description: "", category: "Formation",
+        duration_hours: /^\d+$/.test(String(c.duree || "")) ? Number(c.duree) : null,
+        price: Math.max(0, Number(c.prix) || 0), currency: "GNF", trainer_name: null, status: "Planifiée"
+      });
+    });
+    (Array.isArray(state?.sv) ? state.sv : []).forEach(s => {
+      if (!s || s.id == null || s.active === false || !/^(Formation|Infographie)/i.test(String(s.n || ""))) return;
+      const title = String(s.n).replace(/^(Formation|Infographie)\s*:\s*/i, "").trim();
+      if (!title || legacyCourses.some(c => c.title.toLowerCase() === title.toLowerCase())) return;
+      legacyCourses.push({ organization_id: org, legacy_id: "service:" + String(s.id), training_code: ("service:" + s.id).slice(0, 80), title, description: "", category: /^Infographie/i.test(String(s.n)) ? "Infographie" : "Formation", duration_hours: null, price: Math.max(0, Number(s.p) || 0), currency: "GNF", trainer_name: null, status: "Planifiée" });
+    });
+    if (legacyCourses.length) {
+      const { error } = await client.from("sib_trainings").upsert(legacyCourses, { onConflict: "organization_id,legacy_id" });
+      if (error) throw error;
+    }
+    const { data: trainings, error: te } = await client.from("sib_trainings").select("id,legacy_id,title").eq("organization_id", org);
+    if (te) throw te;
+    const byTitle = new Map((trainings || []).map(t => [String(t.title || "").toLowerCase(), t.id]));
+    const sourceStudents = (Array.isArray(state?.etudiants) ? state.etudiants : []).filter(s => s && s.id != null && String(s.nom || "").trim());
+    const students = sourceStudents.map(s => {
+      const parts = String(s.nom).trim().split(/\s+/);
+      return { organization_id: org, legacy_id: String(s.id), student_number: String(s.matricule || s.id).slice(0, 100), first_name: parts.shift() || "Apprenant", last_name: parts.join(" ") || "—", phone: String(s.tel || ""), email: String(s.email || ""), status: s.statut === "Abandonné" ? "Inactif" : "Actif" };
+    });
+    if (students.length) {
+      const { error } = await client.from("sib_students").upsert(students, { onConflict: "organization_id,legacy_id" });
+      if (error) throw error;
+    }
+    const { data: savedStudents, error: se } = await client.from("sib_students").select("id,legacy_id").eq("organization_id", org);
+    if (se) throw se;
+    const studentIds = new Map((savedStudents || []).map(s => [String(s.legacy_id), s.id]));
+    const enrollments = sourceStudents.map(s => {
+      const title = String(s.formation || "").replace(/^(Formation|Infographie)\s*:\s*/i, "").trim();
+      const trainingId = byTitle.get(title.toLowerCase());
+      const studentId = studentIds.get(String(s.id));
+      if (!trainingId || !studentId) return null;
+      const status = s.statut === "Terminé" ? "Terminé" : s.statut === "Abandonné" ? "Abandonné" : s.statut === "En formation" ? "En cours" : "Inscrit";
+      return { organization_id: org, legacy_id: String(s.id) + "::" + title, training_id: trainingId, student_id: studentId, enrolled_at: /^\d{4}-\d{2}-\d{2}$/.test(String(s.date || "")) ? s.date : new Date().toISOString().slice(0, 10), agreed_price: Math.max(0, Number(s.montant) || 0), amount_paid: Math.max(0, Math.min(Number(s.montant) || 0, Number(s.paye) || 0)), status, certificate_number: s.certificateNumber || s.attestationNo || null, notes: String(s.notes || "") };
+    }).filter(Boolean);
+    if (enrollments.length) {
+      const { error } = await client.from("sib_training_enrollments").upsert(enrollments, { onConflict: "organization_id,legacy_id" });
+      if (error) throw error;
+    }
+    return { trainings: legacyCourses.length, students: students.length, enrollments: enrollments.length };
+  }
+
   async function saveAppState(state) {
     await requireSession();
     if (!state || typeof state !== "object" || Array.isArray(state)) {
@@ -204,10 +256,10 @@
     appStateVersion = Number(data);
     // Best-effort relational mirror for Clients and Services; the canonical state
     // save remains successful if the relational API is temporarily unavailable.
-    try { await syncCoreCollections(state); }
+    try { await syncCoreCollections(state); await syncTrainingCollections(state); }
     catch (syncError) {
       relationalSyncError = String(syncError?.message || syncError);
-      console.error("SIB relational sync (clients/services) failed:", syncError);
+      console.error("SIB relational sync (clients/services/trainings) failed:", syncError);
     }
     return appStateVersion;
   }
