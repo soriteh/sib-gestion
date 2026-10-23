@@ -25,6 +25,15 @@
     });
   }
 
+  function isTransientDataApiError(error) {
+    const message = String(error?.message || "");
+    const code = String(error?.code || "");
+    const status = Number(error?.status || error?.statusCode || 0);
+    return code === "PGRST002" || code === "PGRST003" ||
+      status === 502 || status === 503 || status === 504 ||
+      /timed out acquiring connection|schema cache.*retry|failed to fetch|networkerror|fetch failed/i.test(message);
+  }
+
   async function requireSession() {
     if (!client) throw new Error("Supabase n'est pas configuré. Vérifiez supabase-config.js.");
     const { data, error } = await client.auth.getSession();
@@ -60,29 +69,39 @@
     if (!client) throw new Error("Connexion centrale non configurée. Renseignez l'URL et la clé publique dans supabase-config.js.");
     const { data, error } = await client.auth.signInWithPassword({ email, password });
     if (error) throw error;
-    const [membershipResult, stateResult] = await Promise.allSettled([
-      getMembership(data.user.id),
-      loadAppState()
-    ]);
-    if (membershipResult.status === "rejected") {
-      await client.auth.signOut();
-      const error = membershipResult.reason;
-      const message = String(error?.message || "");
+    // Query the database sequentially to avoid bursting PostgREST immediately
+    // after authentication. Preserve the valid Auth session during transient
+    // Data API outages (PGRST002/PGRST003/HTTP 503) so a retry can recover.
+    let membership;
+    try {
+      membership = await getMembership(data.user.id);
+    } catch (membershipError) {
+      if (isTransientDataApiError(membershipError)) {
+        throw new Error("Connexion acceptée par Supabase, mais son API de données est temporairement indisponible (PGRST002/PGRST003). La session est conservée : réessayez dans quelques instants. Aucun changement de mot de passe n'est nécessaire.");
+      }
+      try { await client.auth.signOut(); } catch (signOutError) {
+        console.warn("SIB: sign-out after failed membership check did not complete:", signOutError);
+      }
+      const message = String(membershipError?.message || "");
       if (/membership|appartenance|organisation|organization/i.test(message)) {
         throw new Error("Mot de passe accepté, mais ce compte n'a pas d'appartenance active à Soritech Innov Business. Exécutez supabase/05_fix_admin_membership.sql dans le SQL Editor Supabase, puis reconnectez-vous.");
       }
-      throw error;
+      throw membershipError;
     }
-    if (stateResult.status === "rejected") {
-      // Do not leave a valid Auth session behind when the central application
-      // state could not be loaded. The UI treats this as a failed sign-in, so
-      // the Supabase session must be closed as well.
+
+    let appState;
+    try {
+      appState = await loadAppState();
+    } catch (stateError) {
+      if (isTransientDataApiError(stateError)) {
+        throw new Error("Connexion acceptée par Supabase, mais le chargement des données centrales est temporairement indisponible (PGRST002/PGRST003). La session est conservée pour éviter une déconnexion automatique. Réessayez dans quelques instants.");
+      }
       try { await client.auth.signOut(); } catch (signOutError) {
         console.warn("SIB: sign-out after failed state load did not complete:", signOutError);
       }
-      throw stateResult.reason;
+      throw stateError;
     }
-    return { user: data.user, membership: membershipResult.value, appState: stateResult.value };
+    return { user: data.user, membership, appState };
   }
 
   async function signOut() {
