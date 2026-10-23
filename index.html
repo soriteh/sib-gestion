@@ -807,17 +807,30 @@ nav .lob{min-height:34px;font-size:11px}
 :root[data-theme="light"] h6,
 :root[data-theme="light"] #pt{color:var(--tx)}
 
-/* Assistant IA flottant */
+/* Assistant IA flottant avec fenêtre de conversation */
 body.lo #sib-ai-fab{display:none}
-#sib-ai-fab{position:fixed;right:20px;bottom:20px;z-index:9998;width:46px;height:46px;border:0;border-radius:50%;display:grid;place-items:center;cursor:pointer;color:#fff;background:linear-gradient(135deg,#3479e8,#7c4dff 58%,#ed7d31);box-shadow:0 5px 18px rgba(40,91,190,.35),0 0 0 1px rgba(255,255,255,.3) inset;transition:transform .22s ease,box-shadow .22s ease;animation:sibFabIn .55s cubic-bezier(.2,.8,.2,1) both}
-#sib-ai-fab:hover{transform:translateY(-4px) scale(1.05);box-shadow:0 13px 34px rgba(40,91,190,.55),0 0 0 1px rgba(255,255,255,.4) inset}
-#sib-ai-fab svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-#sib-ai-fab .fab-tip{position:absolute;right:54px;white-space:nowrap;background:#15233d;color:#fff;padding:8px 12px;border-radius:9px;font-size:12px;font-weight:650;box-shadow:0 4px 16px #0002;opacity:0;transform:translateX(5px);pointer-events:none;transition:all .18s ease}
+#sib-ai-fab{position:fixed;right:20px;bottom:20px;z-index:10001;width:60px;height:60px;border:0;border-radius:50%;padding:5px;display:grid;place-items:center;cursor:pointer;background:linear-gradient(135deg,#3479e8,#7c4dff 58%,#ed7d31);box-shadow:0 5px 18px rgba(40,91,190,.35),0 0 0 1px rgba(255,255,255,.3) inset;transition:transform .22s ease,box-shadow .22s ease;animation:sibFabIn .55s cubic-bezier(.2,.8,.2,1) both}
+#sib-ai-fab:hover{transform:translateY(-3px) scale(1.04);box-shadow:0 13px 34px rgba(40,91,190,.45)}
+#sib-ai-fab img{width:100%;height:100%;object-fit:contain;border-radius:50%;background:#fff;padding:5px}
+#sib-ai-fab .fab-tip{position:absolute;right:68px;white-space:nowrap;background:#15233d;color:#fff;padding:8px 12px;border-radius:9px;font-size:12px;font-weight:650;box-shadow:0 4px 16px #0002;opacity:0;transform:translateX(5px);pointer-events:none;transition:all .18s ease}
 #sib-ai-fab:hover .fab-tip,#sib-ai-fab:focus-visible .fab-tip{opacity:1;transform:translateX(0)}
 #sib-ai-fab:focus-visible{outline:3px solid #f2a65a;outline-offset:4px}
+#sib-ai-chat{position:fixed;right:20px;bottom:92px;width:min(390px,calc(100vw - 28px));height:min(540px,calc(100dvh - 120px));z-index:10000;display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--ln);border-radius:18px;background:var(--sf);color:var(--tx);box-shadow:0 20px 65px #0005;opacity:0;transform:translateY(12px) scale(.98);pointer-events:none;visibility:hidden;transition:opacity .18s ease,transform .18s ease,visibility .18s}
+#sib-ai-chat.open{opacity:1;transform:translateY(0) scale(1);pointer-events:auto;visibility:visible}
+#sib-ai-chat-head{display:flex;align-items:center;gap:10px;padding:13px 14px;background:linear-gradient(125deg,#10213e,#173d73);color:#fff;flex:none}
+#sib-ai-chat-head img{width:42px;height:42px;object-fit:contain;background:#fff;border-radius:9px;padding:3px}
+#sib-ai-chat-head strong{display:block;font-size:14px}#sib-ai-chat-head small{display:block;opacity:.8;font-size:11px}
+#sib-ai-chat-close{margin-left:auto;border:0;border-radius:8px;background:#ffffff20;color:#fff;font-size:22px;width:32px;height:32px;cursor:pointer}
+#sib-ai-chat-intro{padding:10px 14px;margin:0;color:var(--mu);font-size:12px;border-bottom:1px solid var(--ln);flex:none}
+#sib-ai-chat-answer{padding:14px;overflow-y:auto;flex:1;min-height:0;white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;line-height:1.55}
+#sib-ai-chat-answer:empty:before{content:"Bonjour ! Posez votre question sur SIB Gestion.";color:var(--mu)}
+#sib-ai-chat-form{display:flex;gap:8px;padding:11px;border-top:1px solid var(--ln);background:var(--sf);flex:none}
+#sib-ai-chat-question{min-width:0;flex:1;padding:10px 11px;border:1px solid var(--ln);border-radius:12px;background:var(--bg);color:var(--tx);font:inherit;font-size:13px}
+#sib-ai-chat-send{flex:none;border:0;border-radius:11px;padding:0 14px;background:var(--ac);color:#fff;font-weight:700;cursor:pointer}
+#sib-ai-chat-send:disabled{opacity:.55;cursor:wait}
 @keyframes sibFabIn{from{opacity:0;transform:translateY(16px) scale(.8)}to{opacity:1;transform:translateY(0) scale(1)}}
-@media(max-width:600px){#sib-ai-fab{right:14px;bottom:16px;width:42px;height:42px}#sib-ai-fab svg{width:20px;height:20px}#sib-ai-fab .fab-tip{right:50px}}
-@media(prefers-reduced-motion:reduce){#sib-ai-fab{animation:none;transition:none}}
+@media(max-width:600px){#sib-ai-fab{right:14px;bottom:16px;width:54px;height:54px}#sib-ai-fab .fab-tip{right:62px}#sib-ai-chat{right:10px;bottom:80px;width:calc(100vw - 20px);height:min(570px,calc(100dvh - 100px));border-radius:16px}}
+@media(prefers-reduced-motion:reduce){#sib-ai-fab,#sib-ai-chat{animation:none;transition:none}}
 </style>
 <script>
 /* Thème automatique selon l'heure, avec bascule manuelle par icône. */
@@ -1183,7 +1196,7 @@ body,.top,main,.box,.k,.pp,.md>.box,input,select,textarea,button.s,.theme-manual
 
 <script src="./offline-register.js" defer></script>
 </head><body>
-<button id="sib-ai-fab" type="button" aria-label="Ouvrir SIB Assistant" title="SIB Assistant"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8l2.1 6.1L20.2 11l-6.1 2.1L12 19.2l-2.1-6.1L3.8 11l6.1-2.1z"/><path d="M19 16.5l.7 1.8 1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/></svg><span class="fab-tip">SIB Assistant IA</span></button>
+<button id="sib-ai-fab" type="button" aria-label="Ouvrir SIB Assistant" title="SIB Assistant" aria-expanded="false" aria-controls="sib-ai-chat"><img src="./assets/sib-logo.svg" alt=""><span class="fab-tip">SIB Assistant IA</span></button><aside id="sib-ai-chat" aria-label="Conversation avec SIB Assistant" aria-hidden="true"><div id="sib-ai-chat-head"><img src="./assets/sib-logo.svg" alt="Logo SIB"><div><strong>SIB Assistant IA</strong><small>Votre assistant de gestion</small></div><button id="sib-ai-chat-close" type="button" aria-label="Fermer la conversation">×</button></div><p id="sib-ai-chat-intro">Posez votre question sur les clients, factures, caisse, banque, paie ou les autres modules.</p><div id="sib-ai-chat-answer" role="log" aria-live="polite"></div><form id="sib-ai-chat-form"><input id="sib-ai-chat-question" type="text" autocomplete="off" placeholder="Écrivez votre question…" aria-label="Votre question"><button id="sib-ai-chat-send" type="submit">Envoyer</button></form></aside>
 <div id="sib-startup" role="status" aria-live="polite"><div class="sib-startup-inner"><div class="sib-startup-logo" aria-hidden="true">SIB</div><div class="sib-startup-name">SIB Gestion</div><div class="sib-startup-label">Chargement de votre espace…</div><div class="sib-startup-track" aria-hidden="true"></div></div></div>
 <div class="app">
 <nav aria-label="Menu principal"><div class="br"><div class="mk">SIB</div><div><b id="bnm">SIB Gestion</b><small>Innover • Connecter • Développer</small></div></div><div id="nv"></div><div class="ft"><div class="me" data-go="prof" title="Mon profil"><span class="av2" id="unm0"></span><div><b id="unm"></b><small id="urr"></small></div></div><button class="lob" data-u="out">Se déconnecter</button></div></nav>
@@ -1445,8 +1458,8 @@ function renderAssistant(){
  root.innerHTML='<h3>Bilan financier · '+esc(label)+'</h3><div class="row">'+card("Recettes du mois",rev,"Opérations enregistrées","in")+card("Dépenses du mois",exp,"Opérations enregistrées","out")+card("Résultat net",result,"Recettes moins dépenses",result<0?"out":"in")+card("Factures restant à payer",unpaid,"Solde estimé des factures","")+'</div><div class="box"><b>Trésorerie disponible</b><div class="row" style="margin-top:10px">'+card("Caisse",b.Caisse,"Solde actuel")+card("Banque",b.Banque,"Solde actuel")+card("Mobile Money",b["Mobile Money"],"Solde actuel")+'</div><p style="color:var(--mu);font-size:12px;margin-bottom:0">Calculs basés sur les données actuellement disponibles dans SIB Gestion. Le résultat présenté n’est pas un état comptable certifié.</p></div>';
 }
 const SIB_AGENT_HISTORY=[];
-async function askAssistant(){
- const input=$("ia-question"),out=$("ia-answer");if(!input||!out)return;
+async function askAssistant(inputId="ia-question",outId="ia-answer"){
+ const input=$(inputId),out=$(outId);if(!input||!out)return;
  const raw=(input.value||"").trim();if(!raw){out.textContent="Saisissez une question sur SIB Gestion.";return}
  const q=raw.toLocaleLowerCase("fr").normalize("NFD").replace(/[\u0300-\u036f]/g," ");
  const money=n=>esc(fm(n));
@@ -1518,8 +1531,18 @@ async function askAssistant(){
 }
 function nav(v){if(!CU||(window.SIBCloud?.ready&&!cloudSessionReady)){document.body.classList.add("lo");lgv("login");return;}if(v!==CUR&&gate(()=>nav(v)))return;document.querySelectorAll("main section").forEach(s=>{const on=s.id==v;s.classList.toggle("hide",!on);if(on){s.classList.remove("in2");void s.offsetWidth;s.classList.add("in2");setTimeout(()=>s.classList.remove("in2"),1500)}});document.querySelectorAll("#nv button").forEach(b=>b.classList.toggle("on",b.dataset.v==v));$("pt").textContent=(P.find(p=>p[0]==v)||[])[1]||"";if(v=="dash")for(const k in PV)delete PV[k];document.body.classList.remove("mo");CUR=v;if(v==="cli")renderClients();if(v==="ia")renderAssistant();if(v==="relance")renderRelances();try{draw()}catch(err){console.error("SIB interface draw error:",err);const target=document.getElementById(v);if(target){target.classList.remove("hide");target.innerHTML='<div class="box" style="border:1px solid #e7a5a5"><h2>Erreur de chargement</h2><p>Cette page n’a pas pu être affichée. Rechargez l’application. Si le problème continue, transmettez le message ci-dessous au support.</p><pre style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></div>';const pre=target.querySelector("pre");if(pre)pre.textContent=err&& (err.stack||err.message)||String(err)}if(v==="cli")toast("Erreur pendant le chargement de la page Clients.","wa")}}
 
-$("sib-ai-fab")?.addEventListener("click",()=>{if(CU){nav("ia");}else{lgv("login");toast("Connectez-vous pour accéder à SIB Assistant.","wa");}});
-$("ia-ask")?.addEventListener("click",askAssistant);$("ia-question")?.addEventListener("keydown",e=>{if(e.key==="Enter")askAssistant()});
+const sibAiFab=$("sib-ai-fab"),sibAiChat=$("sib-ai-chat"),sibAiClose=$("sib-ai-chat-close"),sibAiQuestion=$("sib-ai-chat-question"),sibAiForm=$("sib-ai-chat-form"),sibAiSend=$("sib-ai-chat-send");
+function toggleSibAiChat(force){
+ if(!sibAiChat||!sibAiFab)return;
+ const open=typeof force==="boolean"?force:!sibAiChat.classList.contains("open");
+ sibAiChat.classList.toggle("open",open);sibAiChat.setAttribute("aria-hidden",String(!open));sibAiFab.setAttribute("aria-expanded",String(open));
+ if(open)setTimeout(()=>sibAiQuestion?.focus(),80);else sibAiFab.focus();
+}
+sibAiFab?.addEventListener("click",()=>{if(!CU){lgv("login");toast("Connectez-vous pour accéder à SIB Assistant.","wa");return;}toggleSibAiChat();});
+sibAiClose?.addEventListener("click",()=>toggleSibAiChat(false));
+sibAiForm?.addEventListener("submit",async e=>{e.preventDefault();if(!sibAiQuestion||!sibAiSend)return;const question=sibAiQuestion.value.trim();if(!question)return;sibAiSend.disabled=true;sibAiSend.textContent="…";try{await askAssistant("sib-ai-chat-question","sib-ai-chat-answer");}finally{sibAiSend.disabled=false;sibAiSend.textContent="Envoyer";}});
+$("ia-ask")?.addEventListener("click",()=>askAssistant());$("ia-question")?.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();askAssistant();}});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&sibAiChat?.classList.contains("open"))toggleSibAiChat(false);});
 refreshServiceSelects();$("sv").onchange=()=>$("pu").value=SV[$("sv").value]?.[1]??"";$("sv").onchange();
 ["fr","tt2","da"].forEach(i=>$(i).innerHTML=AC.map(a=>`<option>${a}</option>`).join(""));
 let cart=[];
