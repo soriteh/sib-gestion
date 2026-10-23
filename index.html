@@ -1476,7 +1476,21 @@ async function askAssistant(inputId="ia-question",outId="ia-answer"){
    const {data,error}=await cloud.client().functions.invoke("sib-assistant",{body:{question:raw,history:SIB_AGENT_HISTORY.slice(-8),context:{month,recettesMois:rev,depensesMois:exp,resultatMois:result,facturesRestantAPayer:unpaid,soldeCaisse:Number(cash.Caisse)||0,soldeBanque:Number(cash.Banque)||0,soldeMobileMoney:Number(cash["Mobile Money"])||0}}});
    if(error){
     console.error("SIB Assistant function error:",error);
-    out.textContent="L’assistant IA n’a pas pu joindre son service. Vérifiez que la fonction Supabase « sib-assistant » est déployée et que le secret OPENAI_API_KEY est configuré. Détail : "+(error.message||"erreur réseau ou session invalide");
+    let serverMessage="",status=Number(error.context?.status||error.status||0);
+    try{
+     const response=error.context;
+     if(response&&typeof response.clone==="function"){
+      const payload=await response.clone().json();
+      if(typeof payload?.error==="string")serverMessage=payload.error;
+     }
+    }catch(_){}
+    if(status===503||/OPENAI_API_KEY|pas encore configuré|not configured/i.test(serverMessage)){
+     out.textContent="Configuration requise : la fonction Supabase répond, mais le secret OPENAI_API_KEY n’est pas configuré ou n’est pas accessible. Dans Supabase, ouvre Project Settings → Edge Functions → Secrets, ajoute OPENAI_API_KEY avec une clé API OpenAI valide, puis réessaie. Ne colle jamais cette clé dans le code GitHub. "+(serverMessage||"");
+    }else if(status===401){
+     out.textContent="Votre session n’est plus valide. Déconnectez-vous de SIB Gestion, reconnectez-vous puis réessayez. "+(serverMessage||"");
+    }else{
+     out.textContent="L’assistant IA n’a pas pu répondre. "+(serverMessage||error.message||"Vérifiez les journaux de la fonction Supabase « sib-assistant ».");
+    }
     return;
    }
    if(data?.answer){SIB_AGENT_HISTORY.push({role:"user",content:raw},{role:"assistant",content:data.answer});if(SIB_AGENT_HISTORY.length>12)SIB_AGENT_HISTORY.splice(0,SIB_AGENT_HISTORY.length-12);out.textContent=data.answer;return}
