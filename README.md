@@ -70,13 +70,12 @@ Le site GitHub Pages se met à jour après publication des changements sur la br
 
 ### Invitations par e-mail des nouveaux utilisateurs
 
-Le code serveur préparatoire de la fonction `supabase/functions/sib-invite-user/index.ts` vérifie la session Supabase et le rôle Administrateur actif avant d'inviter un utilisateur et de l'ajouter à `organization_memberships`. La clé `service_role` n'est jamais envoyée au navigateur.
+La fonction Supabase `sib-invite-user` est déployée sur le projet SIB avec la vérification JWT activée. Elle vérifie que l'appelant possède une appartenance active avec le rôle Administrateur, puis utilise Supabase Auth pour envoyer une invitation et rattacher le compte à `organization_memberships`. Le frontend appelle cette fonction via `SIBCloud.inviteUser`; aucun secret `service_role` n'est exposé au navigateur.
 
-**État : code ajouté, déploiement et intégration à l'écran Utilisateurs non encore validés.** La page principale utilise toujours ses comptes locaux; ne considérez donc pas cette fonction comme une fonctionnalité disponible dans l'interface tant que le parcours complet n'a pas été relié et testé.
+**État : code intégré à `main), fonction serveur déployée, tests d'envoi réel et configuration SMTP encore à confirmer.** L'invitation n'est disponible que lorsque l'utilisateur administrateur est connecté avec Supabase. Le parcours local de démonstration n'envoie pas d'e-mail.
 
-Avant mise en production :
-1. Déployer `sib-invite-user` dans le projet Supabase avec vérification JWT activée.
-2. Vérifier que les secrets système `SUPABASE_URL`, `SUPABASE_ANON_KEY` et `SUPABASE_SERVICE_ROLE_KEY` sont disponibles côté Edge Function. Ne jamais copier la clé service_role dans GitHub ou le navigateur.
-3. Configurer les modèles d'e-mail, SMTP transactionnel et URL de redirection dans Supabase Authentication.
-4. Autoriser l'URL de redirection du site SIB dans Authentication → URL Configuration; si nécessaire, définir le secret `SIB_AUTH_REDIRECT_URL` côté fonction.
-5. Relier le formulaire Utilisateurs à cette fonction et à Supabase Auth, puis tester invitation, activation, appartenance, connexion et refus pour un non-administrateur.
+À vérifier dans Supabase avant usage réel :
+1. Authentication → SMTP Settings : configurer et tester un fournisseur SMTP transactionnel pour la livraison fiable des invitations.
+2. Authentication → URL Configuration : définir l'URL du site SIB et autoriser les URL de redirection d'activation.
+3. Vérifier que les variables système Supabase sont disponibles côté Edge Function. Ne jamais copier la clé `service_role` dans GitHub ou le navigateur.
+4. Effectuer un test contrôlé avec une adresse e-mail que vous pouvez consulter, puis vérifier activation, connexion et refus pour un non-administrateur.
