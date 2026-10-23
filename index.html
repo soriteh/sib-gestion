@@ -1490,6 +1490,7 @@ function updDirty(){const d=$("dty-"+CUR);if(d)d.classList.toggle("hide",!dirty(
 function gate(go){if(!dirty())return false;
  ask("Vous avez des modifications non enregistrées. Voulez-vous les enregistrer avant de quitter cette page ?",()=>{CUR=="set"?ACT.setsave():ACT.profsave();if(!dirty())go()},{title:"Modifications non enregistrées",ok:"Enregistrer",no:"Rester sur la page",extra:{label:"Quitter sans enregistrer",fn:()=>{PS={};PP=undefined;drawSet();drawProf();go()}}});return true}
 document.addEventListener("input",updDirty);document.addEventListener("change",updDirty);
+document.addEventListener("change",e=>{if(e.target&&e.target.id==="zcourse"){const name=String(e.target.value||"");const c=(Array.isArray(S.courses)?S.courses:[]).find(x=>x&&x.nom===name);const svc=Array.isArray(SV)?SV.find(x=>x&&x[0]===name):null;const price=c?Number(c.prix)||0:svc?Number(svc[1])||0:0;const fee=c?Number(c.fraisInscription)||0:0;const m=document.getElementById("zemontant"),f=document.getElementById("zeinscription");if(m&&(!m.value||Number(m.value)===0)&&price>=0)m.value=String(price);if(f&&(!f.value||Number(f.value)===0)&&fee>=0)f.value=String(fee);}});
 window.addEventListener("beforeunload",e=>{if(CU&&dirty()){e.preventDefault();e.returnValue=""}});
 ["click","keydown","mousemove","touchstart"].forEach(ev=>document.addEventListener(ev,()=>{if(!CU)return;LA=Date.now();if(SW){SW();SW=null}},{passive:true}));
 setInterval(()=>{if(!CU)return;const i=Date.now()-LA;
