@@ -30,8 +30,8 @@
     const code = String(error?.code || "");
     const status = Number(error?.status || error?.statusCode || 0);
     return code === "PGRST002" || code === "PGRST003" ||
-      status === 502 || status === 503 || status === 504 ||
-      /timed out acquiring connection|schema cache.*retry|failed to fetch|networkerror|fetch failed/i.test(message);
+      (status >= 500 && status <= 599) ||
+      /timed out acquiring connection|schema cache.*retry|failed to fetch|networkerror|fetch failed|cors|cross-origin/i.test(message);
   }
 
   async function requireSession() {
@@ -77,7 +77,7 @@
       membership = await getMembership(data.user.id);
     } catch (membershipError) {
       if (isTransientDataApiError(membershipError)) {
-        throw new Error("Connexion acceptée par Supabase, mais son API de données est temporairement indisponible (PGRST002/PGRST003). La session est conservée : réessayez dans quelques instants. Aucun changement de mot de passe n'est nécessaire.");
+        throw new Error("Connexion acceptée par Supabase, mais son API de données est temporairement indisponible (erreur réseau ou serveur). La session est conservée : réessayez dans quelques instants. Aucun changement de mot de passe n'est nécessaire.");
       }
       try { await client.auth.signOut(); } catch (signOutError) {
         console.warn("SIB: sign-out after failed membership check did not complete:", signOutError);
