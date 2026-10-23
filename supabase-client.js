@@ -73,7 +73,15 @@
       }
       throw error;
     }
-    if (stateResult.status === "rejected") throw stateResult.reason;
+    if (stateResult.status === "rejected") {
+      // Do not leave a valid Auth session behind when the central application
+      // state could not be loaded. The UI treats this as a failed sign-in, so
+      // the Supabase session must be closed as well.
+      try { await client.auth.signOut(); } catch (signOutError) {
+        console.warn("SIB: sign-out after failed state load did not complete:", signOutError);
+      }
+      throw stateResult.reason;
+    }
     return { user: data.user, membership: membershipResult.value, appState: stateResult.value };
   }
 
