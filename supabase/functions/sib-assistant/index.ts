@@ -37,7 +37,7 @@ Deno.serve(async (req: Request) => {
   try {
     const history = Array.isArray(body.history) ? body.history.slice(-8).flatMap((item: any) => {
       if (!item || !["user", "assistant"].includes(item.role) || typeof item.content !== "string") return [];
-      return [{ role: item.role, content: [{ type: item.role === "assistant" ? "output_text" : "input_text", text: item.content.slice(0, 2000) }] }];
+      return [{ role: item.role, content: item.content.slice(0, 2000) }];
     }) : [];
     const response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
