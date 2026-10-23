@@ -1181,8 +1181,18 @@ body,.top,main,.box,.k,.pp,.md>.box,input,select,textarea,button.s,.theme-manual
 #fac .box table th:nth-child(7),#fac .box table td:nth-child(7){width:11%;text-align:right}
 #fac .box table th:nth-child(8),#fac .box table td:nth-child(8){width:8%;text-align:center}
 #fac .box table th:nth-child(9),#fac .box table td:nth-child(9){width:18%;text-align:center}
-#fac .box table thead th:nth-child(5),#fac .box table thead th:nth-child(6),#fac .box table thead th:nth-child(7){text-align:right!important;white-space:nowrap;padding-right:12px}
-#fac .box table tbody td:nth-child(5),#fac .box table tbody td:nth-child(6),#fac .box table tbody td:nth-child(7){text-align:right!important;white-space:nowrap;padding-right:12px;font-variant-numeric:tabular-nums}
+/* En-têtes et cellules partagent exactement le même alignement */
+#fac .box table thead th:nth-child(1),#fac .box table tbody td:nth-child(1){text-align:center!important}
+#fac .box table thead th:nth-child(2),#fac .box table tbody td:nth-child(2),
+#fac .box table thead th:nth-child(3),#fac .box table tbody td:nth-child(3),
+#fac .box table thead th:nth-child(4),#fac .box table tbody td:nth-child(4){text-align:left!important}
+#fac .box table thead th:nth-child(5),#fac .box table tbody td:nth-child(5),
+#fac .box table thead th:nth-child(6),#fac .box table tbody td:nth-child(6),
+#fac .box table thead th:nth-child(7),#fac .box table tbody td:nth-child(7){text-align:right!important;white-space:nowrap;padding-left:6px;padding-right:12px;font-variant-numeric:tabular-nums}
+#fac .box table thead th:nth-child(8),#fac .box table tbody td:nth-child(8),
+#fac .box table thead th:nth-child(9),#fac .box table tbody td:nth-child(9){text-align:center!important}
+#fac .box table thead th{white-space:nowrap;overflow-wrap:normal}
+#fac .box table tbody td{overflow-wrap:normal}
 #fac .box table td:nth-child(9){white-space:normal}
 #fac .box table td:nth-child(9){white-space:nowrap!important}#fac .box table td:nth-child(9) button{display:inline-flex!important;align-items:center;justify-content:center;vertical-align:middle;margin:2px 2px 2px 0;padding:4px 6px!important;min-height:25px;font-size:10px!important;line-height:1;border-radius:6px;white-space:nowrap;flex:0 0 auto}
 @media(max-width:900px){#fac .box{overflow-x:auto}#fac .box table{min-width:1050px}}
