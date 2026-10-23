@@ -73,19 +73,19 @@ function makeHarness({ membershipError = null, stateError = null, bootstrapError
 
 {
   const h = makeHarness({ stateError: { message: "state unavailable" } });
-  await assert.rejects(() => h.cloud.signIn("admin@example.test", "password"), /state unavailable/);
+  await assert.rejects(() => h.cloud.signIn("admin@example.test", "password"), (error) => error?.message === "state unavailable");
   assert.equal(h.signOutCalls, 1, "failed state loading must close the Auth session");
 }
 
 {
   const h = makeHarness({ membershipError: { message: "membership unavailable" } });
-  await assert.rejects(() => h.cloud.signIn("admin@example.test", "password"), /membership unavailable/);
+  await assert.rejects(() => h.cloud.signIn("admin@example.test", "password"), (error) => error?.message === "membership unavailable");
   assert.equal(h.signOutCalls, 1, "failed membership validation must close the Auth session");
 }
 
 {
   const h = makeHarness({ bootstrapError: { message: "bootstrap denied" } });
-  await assert.rejects(() => h.cloud.signUpFirstAdmin("admin@example.test", "password", "Admin SIB"), /bootstrap denied/);
+  await assert.rejects(() => h.cloud.signUpFirstAdmin("admin@example.test", "password", "Admin SIB"), (error) => error?.message === "bootstrap denied");
   assert.equal(h.signOutCalls, 1, "failed first-admin bootstrap must close the Auth session");
 }
 
