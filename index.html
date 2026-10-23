@@ -1169,16 +1169,18 @@ body,.top,main,.box,.k,.pp,.md>.box,input,select,textarea,button.s,.theme-manual
  border-color:var(--ln)!important;
 }
 
-/* Alignement du tableau Clients : colonnes et montants */
-#cli .box table{width:100%;table-layout:fixed}
-#cli .box table th,#cli .box table td{vertical-align:middle}
+/* Alignement précis du tableau Clients : chaque intitulé suit sa colonne */
+#cli .box table{width:100%;table-layout:fixed;border-collapse:separate;border-spacing:0}
+#cli .box table th,#cli .box table td{box-sizing:border-box;vertical-align:middle}
 #cli .box table th:nth-child(1),#cli .box table td:nth-child(1){width:7%;text-align:center}
 #cli .box table th:nth-child(2),#cli .box table td:nth-child(2){width:21%;text-align:left}
 #cli .box table th:nth-child(3),#cli .box table td:nth-child(3){width:23%;text-align:left}
 #cli .box table th:nth-child(4),#cli .box table td:nth-child(4){width:15%;text-align:left}
 #cli .box table th:nth-child(5),#cli .box table td:nth-child(5){width:17%;text-align:right}
 #cli .box table th:nth-child(6),#cli .box table td:nth-child(6){width:17%;text-align:right}
-#cli .box table th:nth-child(5),#cli .box table th:nth-child(6){white-space:nowrap}
+#cli .box table thead th:nth-child(5),#cli .box table thead th:nth-child(6){text-align:right!important;padding-right:12px;white-space:nowrap}
+#cli .box table tbody td:nth-child(5),#cli .box table tbody td:nth-child(6){text-align:right!important;padding-right:12px;white-space:nowrap;font-variant-numeric:tabular-nums}
+@media(max-width:700px){#cli .box table{min-width:760px}#cli .box{overflow-x:auto}}
 </style>
 
 <script src="./offline-register.js" defer></script>
