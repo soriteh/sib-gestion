@@ -1168,6 +1168,17 @@ body,.top,main,.box,.k,.pp,.md>.box,input,select,textarea,button.s,.theme-manual
  box-shadow:var(--sh)!important;
  border-color:var(--ln)!important;
 }
+
+/* Alignement du tableau Clients : colonnes et montants */
+#cli .box table{width:100%;table-layout:fixed}
+#cli .box table th,#cli .box table td{vertical-align:middle}
+#cli .box table th:nth-child(1),#cli .box table td:nth-child(1){width:7%;text-align:center}
+#cli .box table th:nth-child(2),#cli .box table td:nth-child(2){width:21%;text-align:left}
+#cli .box table th:nth-child(3),#cli .box table td:nth-child(3){width:23%;text-align:left}
+#cli .box table th:nth-child(4),#cli .box table td:nth-child(4){width:15%;text-align:left}
+#cli .box table th:nth-child(5),#cli .box table td:nth-child(5){width:17%;text-align:right}
+#cli .box table th:nth-child(6),#cli .box table td:nth-child(6){width:17%;text-align:right}
+#cli .box table th:nth-child(5),#cli .box table th:nth-child(6){white-space:nowrap}
 </style>
 
 <script src="./offline-register.js" defer></script>
