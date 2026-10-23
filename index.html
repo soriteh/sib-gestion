@@ -1301,7 +1301,7 @@ body,.top,main,.box,.k,.pp,.md>.box,input,select,textarea,button.s,.theme-manual
 <script>
 const SV0=[["Saisie de texte (page)",500],["Impression noir (page)",300],["Impression couleur (page)",1000],["Scannage simple",1000],["Scannage + envoi",2000],["Flocage de maillot",50000],["Décoration de t-shirt",30000],["Confection de cachet",50000],["Plastification",3000],["Reliure",10000],["Cartes de visite (lot)",100000],["Installation caméra de surveillance",500000],["Déploiement wifi zone",2000000],["Création de site web",3000000],["Formation : Tap-touche",150000],["Formation : Windows",200000],["Formation : Word",250000],["Formation : Excel",300000],["Formation : PowerPoint",250000],["Infographie : Photoshop",500000],["Infographie : Illustrator",500000],["Infographie : CorelDRAW",450000],["Infographie : InDesign",500000],["Infographie : Canva",250000]];
 const AC=["Caisse","Banque","Mobile Money"],K="sib-gestion-v1";
-const D0=()=>({set:{nom:"Soritech Innov Business",court:"SIB",pays:"",ville:"",adr:"",tel:"",mail:"",web:"",wa:"",rccm:"",nif:"",logo:"",fav:"",app:"SIB Gestion",cc:"GNF",cn:"Franc guinéen",sym:"FG",pre:{DEV:"DEV",FAC:"FAC",REC:"REC"},rh:{cgm:"2.5",sam:"non",cs:"0",cp:"0"}},dis:{},emp:[],cg:[],pt:{},bl:[],us:[],e:[],n:{},c:[],dv:[],fa:[],fo:[],ac:[],st:[],fz:[],pj:[],jr:[],etudiants:[],courses:[],prelevements:[]});let S=D0();try{S={...S,...JSON.parse(localStorage.getItem(K))}}catch(_){}
+const D0=()=>({set:{nom:"Soritech Innov Business",court:"SIB",pays:"",ville:"",adr:"",tel:"",mail:"",web:"",wa:"",rccm:"",nif:"",logo:"",fav:"",app:"SIB Gestion",cc:"GNF",cn:"Franc guinéen",sym:"FG",pre:{DEV:"DEV",FAC:"FAC",REC:"REC"},rh:{cgm:"2.5",sam:"non",cs:"0",cp:"0"}},dis:{},emp:[],cg:[],pt:{},bl:[],us:[],e:[],n:{},c:[],dv:[],fa:[],fo:[],ac:[],st:[],pj:[],jr:[],prelevements:[]});let S=D0();try{S={...S,...JSON.parse(localStorage.getItem(K))}}catch(_){}
 S=repairState(S);
 S.set={...D0().set,...S.set};S.set.pre={...D0().set.pre,...S.set.pre};S.set.rh={...D0().set.rh,...S.set.rh};S.dis=S.dis||{};
 if(!Array.isArray(S.sv)||!S.sv.length)S.sv=SV0.map(([n,p])=>({id:String(Date.now()+Math.random()),n,p,active:true}));let SV=S.sv.filter(x=>x.active!==false).map(x=>[x.n,+x.p||0]);
@@ -1317,7 +1317,7 @@ function repairState(input){
  out.set.pre={...defaults.set.pre,...(out.set.pre&&typeof out.set.pre==="object"&&!Array.isArray(out.set.pre)?out.set.pre:{})};
  out.set.rh={...defaults.set.rh,...(out.set.rh&&typeof out.set.rh==="object"&&!Array.isArray(out.set.rh)?out.set.rh:{})};
  out.dis=out.dis&&typeof out.dis==="object"&&!Array.isArray(out.dis)?out.dis:{};
- for(const k of ["sv","emp","cg","bl","us","e","c","dv","fa","fo","ac","st","fz","pj","jr","etudiants","prelevements"])if(Array.isArray(out[k]))out[k]=out[k].filter(x=>x&&typeof x==="object"&&!Array.isArray(x));
+ for(const k of ["sv","emp","cg","bl","us","e","c","dv","fa","fo","ac","st","pj","jr","prelevements"])if(Array.isArray(out[k]))out[k]=out[k].filter(x=>x&&typeof x==="object"&&!Array.isArray(x));
  // Compatibilité avec les anciennes opérations/documents qui n’avaient pas de lignes détaillées.
  for(const k of ["e","dv","fa"])if(Array.isArray(out[k]))out[k].forEach(x=>{if(!Array.isArray(x.lines))x.lines=[];});
  for(const k of ["pt","n","dis"])if(!out[k]||typeof out[k]!=="object"||Array.isArray(out[k]))out[k]={};
@@ -1731,8 +1731,6 @@ function draw2(){
  +`<div class="box">`+T(["N°","Date","Fournisseur","Article","Qté","Total"],S.ac.slice().reverse().map(a=>`<tr><td>${a.no}</td><td>${dt(a.d)}</td><td>${esc(a.fo)}</td><td>${esc(a.art)}</td><td class="r">${a.q}</td><td class="r">${fm(a.m)}</td></tr>`))+`</div>`;
  $("st").innerHTML=`<h2>Stock</h2>`+(bas.length?nb("wa","","Stock presque épuisé : "+bas.map(x=>x.n+" ("+x.q+")").join(", ")+".",(PM[RO]||P.map(p=>p[0])).includes("fo")?{go:"fo",label:"Réapprovisionner"}:{}):"")+bx("Nouvel article",F("sn","Article")+F("sq","Quantité","number",0,0)+F("ss","Seuil d'alerte","number",0,5),`<button class="p" data-a="sadd">Ajouter</button>`)+bx("Sortie de stock",F("so","Article","text",S.st.map(s=>s.n))+F("sx","Quantité","number",0,1)+F("sm","Motif"),`<button class="p" data-a="sout">Sortir</button>`)
  +`<div class="box">`+T(["Article","Quantité","Seuil","État"],S.st.map(s=>`<tr><td>${esc(s.n)}</td><td class="r">${s.q}</td><td class="r">${s.s}</td><td class="${s.q<=s.s?"out":"in"}">${s.q<=s.s?"Stock bas":"Suffisant"}</td></tr>`))+`</div>`;
- const FZ=SV.filter(s=>/^(Formation|Infographie)/.test(s[0]));
- const courseOptions=[...new Set([...FZ.map(s=>s[0]),...(Array.isArray(S.courses)?S.courses:[]).map(x=>x.nom).filter(Boolean)])];
  $("pj").innerHTML=`<h2>Projets</h2><p style="color:var(--mu)">Gérez vos projets, budgets, équipes, échéances et documents depuis un seul espace.</p>`+
   `<div class="row" style="margin-bottom:14px">${[["Total projets",S.pj.length],["En cours",S.pj.filter(p=>p.s=="En cours").length],["Terminés",S.pj.filter(p=>p.s=="Clôturé"||p.s=="Livré").length],["Budget total",fm(S.pj.reduce((a,p)=>a+(+p.b||0),0))]].map(([n,v])=>`<div class="k"><span>${n}</span><b>${v}</b></div>`).join("")}</div>`+
   bx("Créer un projet",F("pjc","Client","text",AM())+F("pjy","Type","text",["Site web","Caméras de surveillance","Wifi zone","Formation","Infrastructure réseau","Autre"])+F("pjt","Nom du projet")+F("pjb","Budget prévu ("+SY()+")","number")+F("pjresp","Responsable")+F("pjdebut","Date de début","date")+F("pjfin","Échéance","date")+F("pjdv","Devis associé","text",["Aucun",...S.dv.map(d=>d.no)])+F("pjfa","Facture associée","text",["Aucune",...S.fa.map(f=>f.no)]),`<button class="p" data-a="pjadd">Créer le projet</button>`)+
@@ -1891,7 +1889,7 @@ function dashR(){
  const dw=dvw.filter(d=>(now-new Date(d.d))/864e5>7);if(dw.length)ap("wa",dw.length+" devis sans réponse depuis plus de 7 jours","À relancer ou à transformer en facture","dev","quote",dw.length);
  if(b.Caisse<0)ap("no","Anomalie de caisse : solde négatif",fm(b.Caisse),"treso","cash",Math.round(b.Caisse));
  if(bas.length)ap("wa",bas.length+" produit(s) en stock faible",bas.slice(0,3).map(x=>x.n).join(", "),"st","stock",bas.map(x=>x.n+x.q).join());
- const fz=S.fz.filter(z=>{const d=(new Date(z.dt+"T12:00")-now)/864e5;return d>=-.5&&d<=7});if(fz.length)ap("wa",fz.length+" formation(s) commencent dans moins de 7 jours",fz.map(z=>z.s).slice(0,2).join(", "),"fz","fz",fz.length);
+ 
  hrAlerts(ap);
  const bn=al.filter(a=>!isDis(a.k,a.sig)).slice(0,3).map(a=>nb(a.l=="no"?"er":"wa","",a.t+" — "+a.s,{go:a.go,label:"Voir",dis:a.k+"|"+a.sig})).join(""),emp=!S.e.length&&!S.fa.length&&ok.includes("sale")&&!isDis("empty",1)?nb("in","","Aucune opération enregistrée pour l'instant. Les indicateurs s'afficheront dès la première vente.",{go:"sale",label:"Nouvelle vente",dis:"empty|1"}):"";
  const alh=al.map(a=>`<li class="al" data-go="${a.go}"><span><i class="dot" style="background:var(--${a.l=="no"?"rd":"or"})"></i>${esc(a.t)}<br><small>${esc(a.s)}</small></span><small>Ouvrir</small></li>`).join("");
