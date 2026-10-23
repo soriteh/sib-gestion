@@ -1353,7 +1353,7 @@ function montantEnLettresAvecDevise(value){
  return (Number(value)<0?"moins ":"")+montantEnLettres(value)+" "+devise;
 }
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-let cloudSessionReady=false,cloudSaveChain=Promise.resolve(),cloudSaveErrorAt=0;
+let cloudSessionReady=false,cloudSaveChain=Promise.resolve(),cloudSaveErrorAt=0,cloudQueuedSnapshot=null,cloudWriteRunning=false;
 let cloudChannel=null,cloudRemoteNoticeAt=0;
 function activateCloudRealtime(){
  if(!window.SIBCloud?.ready||!cloudSessionReady)return;
@@ -1391,6 +1391,7 @@ function cloudSnapshot(){const x=JSON.parse(JSON.stringify(S));delete x.us;retur
 function storePendingCloudSnapshot(snapshot){try{localStorage.setItem(SIB_PENDING_KEY,JSON.stringify({savedAt:Date.now(),state:snapshot}));return true}catch(err){console.error("SIB pending backup failed:",err);return false}}
 async function retryPendingCloudSave(){
  if(sibPendingRetryBusy||sibPendingConflict||!navigator.onLine||!window.SIBCloud?.ready||!cloudSessionReady)return;
+ if(cloudWriteRunning){schedulePendingCloudRetry(sibPendingRetryDelay);return;}
  let pending;try{pending=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null")}catch(_){return}
  if(!pending?.state)return;
  sibPendingRetryBusy=true;
@@ -1406,6 +1407,44 @@ async function retryPendingCloudSave(){
  }finally{sibPendingRetryBusy=false}
 }
 window.addEventListener("online",()=>{sibPendingRetryDelay=10000;schedulePendingCloudRetry(1500)});
+async function drainCloudWrites(){
+ if(cloudWriteRunning||sibPendingRetryBusy)return;
+ cloudWriteRunning=true;
+ try{
+  while(cloudQueuedSnapshot&&cloudSessionReady){
+   const snapshot=cloudQueuedSnapshot;
+   cloudQueuedSnapshot=null;
+   try{
+    await window.SIBCloud.saveAppState(snapshot);
+    let pending=null;try{pending=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null")}catch(_){}
+    if(pending&&JSON.stringify(pending.state)===JSON.stringify(snapshot))localStorage.removeItem(SIB_PENDING_KEY);
+    sibPendingRetryDelay=10000;
+   }catch(err){
+    let pending=null;try{pending=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null")}catch(_){}
+    let stored=!!(pending&&pending.state);
+    if(!stored)stored=storePendingCloudSnapshot(snapshot);
+    console.error("SIB Supabase save failed:",err);
+    const now=Date.now();
+    if(now-cloudSaveErrorAt>3000){
+     cloudSaveErrorAt=now;
+     let detail=err?.message||"Erreur inconnue";
+     if(/NetworkError|Failed to fetch|fetch failed|Load failed/i.test(detail)){
+      detail="connexion réseau vers Supabase impossible. Vérifiez Internet, l'URL du projet et les règles réseau du navigateur";
+     }
+     const localNotice=stored?" Une copie temporaire des modifications est conservée sur cet appareil ; une nouvelle tentative automatique sera effectuée.":" Impossible de conserver une copie temporaire sur cet appareil.";
+     if(typeof toast==="function")toast("ÉCHEC DE SAUVEGARDE SUPABASE : "+detail+"."+localNotice,"er",{sticky:true});
+    }
+    if(!cloudQueuedSnapshot){
+     sibPendingRetryDelay=Math.min(Math.round(sibPendingRetryDelay*1.8),120000);
+     schedulePendingCloudRetry(sibPendingRetryDelay);
+    }
+   }
+  }
+ }finally{
+  cloudWriteRunning=false;
+  if(cloudQueuedSnapshot&&cloudSessionReady&&!sibPendingRetryBusy)cloudSaveChain=drainCloudWrites();
+ }
+}
 function save(){
  if(sibPendingConflict){
   if(typeof toast==="function")toast("Une sauvegarde locale est en conflit avec les données centrales. Téléchargez-la avant de continuer les modifications.","wa",{sticky:true,act:{label:"Télécharger la sauvegarde",fn:downloadPendingCloudBackup}});
@@ -1416,26 +1455,18 @@ function save(){
   return;
  }
  const snapshot=cloudSnapshot();
- if(!navigator.onLine){const stored=storePendingCloudSnapshot(snapshot);try{localStorage.setItem("sib-offline-state-v1",JSON.stringify({savedAt:Date.now(),state:snapshot}));}catch(cacheErr){console.error("SIB offline state cache failed:",cacheErr)}if(!stored&&typeof toast==="function")toast("Stockage local insuffisant : exportez une sauvegarde avant de poursuivre.","er",{sticky:true});else if(typeof toast==="function")toast("Mode hors ligne : modifications enregistrées sur cet appareil, synchronisation à la reconnexion.","wa");return;}
- // Conserver immédiatement une copie locale pour éviter toute perte si la page est actualisée avant la fin de la requête réseau.
- storePendingCloudSnapshot(snapshot);try{localStorage.setItem("sib-offline-state-v1",JSON.stringify({savedAt:Date.now(),state:snapshot}));}catch(cacheErr){console.warn("SIB local snapshot failed:",cacheErr)}
- cloudSaveChain=cloudSaveChain.then(()=>window.SIBCloud.saveAppState(snapshot).then(()=>{
-  try{const pending=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null");if(pending&&JSON.stringify(pending.state)===JSON.stringify(snapshot))localStorage.removeItem(SIB_PENDING_KEY)}catch(_){}
- })).catch(err=>{
-  const now=Date.now();let stored=false;
-  try{const pending=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null");stored=!!pending&&JSON.stringify(pending.state)===JSON.stringify(snapshot);if(!pending)stored=storePendingCloudSnapshot(snapshot)}catch(_){stored=false}
-  console.error("SIB Supabase save failed:",err);
-  if(now-cloudSaveErrorAt>3000){
-   cloudSaveErrorAt=now;
-   let detail=err?.message||"Erreur inconnue";
-   if(/NetworkError|Failed to fetch|fetch failed|Load failed/i.test(detail)){
-    detail="connexion réseau vers Supabase impossible. Vérifiez Internet, l'URL du projet et les règles réseau du navigateur";
-   }
-   const localNotice=stored?" Une copie temporaire des modifications est conservée sur cet appareil ; une nouvelle tentative automatique sera effectuée.":" Impossible de conserver une copie temporaire sur cet appareil.";
-   if(typeof toast==="function")toast("ÉCHEC DE SAUVEGARDE SUPABASE : "+detail+"."+localNotice,"er",{sticky:true});
-   if(stored){sibPendingRetryDelay=10000;schedulePendingCloudRetry(10000)}
-  }
- });
+ if(!navigator.onLine){
+  const stored=storePendingCloudSnapshot(snapshot);
+  try{localStorage.setItem("sib-offline-state-v1",JSON.stringify({savedAt:Date.now(),state:snapshot}));}catch(cacheErr){console.error("SIB offline state cache failed:",cacheErr)}
+  if(!stored&&typeof toast==="function")toast("Stockage local insuffisant : exportez une sauvegarde avant de poursuivre.","er",{sticky:true});
+  else if(typeof toast==="function")toast("Mode hors ligne : modifications enregistrées sur cet appareil, synchronisation à la reconnexion.","wa");
+  return;
+ }
+ // Keep the latest state locally and coalesce rapid edits into one serialized cloud write.
+ storePendingCloudSnapshot(snapshot);
+ try{localStorage.setItem("sib-offline-state-v1",JSON.stringify({savedAt:Date.now(),state:snapshot}));}catch(cacheErr){console.warn("SIB local snapshot failed:",cacheErr)}
+ cloudQueuedSnapshot=snapshot;
+ if(!cloudWriteRunning&&!sibPendingRetryBusy)cloudSaveChain=drainCloudWrites();
 }
 const TI={ok:"M20 6L9 17l-5-5",er:"M12 8v5M12 16h.01M12 2a10 10 0 100 20 10 10 0 000-20z",wa:"M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z",in:"M12 16v-4M12 8h.01M12 2a10 10 0 100 20 10 10 0 000-20z"};
 const ic=t=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${TI[t]}"/></svg>`;
