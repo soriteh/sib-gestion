@@ -102,7 +102,7 @@
       throw stateError;
     }
     if (appState?.state) {
-      try { await syncCoreCollections(appState.state); await syncTrainingCollections(appState.state); }
+      try { await syncCoreCollections(appState.state); }
       catch (syncError) {
         relationalSyncError = String(syncError?.message || syncError);
         console.error("SIB relational sync on sign-in failed:", syncError);
