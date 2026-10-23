@@ -809,14 +809,14 @@ nav .lob{min-height:34px;font-size:11px}
 
 /* Assistant IA flottant */
 body.lo #sib-ai-fab{display:none}
-#sib-ai-fab{position:fixed;right:24px;bottom:24px;z-index:9998;width:62px;height:62px;border:0;border-radius:50%;display:grid;place-items:center;cursor:pointer;color:#fff;background:linear-gradient(135deg,#3479e8,#7c4dff 58%,#ed7d31);box-shadow:0 8px 28px rgba(40,91,190,.42),0 0 0 1px rgba(255,255,255,.3) inset;transition:transform .22s ease,box-shadow .22s ease;animation:sibFabIn .55s cubic-bezier(.2,.8,.2,1) both}
+#sib-ai-fab{position:fixed;right:20px;bottom:20px;z-index:9998;width:46px;height:46px;border:0;border-radius:50%;display:grid;place-items:center;cursor:pointer;color:#fff;background:linear-gradient(135deg,#3479e8,#7c4dff 58%,#ed7d31);box-shadow:0 5px 18px rgba(40,91,190,.35),0 0 0 1px rgba(255,255,255,.3) inset;transition:transform .22s ease,box-shadow .22s ease;animation:sibFabIn .55s cubic-bezier(.2,.8,.2,1) both}
 #sib-ai-fab:hover{transform:translateY(-4px) scale(1.05);box-shadow:0 13px 34px rgba(40,91,190,.55),0 0 0 1px rgba(255,255,255,.4) inset}
-#sib-ai-fab svg{width:29px;height:29px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-#sib-ai-fab .fab-tip{position:absolute;right:72px;white-space:nowrap;background:#15233d;color:#fff;padding:8px 12px;border-radius:9px;font-size:12px;font-weight:650;box-shadow:0 4px 16px #0002;opacity:0;transform:translateX(5px);pointer-events:none;transition:all .18s ease}
+#sib-ai-fab svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#sib-ai-fab .fab-tip{position:absolute;right:54px;white-space:nowrap;background:#15233d;color:#fff;padding:8px 12px;border-radius:9px;font-size:12px;font-weight:650;box-shadow:0 4px 16px #0002;opacity:0;transform:translateX(5px);pointer-events:none;transition:all .18s ease}
 #sib-ai-fab:hover .fab-tip,#sib-ai-fab:focus-visible .fab-tip{opacity:1;transform:translateX(0)}
 #sib-ai-fab:focus-visible{outline:3px solid #f2a65a;outline-offset:4px}
 @keyframes sibFabIn{from{opacity:0;transform:translateY(16px) scale(.8)}to{opacity:1;transform:translateY(0) scale(1)}}
-@media(max-width:600px){#sib-ai-fab{right:16px;bottom:18px;width:56px;height:56px}}
+@media(max-width:600px){#sib-ai-fab{right:14px;bottom:16px;width:42px;height:42px}#sib-ai-fab svg{width:20px;height:20px}#sib-ai-fab .fab-tip{right:50px}}
 @media(prefers-reduced-motion:reduce){#sib-ai-fab{animation:none;transition:none}}
 </style>
 <script>
