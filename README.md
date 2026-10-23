@@ -33,6 +33,13 @@ La version courante ajoute un stockage central partagé pour l'état métier de 
 
 **Limites de cette première synchronisation :** les identifiants et mots de passe des comptes locaux ne sont pas copiés dans l'état partagé. L'authentification principale est Supabase Auth et le rôle est lu depuis `organization_memberships`. La gestion complète des utilisateurs/permissions doit ensuite être reliée aux adhésions Supabase. Les règles métier doivent encore être migrées vers des tables relationnelles dédiées pour bénéficier de validations par module. L'application doit être testée après activation avant usage opérationnel.
 
+## Adresse e-mail de référence SIB
+
+- Adresse initiale configurée dans `supabase-config.js` : `sib.innovbuss@gmail.com`, dans la propriété publique `referenceEmail`. Cette valeur sert de référence côté application et peut être modifiée dans la configuration sans changer la logique métier.
+- Cette propriété n'est pas un secret et ne configure pas à elle seule l'adresse expéditrice des invitations.
+- Pour changer l'adresse qui expédie les e-mails d'activation, ouvrez Supabase Dashboard → Authentication → SMTP Settings et configurez un fournisseur SMTP qui autorise cette adresse. Puis vérifiez Authentication → URL Configuration pour l'URL de redirection après activation.
+- Ne mettez jamais un mot de passe SMTP ni une clé privée dans `supabase-config.js` ou dans le navigateur.
+
 ## Scripts Supabase
 
 ### `supabase/00_audit_schema.sql` — lecture seule
