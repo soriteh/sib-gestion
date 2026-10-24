@@ -2093,7 +2093,6 @@ async function boot(){applyLogo();
     document.body.classList.remove("sib-offline-mode");
     LNOTE="Connexion hors ligne bloquée pour protéger les données : le profil enregistré sur cet appareil ne permet pas de vérifier votre identité. Reconnectez-vous à Internet pour authentifier votre compte. Les données locales en attente sont conservées et ne sont pas envoyées automatiquement.";
     lgv("login");
-    const loginNote=$("lnote");if(loginNote)loginNote.textContent=LNOTE;
     if(typeof toast==="function")toast("Accès hors ligne non autorisé sans authentification locale sécurisée. Les données en attente sont conservées.","wa",{sticky:true});
     return;
    }
