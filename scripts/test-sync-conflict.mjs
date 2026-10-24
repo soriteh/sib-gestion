@@ -25,4 +25,15 @@ assert.match(conflict, /pendingIsValid/,
 assert.match(conflict, /sibPendingConflict\s*=\s*true/,
   "Conflict handler must stop automatic writes");
 
-console.log("Sync conflict safety regression tests passed (6 assertions).");
+
+const bootStart = html.indexOf("async function boot(){");
+const bootEnd = html.indexOf("const info=", bootStart);
+assert.ok(bootStart >= 0 && bootEnd > bootStart, "Boot flow must exist");
+const boot = html.slice(bootStart, bootEnd);
+assert.match(boot, /A cached profile is not an authentication factor/);
+assert.match(boot, /Connexion hors ligne bloquée pour protéger les données/);
+assert.doesNotMatch(boot, /CU=\{id:cachedUser\.id[\s\S]{0,500}enter\(true\)/,
+  "Cached profile alone must never authorize offline entry");
+assert.match(boot, /Les données locales en attente sont conservées/);
+
+console.log("Offline authentication safety regression tests passed (4 assertions).");
