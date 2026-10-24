@@ -2086,10 +2086,15 @@ async function boot(){applyLogo();
    const cachedState=JSON.parse(localStorage.getItem("sib-offline-state-v1")||"null");
    const offlineState=pending&&pending.state?pending.state:(cachedState&&cachedState.state?cachedState.state:null);
    if(offlineNetworkFailure&&cachedUser&&offlineState){
-    S=repairState(offlineState);
-    CU={id:cachedUser.id,pn:cachedUser.pn||"Administrateur",nm:cachedUser.nm||"",nom:cachedUser.nom||cachedUser.pn||"Administrateur",mail:cachedUser.email||"",login:cachedUser.email||"",role:cachedUser.role||"user",actif:true,cloud:true,offline:true,last:null};
-    S.us=[CU];RO=CU.role;cloudSessionReady=true;applyLogo();document.body.classList.add("sib-offline-mode");enter(true);
-    if(typeof toast==="function")toast("Mode hors ligne : les changements restent sur cet appareil et devront être synchronisés au retour d’Internet.","wa",{sticky:true});
+    // A cached profile is not an authentication factor. Never grant access based
+    // only on localStorage: anyone with access to this browser could impersonate
+    // the last signed-in user while the server cannot verify the session.
+    document.body.classList.add("lo");
+    document.body.classList.remove("sib-offline-mode");
+    LNOTE="Connexion hors ligne bloquée pour protéger les données : le profil enregistré sur cet appareil ne permet pas de vérifier votre identité. Reconnectez-vous à Internet pour authentifier votre compte. Les données locales en attente sont conservées et ne sont pas envoyées automatiquement.";
+    lgv("login");
+    const loginNote=$("lnote");if(loginNote)loginNote.textContent=LNOTE;
+    if(typeof toast==="function")toast("Accès hors ligne non autorisé sans authentification locale sécurisée. Les données en attente sont conservées.","wa",{sticky:true});
     return;
    }
   } catch(offlineErr) { console.warn("SIB offline recovery failed:",offlineErr); }
