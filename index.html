@@ -1385,6 +1385,17 @@ function downloadPendingCloudBackup(){
   toast("Sauvegarde locale téléchargée. Les données centrales restent actives. Conservez ce fichier en lieu sûr.","ok",{ms:7000});
  }catch(err){console.error("SIB backup export failed:",err);toast("Téléchargement impossible. La sauvegarde locale est conservée sur cet appareil.","er",{sticky:true})}
 }
+function isCloudVersionConflict(error){
+ const code=String(error?.code||error?.status||"");
+ const message=String(error?.message||error||"");
+ return code==="40001"||/conflit de synchronisation|données ont changé sur un autre appareil|version.*(changed|mismatch|conflict)|serialization failure/i.test(message);
+}
+function stopForCloudConflict(snapshot,error){
+ sibPendingConflict=true;
+ if(snapshot)storePendingCloudSnapshot(snapshot);
+ console.error("SIB synchronization conflict; automatic overwrite stopped:",error);
+ if(typeof toast==="function")toast("Conflit de synchronisation : les données centrales ont changé sur un autre appareil. La sauvegarde locale est conservée ; téléchargez-la avant toute résolution.", "wa", {sticky:true,act:{label:"Télécharger la sauvegarde",fn:downloadPendingCloudBackup}});
+}
 function schedulePendingCloudRetry(delay){
  if(sibPendingRetryTimer)clearTimeout(sibPendingRetryTimer);
  if(!navigator.onLine)return;
@@ -1405,16 +1416,20 @@ async function retryPendingCloudSave(){
   if(typeof toast==="function")toast("Connexion rétablie : les modifications en attente ont été synchronisées.","ok",{ms:4500});
  }catch(err){
   console.warn("SIB pending save retry failed:",err);
-  sibPendingRetryDelay=Math.min(Math.round(sibPendingRetryDelay*1.8),120000);
-  schedulePendingCloudRetry(sibPendingRetryDelay);
- }finally{sibPendingRetryBusy=false;if(cloudQueuedSnapshot&&cloudSessionReady&&!cloudWriteRunning)cloudSaveChain=drainCloudWrites()}
+  if(isCloudVersionConflict(err)){
+   stopForCloudConflict(pending.state,err);
+  }else{
+   sibPendingRetryDelay=Math.min(Math.round(sibPendingRetryDelay*1.8),120000);
+   schedulePendingCloudRetry(sibPendingRetryDelay);
+  }
+ }finally{sibPendingRetryBusy=false;if(cloudQueuedSnapshot&&cloudSessionReady&&!cloudWriteRunning&&!sibPendingConflict)cloudSaveChain=drainCloudWrites()}
 }
 window.addEventListener("online",()=>{sibPendingRetryDelay=10000;schedulePendingCloudRetry(1500)});
 async function drainCloudWrites(){
  if(cloudWriteRunning||sibPendingRetryBusy)return;
  cloudWriteRunning=true;
  try{
-  while(cloudQueuedSnapshot&&cloudSessionReady){
+  while(cloudQueuedSnapshot&&cloudSessionReady&&!sibPendingConflict){
    const snapshot=cloudQueuedSnapshot;
    cloudQueuedSnapshot=null;
    try{
@@ -1427,6 +1442,10 @@ async function drainCloudWrites(){
     let stored=!!(pending&&pending.state);
     if(!stored)stored=storePendingCloudSnapshot(snapshot);
     console.error("SIB Supabase save failed:",err);
+    if(isCloudVersionConflict(err)){
+     stopForCloudConflict(snapshot,err);
+     break;
+    }
     const now=Date.now();
     if(now-cloudSaveErrorAt>3000){
      cloudSaveErrorAt=now;
@@ -1445,7 +1464,7 @@ async function drainCloudWrites(){
   }
  }finally{
   cloudWriteRunning=false;
-  if(cloudQueuedSnapshot&&cloudSessionReady&&!sibPendingRetryBusy)cloudSaveChain=drainCloudWrites();
+  if(cloudQueuedSnapshot&&cloudSessionReady&&!sibPendingRetryBusy&&!sibPendingConflict)cloudSaveChain=drainCloudWrites();
  }
 }
 function save(){
