@@ -2474,7 +2474,7 @@ window.addEventListener("sib:internal-refresh",()=>refresh());
  }
  async function renderAttendance(){
   const root=document.getElementById("pr");if(!root||root.classList.contains("hide"))return;
-  const role=String(window.RO||"");
+  const role=String(typeof RO!=="undefined"?RO:(window.RO||""));
   const canManage=["Administrateur","Direction","RH"].includes(role);
   const date=root.querySelector("#sib-att-date")?.value||today();
   root.innerHTML='<h2>Présences</h2><div class="box"><div style="display:flex;gap:12px;align-items:end;flex-wrap:wrap"><div style="max-width:220px;flex:1"><label for="sib-att-date">Date de présence</label><input id="sib-att-date" type="date" value="'+h(date)+'"></div><button class="p" id="sib-att-refresh">Actualiser</button><div class="sp"></div><span class="bd mu">Pointage automatique : 08:30 · limite : 08:32</span></div><p style="color:var(--mu);margin-bottom:0">Les employés confirment leur présence depuis la notification reçue. Confirmation avant 08:32 : présent ; après 08:32 : retard ; aucune confirmation : absent.</p></div><div class="box" id="sib-att-results">Chargement de la fiche de présence…</div>';
