@@ -1377,12 +1377,13 @@ const SIB_PENDING_KEY="sib-pending-cloud-save-v1";
 let sibPendingRetryTimer=null,sibPendingRetryDelay=10000,sibPendingRetryBusy=false,sibPendingConflict=false;
 function downloadPendingCloudBackup(){
  let pending;try{pending=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null")}catch(_){pending=null}
- if(!pending?.state){sibPendingConflict=false;toast("Aucune sauvegarde locale en attente n’a été trouvée.","wa");return}
+ if(!pending?.state){toast("Aucune sauvegarde locale en attente n’a été trouvée. Le conflit reste bloqué jusqu’à résolution.","wa");return}
  try{
   const blob=new Blob([JSON.stringify({app:"SIB Gestion",exportedAt:new Date().toISOString(),warning:"Sauvegarde locale en conflit avec les données centrales. Fichier potentiellement sensible.",state:pending.state},null,2)],{type:"application/json;charset=utf-8"});
   const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="SIB-Gestion-sauvegarde-locale-"+new Date().toISOString().replace(/[:.]/g,"-")+".json";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
-  localStorage.removeItem(SIB_PENDING_KEY);sibPendingConflict=false;
-  toast("Sauvegarde locale téléchargée. Les données centrales restent actives. Conservez ce fichier en lieu sûr.","ok",{ms:7000});
+  // Downloading a backup is not a conflict resolution. Keep the pending snapshot
+  // and the conflict lock so a reload or later reconnect cannot overwrite cloud data.
+  toast("Sauvegarde locale téléchargée. Le conflit reste bloqué : conservez ce fichier et résolvez les données avant de reprendre la synchronisation.","ok",{ms:9000});
  }catch(err){console.error("SIB backup export failed:",err);toast("Téléchargement impossible. La sauvegarde locale est conservée sur cet appareil.","er",{sticky:true})}
 }
 function isCloudVersionConflict(error){
