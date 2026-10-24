@@ -1314,6 +1314,8 @@ function repairState(input){
   else if(defaults[k]&&typeof defaults[k]==="object"&&!Array.isArray(defaults[k])&&(!out[k]||typeof out[k]!=="object"||Array.isArray(out[k])))out[k]=defaults[k];
  }
  out.set={...defaults.set,...(out.set&&typeof out.set==="object"&&!Array.isArray(out.set)?out.set:{})};
+ // Migration d’affichage : conserver les montants, mais normaliser l’ancien symbole FG vers GNF.
+ if(out.set.sym==="FG"||!out.set.sym)out.set.sym="GNF";
  out.set.pre={...defaults.set.pre,...(out.set.pre&&typeof out.set.pre==="object"&&!Array.isArray(out.set.pre)?out.set.pre:{})};
  out.set.rh={...defaults.set.rh,...(out.set.rh&&typeof out.set.rh==="object"&&!Array.isArray(out.set.rh)?out.set.rh:{})};
  out.dis=out.dis&&typeof out.dis==="object"&&!Array.isArray(out.dis)?out.dis:{};
@@ -2074,7 +2076,7 @@ const info=(t,h)=>{$("mdc").innerHTML=`<h2>${t}</h2><p>${h}</p>`;$("mdl").classL
 function pwm(){$("mdc").innerHTML=`<h2>Changer mon mot de passe</h2><div class="lf">${pwf("cp0","Mot de passe actuel","current-password")}${pwf("cp1","Nouveau mot de passe","new-password")}${pwf("cp2","Confirmer le nouveau mot de passe","new-password")}</div><div id="cerr" class="lerr" role="alert"></div><button class="p" data-u="cpw" style="margin-bottom:8px">Enregistrer</button>`;$("mdl").classList.remove("hide")}
 async function cpw(){const ce=m=>$("cerr").textContent=m;if((await hp(V("cp0"),CU.salt))!=CU.hash)return ce("Le mot de passe actuel est incorrect.");const p=V("cp1");if(!pwOk(p))return ce(PWM);if(p!=V("cp2"))return ce("Les deux mots de passe ne sont pas identiques.");
  const salt=rs();CU.salt=salt;CU.hash=await hp(p,salt);lg("Mot de passe modifié");save();$("mdl").classList.add("hide");toast("Mot de passe modifié")}
-const SY=()=>(S.set&&S.set.sym)||"FG";
+const SY=()=>(S.set&&S.set.sym)||"GNF";
 let PS={};
 function coHead(){const s=S.set||{},l=[s.adr,[s.ville,s.pays].filter(Boolean).join(", "),s.tel,s.mail,s.web].filter(Boolean),legal=[s.rccm?"RCCM : "+s.rccm:"",s.nif?"NIF : "+s.nif:""].filter(Boolean);return`<div class="sib-doc-head" style="display:flex;gap:12px;align-items:center;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #d8deea;color:#172033">${s.logo?`<img src="${s.logo}" alt="Logo ${esc(s.nom||"SIB")}" style="display:block;height:52px;max-width:125px;object-fit:contain">`:""}<div style="min-width:0"><b style="font-size:14px">${esc(s.nom||"Soritech Innov Business")}</b>${l.length?`<br><small>${l.map(esc).join(" · ")}</small>`:""}${legal.length?`<br><small>${legal.map(esc).join(" · ")}</small>`:""}<br><small style="color:#53627a">${esc(s.app||"SIB Gestion")}</small></div></div>`}
 function applyLogo(){const s=S.set||{},n=s.nom||"Soritech Innov Business",app=s.app||"SIB Gestion";
