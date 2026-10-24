@@ -43,7 +43,11 @@
       const {data:sessionData,error:sessionError}=await client.auth.getSession();
       if(sessionError)throw sessionError;if(!sessionData.session)throw new Error("Connectez-vous à SIB Gestion pour utiliser l’assistant.");
       const {data,error}=await client.functions.invoke("sib-ai-agent",{body:{message,history:history.slice(-10)}});
-      if(error)throw new Error(data&&data.error||error.message||"Service IA indisponible.");
+      if(error){
+        let detail=(data&&data.error)||error.message||"Service IA indisponible.";
+        try{const response=error.context;if(response&&typeof response.json==="function"){const payload=await response.clone().json();if(payload&&payload.error)detail=payload.error;else if(payload&&payload.message)detail=payload.message;}}catch(_ignored){}
+        throw new Error(detail);
+      }
       if(!data||!data.reply)throw new Error("Réponse vide du service IA.");
       add("bot",data.reply);history.push({role:"assistant",content:data.reply});
     }catch(err){add("bot","Je ne peux pas répondre pour le moment : "+String(err.message||err));}
