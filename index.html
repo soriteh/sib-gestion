@@ -2383,9 +2383,9 @@ function render(){
  const unread=state.notifications.filter(n=>!n.read_at).length;el("sic-unread").textContent=unread?"("+unread+")":"";
  if(state.tab==="messages"){
  root.innerHTML=`<div class="sic-layout"><div class="box"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h3>Conversations</h3><button class="p" id="sic-new">Nouveau groupe</button></div><div class="sic-list">${state.conversations.map(x=>`<button class="sic-item ${x.id===state.conversation?"active":""}" data-sic-conv="${esc(x.id)}"><b>${esc(x.title||"Conversation privée")}</b><div class="sic-muted">${x.conversation_type==="group"?"Groupe":"Conversation"} · ${new Date(x.updated_at||x.created_at).toLocaleString("fr-FR")}</div></button>`).join("")||'<p class="sic-muted">Aucune conversation. Créez un groupe pour commencer.</p>'}</div></div>
- <div class="box"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h3>${esc(state.conversations.find(x=>x.id===state.conversation)?.title||"Messages")}</h3><button class="s" id="sic-refresh">Actualiser</button></div><div class="sic-chat" id="sic-chat">${state.messages.map(m=>`<div class="sic-msg ${m.sender_id===state.user.id?"mine":""}"><div class="sic-muted">${esc(name(m.sender_id))} · ${new Date(m.created_at).toLocaleString("fr-FR")}</div><div>${esc(m.body)}</div></div>`).join("")||'<p class="sic-muted">Sélectionnez une conversation ou créez un groupe.</p>'}</div><div class="sic-compose"><textarea id="sic-message" maxlength="10000" placeholder="Écrire un message…"></textarea><button class="p" id="sic-send" ${state.conversation?"":"disabled"}>Envoyer</button></div><p class="sic-muted">Les messages sont visibles uniquement par les membres de la conversation.</p></div></div>`;
+ <div class="box"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h3>${esc(state.conversations.find(x=>x.id===state.conversation)?.title||"Messages")}</h3><button class="s" id="sic-refresh">Actualiser</button></div><div class="sic-chat" id="sic-chat">${state.messages.map(m=>`<div class="sic-msg ${m.sender_id===state.user.id?"mine":""}"><div class="sic-muted">${esc(name(m.sender_id))} · ${new Date(m.created_at).toLocaleString("fr-FR")}</div><div>${esc(m.body)}</div></div>`).join("")||'<p class="sic-muted">Sélectionnez une conversation ou créez un groupe.</p>'}</div><div class="sic-compose"><textarea id="sic-message" maxlength="10000" placeholder="Écrire un message…"></textarea><button class="s" id="sic-maya" type="button">Préparer avec Maya</button><button class="p" id="sic-send" ${state.conversation?"":"disabled"}>Envoyer</button></div><p class="sic-muted">Les messages sont visibles uniquement par les membres de la conversation.</p></div></div>`;
  root.querySelectorAll("[data-sic-conv]").forEach(b=>b.addEventListener("click",async()=>{state.conversation=b.dataset.sicConv;try{await loadMessages();render()}catch(e){showError(e)}}));
- el("sic-new")?.addEventListener("click",newGroup);el("sic-refresh")?.addEventListener("click",refresh);el("sic-send")?.addEventListener("click",sendMessage);
+ el("sic-new")?.addEventListener("click",newGroup);el("sic-refresh")?.addEventListener("click",refresh);el("sic-send")?.addEventListener("click",sendMessage);el("sic-maya")?.addEventListener("click",draftWithMaya);
  }else if(state.tab==="announcements"){
  root.innerHTML=`<div class="box"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h3>Annonces et notes de service</h3>${permittedAdmin()?'<button class="p" id="sic-ann-new">Nouvelle annonce</button>':""}</div><div class="sic-list">${state.announcements.map(a=>`<article class="sic-item"><b>${esc(a.title)}</b><div class="sic-muted">${a.published?"Publiée":"Brouillon"} · ${new Date(a.published_at||a.created_at).toLocaleString("fr-FR")}</div><p style="white-space:pre-wrap">${esc(a.body)}</p>${a.published?'<button class="s" data-sic-read="'+esc(a.id)+'">Marquer comme lue</button>':""}</article>`).join("")||'<p class="sic-muted">Aucune annonce.</p>'}</div></div>`;
  el("sic-ann-new")?.addEventListener("click",newAnnouncement);root.querySelectorAll("[data-sic-read]").forEach(b=>b.addEventListener("click",()=>markAnnouncement(b.dataset.sicRead)));
@@ -2399,6 +2399,13 @@ function render(){
  el("sic-audit-refresh")?.addEventListener("click",async()=>{try{await loadAudit();render()}catch(e){showError(e)}});
  }
  status.textContent="Connecté · rôle : "+state.role+" · "+state.members.length+" membre(s) actif(s).";
+}
+async function draftWithMaya(){
+ const text=el("sic-message")?.value.trim();if(!text)return alert("Saisissez d’abord le sujet ou les informations du message.");
+ const launch=el("sib-ai-launch"),input=el("sib-ai-input");
+ if(!launch||!input){alert("L’assistant Maya n’est pas disponible sur cette page.");return;}
+ input.value="Aide-moi à rédiger un message interne professionnel à partir de ces éléments. Propose un texte à relire, sans l’envoyer automatiquement : "+text;
+ launch.click();input.focus();
 }
 async function newGroup(){
  const available=state.members.filter(m=>m.user_id!==state.user.id);
@@ -2438,6 +2445,10 @@ function renderMayaDraft(){
  toast("Pour le moment, Maya peut préparer le texte dans son assistant habituel ; l’envoi reste manuel.");
 }
 document.addEventListener("DOMContentLoaded",()=>{section();});
+try{
+ if(Array.isArray(P)&&!P.some(p=>p[0]==="com"))P.push(["com","Communication interne"]);
+ if(PM){if(Array.isArray(PM.Direction)&&!PM.Direction.includes("com"))PM.Direction.push("com");["Comptable","RH","Caissier","Commercial","Technicien","Magasinier"].forEach(r=>{if(Array.isArray(PM[r])&&!PM[r].includes("com"))PM[r].push("com");});}
+}catch(e){console.warn("SIB communication navigation setup:",e);}
 const oldNav=window.nav;
 document.addEventListener("click",e=>{if(e.target.closest('[data-v="com"]')){setTimeout(()=>{section();if(!state.user){el("sic-status").textContent="Connexion à Supabase…";init().catch(showError)}},0);}});
 document.addEventListener("click",e=>{const b=e.target.closest('[data-v="com"]');if(b){const t=el("com");if(t){t.classList.remove("hide");setTimeout(()=>{try{if(!state.user)init().catch(showError);else render()}catch(err){showError(err)}},50);}}});
