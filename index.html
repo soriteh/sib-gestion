@@ -1392,7 +1392,14 @@ function isCloudVersionConflict(error){
 }
 function stopForCloudConflict(snapshot,error){
  sibPendingConflict=true;
- if(snapshot)storePendingCloudSnapshot(snapshot);
+ // save() already persists each newer local snapshot before queuing it.
+ // Never replace that pending snapshot with an older one that just conflicted.
+ let pendingIsValid=false;
+ try{
+  const pending=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null");
+  pendingIsValid=!!(pending&&pending.state&&typeof pending.state==="object");
+ }catch(_){}
+ if(!pendingIsValid&&snapshot)storePendingCloudSnapshot(snapshot);
  console.error("SIB synchronization conflict; automatic overwrite stopped:",error);
  if(typeof toast==="function")toast("Conflit de synchronisation : les données centrales ont changé sur un autre appareil. La sauvegarde locale est conservée ; téléchargez-la avant toute résolution.", "wa", {sticky:true,act:{label:"Télécharger la sauvegarde",fn:downloadPendingCloudBackup}});
 }
