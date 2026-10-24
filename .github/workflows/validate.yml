@@ -24,3 +24,5 @@ jobs:
         run: node scripts/check-inline-js.mjs
       - name: Test Supabase sign-in failure handling
         run: node scripts/test-supabase-client.mjs
+      - name: Test offline service worker cache behavior
+        run: node scripts/test-service-worker.mjs
