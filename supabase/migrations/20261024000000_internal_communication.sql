@@ -196,4 +196,50 @@ grant execute on function public.sib_internal_is_member(uuid), public.sib_intern
 -- Empêche l'écriture directe dans le journal d'audit par les utilisateurs.
 revoke insert, update, delete on public.sib_internal_audit from authenticated;
 
+
+-- Notifications automatiques pour les messages et annonces publiées.
+create or replace function public.sib_internal_notify_message()
+returns trigger language plpgsql security definer set search_path = ''
+as $
+declare v_org uuid; v_title text;
+begin
+  select c.organization_id, coalesce(c.title, 'Nouveau message')
+    into v_org, v_title
+  from public.sib_internal_conversations c where c.id = NEW.conversation_id;
+  insert into public.sib_internal_notifications(organization_id,user_id,notification_type,title,body,target_type,target_id)
+  select v_org, cm.user_id, 'message', v_title, left(NEW.body,240), 'conversation', NEW.conversation_id::text
+  from public.sib_internal_conversation_members cm
+  where cm.conversation_id=NEW.conversation_id and cm.user_id<>NEW.sender_id;
+  insert into public.sib_internal_audit(organization_id,actor_user_id,action,entity_type,entity_id,details)
+  values(v_org,NEW.sender_id,'message.created','message',NEW.id::text,jsonb_build_object('conversation_id',NEW.conversation_id));
+  return NEW;
+end;
+$;
+drop trigger if exists sib_internal_message_notify on public.sib_internal_messages;
+create trigger sib_internal_message_notify after insert on public.sib_internal_messages
+for each row execute function public.sib_internal_notify_message();
+
+create or replace function public.sib_internal_audit_announcement()
+returns trigger language plpgsql security definer set search_path = ''
+as $
+begin
+  insert into public.sib_internal_audit(organization_id,actor_user_id,action,entity_type,entity_id,details)
+  values(NEW.organization_id,NEW.created_by,case when NEW.published then 'announcement.published' else 'announcement.created' end,
+    'announcement',NEW.id::text,jsonb_build_object('title',NEW.title,'audience',NEW.audience));
+  if NEW.published and (TG_OP='INSERT' or not coalesce(OLD.published,false)) then
+    insert into public.sib_internal_notifications(organization_id,user_id,notification_type,title,body,target_type,target_id)
+    select NEW.organization_id,m.user_id,'announcement',NEW.title,left(NEW.body,240),'announcement',NEW.id::text
+    from public.organization_memberships m
+    where m.organization_id=NEW.organization_id and m.active=true and m.user_id<>NEW.created_by;
+  end if;
+  return NEW;
+end;
+$;
+drop trigger if exists sib_internal_announcement_notify on public.sib_internal_announcements;
+create trigger sib_internal_announcement_notify after insert or update of published on public.sib_internal_announcements
+for each row execute function public.sib_internal_audit_announcement();
+
+revoke all on function public.sib_internal_notify_message() from public, anon, authenticated;
+revoke all on function public.sib_internal_audit_announcement() from public, anon, authenticated;
+
 commit;
