@@ -7,6 +7,7 @@ const clientSource = readFileSync(resolve("supabase-client.js"), "utf8");
 
 function makeHarness({ membershipError = null, stateError = null, bootstrapError = null } = {}) {
   let signOutCalls = 0;
+  const upsertCalls = [];
   const auth = {
     signInWithPassword: async () => ({
       data: { user: { id: "user-1", email: "admin@example.test" } },
@@ -20,6 +21,10 @@ function makeHarness({ membershipError = null, stateError = null, bootstrapError
       data: { session: { user: { id: "user-1" } } },
       error: null
     }),
+    getUser: async () => ({
+      data: { user: { id: "user-1", email: "admin@example.test" } },
+      error: null
+    }),
     signOut: async () => {
       signOutCalls += 1;
       return { error: null };
@@ -30,6 +35,11 @@ function makeHarness({ membershipError = null, stateError = null, bootstrapError
     const query = {
       select() { return this; },
       eq() { return this; },
+      upsert: async (rows, options) => {
+        if (!Array.isArray(rows)) throw new Error("Upsert rows must be an array");
+        upsertCalls.push({ table, rows, options });
+        return { error: null };
+      },
       maybeSingle: async () => {
         if (table === "sib_app_state") {
           if (stateError) return { data: null, error: stateError };
@@ -68,7 +78,7 @@ function makeHarness({ membershipError = null, stateError = null, bootstrapError
   };
 
   vm.runInNewContext(clientSource, { window, console, Promise, String, Number, Error });
-  return { cloud: window.SIBCloud, get signOutCalls() { return signOutCalls; } };
+  return { cloud: window.SIBCloud, upsertCalls, get signOutCalls() { return signOutCalls; } };
 }
 
 {
@@ -107,4 +117,41 @@ function makeHarness({ membershipError = null, stateError = null, bootstrapError
   assert.equal(h.signOutCalls, 0, "transient app-state API outage must preserve the Auth session");
 }
 
-console.log("Supabase authentication failure-path tests passed (5 cases).");
+{
+  const h = makeHarness();
+  await h.cloud.signIn("admin@example.test", "password");
+  const sync = await h.cloud.syncCoreCollections({
+    c: [
+      { id: 10, n: "Client test", t: "+224600000000", mail: "client@example.test", p: 99 },
+      null,
+      { id: 11, n: "   " }
+    ],
+    sv: [
+      { id: "srv-1", n: "Maintenance PC", p: 250000 },
+      { id: "srv-2", n: "   " }
+    ]
+  });
+  assert.deepEqual(sync, { clients: 1, services: 1 });
+  assert.equal(h.upsertCalls.length, 2, "clients and services should each be upserted");
+  const clientRows = h.upsertCalls.find(call => call.table === "sib_clients").rows;
+  assert.equal(clientRows.length, 1);
+  assert.equal(clientRows[0].legacy_id, "10");
+  assert.equal(clientRows[0].name, "Client test");
+  assert.equal(clientRows[0].created_by, "user-1");
+  const serviceRows = h.upsertCalls.find(call => call.table === "sib_services").rows;
+  assert.equal(serviceRows.length, 1);
+  assert.equal(serviceRows[0].legacy_id, "srv-1");
+  assert.equal(serviceRows[0].currency, "GNF");
+  assert.equal(serviceRows[0].unit_price, 250000);
+  assert.equal(h.upsertCalls.every(call => call.options.onConflict === "organization_id,legacy_id"), true);
+}
+
+{
+  const h = makeHarness();
+  await h.cloud.signIn("admin@example.test", "password");
+  const sync = await h.cloud.syncCoreCollections({ c: [], sv: [] });
+  assert.deepEqual(sync, { clients: 0, services: 0 });
+  assert.equal(h.upsertCalls.length, 0, "empty collections must not write or delete records");
+}
+
+console.log("Supabase authentication and core relational sync tests passed (7 cases).");
