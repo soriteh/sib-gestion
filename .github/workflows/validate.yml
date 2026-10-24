@@ -26,3 +26,5 @@ jobs:
         run: node scripts/test-supabase-client.mjs
       - name: Test offline service worker cache behavior
         run: node scripts/test-service-worker.mjs
+      - name: Test sync conflict safety
+        run: node scripts/test-sync-conflict.mjs
