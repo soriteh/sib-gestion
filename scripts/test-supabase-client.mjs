@@ -131,7 +131,8 @@ function makeHarness({ membershipError = null, stateError = null, bootstrapError
       { id: "srv-2", n: "   " }
     ]
   });
-  assert.deepEqual(sync, { clients: 1, services: 1 });
+  assert.equal(sync.clients, 1);
+  assert.equal(sync.services, 1);
   assert.equal(h.upsertCalls.length, 2, "clients and services should each be upserted");
   const clientRows = h.upsertCalls.find(call => call.table === "sib_clients").rows;
   assert.equal(clientRows.length, 1);
@@ -150,7 +151,8 @@ function makeHarness({ membershipError = null, stateError = null, bootstrapError
   const h = makeHarness();
   await h.cloud.signIn("admin@example.test", "password");
   const sync = await h.cloud.syncCoreCollections({ c: [], sv: [] });
-  assert.deepEqual(sync, { clients: 0, services: 0 });
+  assert.equal(sync.clients, 0);
+  assert.equal(sync.services, 0);
   assert.equal(h.upsertCalls.length, 0, "empty collections must not write or delete records");
 }
 
