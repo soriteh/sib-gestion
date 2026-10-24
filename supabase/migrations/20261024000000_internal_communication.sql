@@ -127,13 +127,18 @@ create policy sib_internal_members_read on public.sib_internal_conversation_memb
 using (user_id=auth.uid() or exists (
   select 1 from public.sib_internal_conversations c where c.id=conversation_id and public.sib_internal_is_admin(c.organization_id)
 ));
+create or replace function public.sib_internal_can_manage_conversation(p_conversation uuid)
+returns boolean language sql stable security definer set search_path = ''
+as $
+  select exists (
+    select 1 from public.sib_internal_conversations c
+    where c.id=p_conversation and public.sib_internal_is_member(c.organization_id)
+      and (c.created_by=auth.uid() or public.sib_internal_is_admin(c.organization_id))
+  );
+$;
 drop policy if exists sib_internal_members_add on public.sib_internal_conversation_members;
 create policy sib_internal_members_add on public.sib_internal_conversation_members for insert to authenticated
-with check (added_by=auth.uid() and exists (
-  select 1 from public.sib_internal_conversations c where c.id=conversation_id
-    and public.sib_internal_is_member(c.organization_id)
-    and (c.created_by=auth.uid() or public.sib_internal_is_admin(c.organization_id))
-) and exists (
+with check (added_by=auth.uid() and public.sib_internal_can_manage_conversation(conversation_id) and exists (
   select 1 from public.organization_memberships m
   join public.sib_internal_conversations c on c.organization_id=m.organization_id
   where c.id=conversation_id and m.user_id=sib_internal_conversation_members.user_id and m.active=true
@@ -145,7 +150,7 @@ using (user_id=auth.uid()) with check (user_id=auth.uid());
 drop policy if exists sib_internal_messages_read on public.sib_internal_messages;
 create policy sib_internal_messages_read on public.sib_internal_messages for select to authenticated
 using (exists (
-  select 1 from public.sib_internal_conversation_members cm where cm.conversation_id=conversation_id and cm.user_id=auth.uid()
+  select 1 from public.sib_internal_conversation_members cm where cm.conversation_id=sib_internal_messages.conversation_id and cm.user_id=auth.uid()
 ));
 drop policy if exists sib_internal_messages_send on public.sib_internal_messages;
 create policy sib_internal_messages_send on public.sib_internal_messages for insert to authenticated
@@ -191,7 +196,8 @@ grant select, insert, update on public.sib_internal_conversations, public.sib_in
   public.sib_internal_notifications to authenticated;
 revoke all on function public.sib_internal_is_member(uuid) from public, anon;
 revoke all on function public.sib_internal_is_admin(uuid) from public, anon;
-grant execute on function public.sib_internal_is_member(uuid), public.sib_internal_is_admin(uuid) to authenticated;
+revoke all on function public.sib_internal_can_manage_conversation(uuid) from public, anon;
+grant execute on function public.sib_internal_is_member(uuid), public.sib_internal_is_admin(uuid), public.sib_internal_can_manage_conversation(uuid) to authenticated;
 
 -- Empêche l'écriture directe dans le journal d'audit par les utilisateurs.
 revoke insert, update, delete on public.sib_internal_audit from authenticated;
