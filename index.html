@@ -2456,4 +2456,51 @@ document.addEventListener("click",e=>{const b=e.target.closest('[data-v="com"]')
 window.addEventListener("sib:internal-refresh",()=>refresh());
 })();
 </script>
-<script src="./ai-agent.js" defer></script></body></html>
+<script src="./ai-agent.js" defer></script>
+<script>
+/* SIB Attendance UI: fiche de présence synchronisée avec Supabase */
+(function(){
+ "use strict";
+ const statusLabel={pending:"En attente",present:"Présent",late:"Retard",absent:"Absent"};
+ const statusClass={pending:"wa",present:"ok",late:"wa",absent:"no"};
+ const h=s=>String(s??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+ const today=()=>new Date().toLocaleDateString("sv-SE");
+ const fmt=v=>v?new Date(v).toLocaleString("fr-FR",{dateStyle:"short",timeStyle:"short"}):"—";
+ function client(){return window.SIBCloud?.client?.();}
+ function employeeName(id){
+  const users=window.S?.us||[];
+  const u=users.find(x=>String(x.id)===String(id)||String(x.auth_id)===String(id)||String(x.user_id)===String(id));
+  return u?(u.nom||u.name||u.email||("Utilisateur "+String(id).slice(0,8))):("Utilisateur "+String(id).slice(0,8));
+ }
+ async function renderAttendance(){
+  const root=document.getElementById("pr");if(!root||root.classList.contains("hide"))return;
+  const role=String(window.RO||"");
+  const canManage=["Administrateur","Direction","RH"].includes(role);
+  const date=root.querySelector("#sib-att-date")?.value||today();
+  root.innerHTML='<h2>Présences</h2><div class="box"><div style="display:flex;gap:12px;align-items:end;flex-wrap:wrap"><div style="max-width:220px;flex:1"><label for="sib-att-date">Date de présence</label><input id="sib-att-date" type="date" value="'+h(date)+'"></div><button class="p" id="sib-att-refresh">Actualiser</button><div class="sp"></div><span class="bd mu">Pointage automatique : 08:30 · limite : 08:32</span></div><p style="color:var(--mu);margin-bottom:0">Les employés confirment leur présence depuis la notification reçue. Confirmation avant 08:32 : présent ; après 08:32 : retard ; aucune confirmation : absent.</p></div><div class="box" id="sib-att-results">Chargement de la fiche de présence…</div>';
+  root.querySelector("#sib-att-date").addEventListener("change",()=>renderAttendance());
+  root.querySelector("#sib-att-refresh").addEventListener("click",()=>renderAttendance());
+  try{
+   const c=client();if(!c)throw new Error("Connexion Supabase indisponible.");
+   const {data:{user},error:ue}=await c.auth.getUser();if(ue)throw ue;if(!user)throw new Error("Connectez-vous pour consulter les présences.");
+   const cfg=window.SIB_SUPABASE_CONFIG||{};const org=cfg.organizationId;
+   if(!org)throw new Error("L’organisation n’est pas configurée.");
+   let q=c.from("sib_attendance_checkins").select("id,user_id,attendance_date,scheduled_at,deadline_at,confirmed_at,status").eq("organization_id",org).eq("attendance_date",date).order("scheduled_at",{ascending:true});
+   if(!canManage)q=q.eq("user_id",user.id);
+   const {data,error}=await q;if(error)throw error;
+   const rows=data||[];
+   const counts={present:0,late:0,absent:0,pending:0};rows.forEach(r=>counts[r.status]=(counts[r.status]||0)+1);
+   const result=root.querySelector("#sib-att-results");
+   result.innerHTML='<div class="row" style="margin-bottom:14px">'+[['Présents',counts.present,'ok'],['En retard',counts.late,'wa'],['Absents',counts.absent,'no'],['En attente',counts.pending,'mu']].map(([label,n,cl])=>'<div class="k"><span>'+label+'</span><b><span class="bd '+cl+'">'+n+'</span></b></div>').join("")+'</div><div class="tw"><table><thead><tr><th>N°</th><th>Employé</th><th>Heure prévue</th><th>Limite</th><th>Confirmation</th><th>Statut</th></tr></thead><tbody>'+rows.map((r,i)=>'<tr><td>'+(i+1)+'</td><td>'+h(employeeName(r.user_id))+'</td><td>'+h(fmt(r.scheduled_at))+'</td><td>'+h(fmt(r.deadline_at))+'</td><td>'+h(fmt(r.confirmed_at))+'</td><td><span class="bd '+(statusClass[r.status]||"mu")+'">'+h(statusLabel[r.status]||r.status)+'</span></td></tr>').join("")+'</tbody></table></div>'+(!rows.length?'<p style="color:var(--mu)">Aucun pointage enregistré pour cette date. Le traitement automatique crée la fiche à 08:30.</p>':'')+(canManage?'<p style="color:var(--mu);font-size:12px;margin-bottom:0">Les noms proviennent des utilisateurs déjà enregistrés localement ; si aucun profil correspondant n’est disponible, un identifiant abrégé est affiché.</p>':'');
+  }catch(err){const target=root.querySelector("#sib-att-results");if(target)target.innerHTML='<div role="alert" style="color:var(--rd)"><b>Impossible de charger les présences.</b><p>'+h(err?.message||err)+'</p><button class="s" id="sib-att-retry">Réessayer</button></div>';root.querySelector("#sib-att-retry")?.addEventListener("click",renderAttendance);}
+ }
+ const oldNav=window.nav;
+ if(typeof oldNav==="function"&&!oldNav.__sibAttendanceWrapped){
+  const wrapped=function(v){const out=oldNav.apply(this,arguments);if(v==="pr")setTimeout(renderAttendance,0);return out;};
+  wrapped.__sibAttendanceWrapped=true;window.nav=wrapped;
+ }
+ document.addEventListener("click",e=>{const b=e.target.closest('#nv button[data-v="pr"]');if(b)setTimeout(renderAttendance,0);});
+ window.sibRenderAttendance=renderAttendance;
+})();
+</script>
+</body></html>
