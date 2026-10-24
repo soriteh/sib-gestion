@@ -5,7 +5,7 @@ import { resolve } from "node:path";
 
 const clientSource = readFileSync(resolve("supabase-client.js"), "utf8");
 
-function makeHarness({ membershipError = null, stateError = null, bootstrapError = null } = {}) {
+function makeHarness({ membershipError = null, stateError = null, bootstrapError = null, upsertError = null } = {}) {
   let signOutCalls = 0;
   const upsertCalls = [];
   const auth = {
@@ -38,7 +38,7 @@ function makeHarness({ membershipError = null, stateError = null, bootstrapError
       upsert: async (rows, options) => {
         if (!Array.isArray(rows)) throw new Error("Upsert rows must be an array");
         upsertCalls.push({ table, rows, options });
-        return { error: null };
+        return { error: upsertError };
       },
       maybeSingle: async () => {
         if (table === "sib_app_state") {
@@ -72,7 +72,11 @@ function makeHarness({ membershipError = null, stateError = null, bootstrapError
       createClient: () => ({
         auth,
         from: queryFor,
-        rpc: async () => ({ error: bootstrapError })
+        rpc: async (name) => {
+          if (name === "sib_bootstrap_first_admin") return { error: bootstrapError };
+          if (name === "sib_save_app_state") return { data: 2, error: null };
+          return { data: null, error: null };
+        }
       })
     }
   };
@@ -156,4 +160,16 @@ function makeHarness({ membershipError = null, stateError = null, bootstrapError
   assert.equal(h.upsertCalls.length, 0, "empty collections must not write or delete records");
 }
 
-console.log("Supabase authentication and core relational sync tests passed (7 cases).");
+{
+  const h = makeHarness({ upsertError: { message: "relation mirror temporarily unavailable" } });
+  await h.cloud.signIn("admin@example.test", "password");
+  const version = await h.cloud.saveAppState({
+    c: [{ id: "client-1", n: "Client conservé" }],
+    sv: []
+  });
+  assert.equal(version, 2, "successful canonical JSON save should return the server version");
+  assert.match(h.cloud.relationalSyncError, /relation mirror temporarily unavailable/);
+  assert.equal(h.signOutCalls, 0, "a mirror failure must not sign the user out");
+}
+
+console.log("Supabase authentication and core relational sync tests passed (8 cases).");
