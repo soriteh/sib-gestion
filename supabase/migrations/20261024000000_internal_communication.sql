@@ -129,13 +129,13 @@ using (user_id=auth.uid() or exists (
 ));
 create or replace function public.sib_internal_can_manage_conversation(p_conversation uuid)
 returns boolean language sql stable security definer set search_path = ''
-as $
+as $$
   select exists (
     select 1 from public.sib_internal_conversations c
     where c.id=p_conversation and public.sib_internal_is_member(c.organization_id)
       and (c.created_by=auth.uid() or public.sib_internal_is_admin(c.organization_id))
   );
-$;
+$$;
 drop policy if exists sib_internal_members_add on public.sib_internal_conversation_members;
 create policy sib_internal_members_add on public.sib_internal_conversation_members for insert to authenticated
 with check (added_by=auth.uid() and public.sib_internal_can_manage_conversation(conversation_id) and exists (
@@ -206,7 +206,7 @@ revoke insert, update, delete on public.sib_internal_audit from authenticated;
 -- Notifications automatiques pour les messages et annonces publiées.
 create or replace function public.sib_internal_notify_message()
 returns trigger language plpgsql security definer set search_path = ''
-as $
+as $$
 declare v_org uuid; v_title text;
 begin
   select c.organization_id, coalesce(c.title, 'Nouveau message')
@@ -220,14 +220,14 @@ begin
   values(v_org,NEW.sender_id,'message.created','message',NEW.id::text,jsonb_build_object('conversation_id',NEW.conversation_id));
   return NEW;
 end;
-$;
+$$;
 drop trigger if exists sib_internal_message_notify on public.sib_internal_messages;
 create trigger sib_internal_message_notify after insert on public.sib_internal_messages
 for each row execute function public.sib_internal_notify_message();
 
 create or replace function public.sib_internal_audit_announcement()
 returns trigger language plpgsql security definer set search_path = ''
-as $
+as $$
 begin
   insert into public.sib_internal_audit(organization_id,actor_user_id,action,entity_type,entity_id,details)
   values(NEW.organization_id,NEW.created_by,case when NEW.published then 'announcement.published' else 'announcement.created' end,
@@ -240,7 +240,7 @@ begin
   end if;
   return NEW;
 end;
-$;
+$$;
 drop trigger if exists sib_internal_announcement_notify on public.sib_internal_announcements;
 create trigger sib_internal_announcement_notify after insert or update of published on public.sib_internal_announcements
 for each row execute function public.sib_internal_audit_announcement();
