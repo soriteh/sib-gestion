@@ -2297,4 +2297,151 @@ $("lgc").addEventListener("keydown",e=>{if(e.key=="Enter")doGo()});
 if(window.SIBCloud?.ready){try{const authClient=window.SIBCloud.client();authClient?.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT"&&CU?.cloud&&!CU?.offline){out(true,true);}});}catch(authWatchError){console.warn("SIB Auth state listener:",authWatchError);}}
 
 drawCart();boot().catch(err=>{console.error("SIB startup error:",err);const d=document.getElementById("dash");if(d){d.classList.remove("hide");d.innerHTML='<div class="box"><h2>Erreur au démarrage</h2><pre style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></div>';d.querySelector("pre").textContent=err&&(err.stack||err.message)||String(err)}}).finally(()=>{const splash=document.getElementById("sib-startup");if(splash){splash.classList.add("done");setTimeout(()=>splash.remove(),350)}});
-</script><script src="./ai-agent.js" defer></script></body></html>
+</script><script id="sib-internal-communication">
+(function(){
+"use strict";
+const style=document.createElement("style");
+style.textContent=`
+#com .sic-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+#com .sic-tabs button.active{background:var(--ac2);border-color:var(--ac)}
+#com .sic-layout{display:grid;grid-template-columns:minmax(230px, .8fr) minmax(0,1.8fr);gap:14px}
+#com .sic-list{display:flex;flex-direction:column;gap:6px;max-height:460px;overflow:auto}
+#com .sic-item{display:block;width:100%;text-align:left;padding:10px;border:1px solid var(--ln);border-radius:10px;background:var(--sf);color:var(--tx);cursor:pointer}
+#com .sic-item.active{border-color:var(--ac);box-shadow:0 0 0 1px var(--ac)}
+#com .sic-chat{min-height:320px;max-height:460px;overflow:auto;display:flex;flex-direction:column;gap:10px;padding:12px}
+#com .sic-msg{padding:10px 12px;border-radius:12px;background:var(--sf);border:1px solid var(--ln);max-width:88%;overflow-wrap:anywhere}
+#com .sic-msg.mine{align-self:flex-end;background:var(--ac2)}
+#com .sic-muted{color:var(--mu);font-size:12px}
+#com .sic-compose{display:flex;gap:8px;align-items:flex-end}
+#com .sic-compose textarea{flex:1;min-height:68px}
+@media(max-width:760px){#com .sic-layout{grid-template-columns:1fr}#com .sic-chat{max-height:340px}}
+`;
+document.head.appendChild(style);
+function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function el(id){return document.getElementById(id);}
+function cloud(){if(!window.SIBCloud?.ready)throw new Error("Supabase n’est pas configuré.");return window.SIBCloud.client();}
+let state={org:null,user:null,role:"",tab:"messages",conversation:null,conversations:[],members:[],messages:[],announcements:[],notifications:[],audit:[]};
+function permittedAdmin(){return ["administrateur","admin","direction"].includes(String(state.role).toLowerCase());}
+function section(){
+ if(el("com"))return;
+ const main=document.querySelector("main");if(!main)return;
+ const s=document.createElement("section");s.id="com";s.className="hide";
+ s.innerHTML=`<h2>Communication interne</h2><p style="color:var(--mu)">Messagerie, groupes, annonces, notifications et assistance Maya.</p>
+ <div class="sic-tabs" role="tablist"><button class="s active" data-sic-tab="messages">Messages</button><button class="s" data-sic-tab="announcements">Annonces</button><button class="s" data-sic-tab="notifications">Notifications <span id="sic-unread"></span></button><button class="s" data-sic-tab="audit">Journal d’audit</button></div>
+ <div id="sic-status" class="box">Chargement de la communication interne…</div><div id="sic-content"></div>`;
+ main.appendChild(s);
+ const nv=el("nv");
+ if(nv&&!nv.querySelector('[data-v="com"]')){const b=document.createElement("button");b.dataset.v="com";b.innerHTML='<span class="ni">✉</span><span>Communication interne</span>';b.addEventListener("click",()=>{if(typeof nav==="function")nav("com");});nv.appendChild(b);}
+ if(Array.isArray(window.P)){} // Navigation est enregistrée par le contrôleur principal.
+ s.addEventListener("click",e=>{const t=e.target.closest("[data-sic-tab]");if(t){state.tab=t.dataset.sicTab;render();}});
+}
+async function init(){
+ if(!window.CU || !window.CU.cloud){} // Le compte authentifié est vérifié via Supabase.
+ const c=cloud();const {data:{user},error}=await c.auth.getUser();if(error)throw error;if(!user)throw new Error("Connectez-vous avec votre compte SIB.");
+ state.user=user;
+ const cfg=window.SIB_SUPABASE_CONFIG||{};state.org=cfg.organizationId;
+ if(!state.org)throw new Error("L’identifiant de l’organisation n’est pas configuré.");
+ const {data:ms,error:me}=await c.from("organization_memberships").select("role,active,organization_id").eq("user_id",user.id).eq("organization_id",state.org).eq("active",true).limit(1);
+ if(me)throw me;if(!ms||!ms.length)throw new Error("Aucune appartenance active à cette organisation.");
+ state.role=ms[0].role||"";
+ const {data:all,error:ae}=await c.from("organization_memberships").select("user_id,role,active").eq("organization_id",state.org).eq("active",true);
+ if(ae)throw ae;state.members=all||[];
+ await loadConversations();await loadAnnouncements();await loadNotifications();render();
+}
+async function loadConversations(){
+ const c=cloud();
+ const {data:cm,error}=await c.from("sib_internal_conversation_members").select("conversation_id,last_read_at").eq("user_id",state.user.id);
+ if(error)throw error;const ids=(cm||[]).map(x=>x.conversation_id);state.conversations=[];
+ if(!ids.length){state.conversation=null;state.messages=[];return;}
+ const {data,error:ce}=await c.from("sib_internal_conversations").select("id,title,conversation_type,created_by,created_at,updated_at").in("id",ids).order("updated_at",{ascending:false});
+ if(ce)throw ce;state.conversations=data||[];
+ if(!state.conversations.some(x=>x.id===state.conversation))state.conversation=state.conversations[0]?.id||null;
+ await loadMessages();
+}
+async function loadMessages(){
+ state.messages=[];if(!state.conversation)return;
+ const c=cloud();const {data,error}=await c.from("sib_internal_messages").select("id,conversation_id,sender_id,body,created_at").eq("conversation_id",state.conversation).order("created_at",{ascending:true}).limit(200);
+ if(error)throw error;state.messages=data||[];
+ await c.from("sib_internal_conversation_members").update({last_read_at:new Date().toISOString()}).eq("conversation_id",state.conversation).eq("user_id",state.user.id);
+}
+async function loadAnnouncements(){
+ const c=cloud();const {data,error}=await c.from("sib_internal_announcements").select("id,title,body,audience,requires_ack,published,created_by,published_at,created_at").eq("organization_id",state.org).order("created_at",{ascending:false}).limit(100);
+ if(error)throw error;state.announcements=data||[];
+}
+async function loadNotifications(){
+ const c=cloud();const {data,error}=await c.from("sib_internal_notifications").select("id,notification_type,title,body,target_type,target_id,read_at,created_at").eq("user_id",state.user.id).order("created_at",{ascending:false}).limit(100);
+ if(error)throw error;state.notifications=data||[];
+}
+async function loadAudit(){
+ const c=cloud();const {data,error}=await c.from("sib_internal_audit").select("id,actor_user_id,action,entity_type,entity_id,details,created_at").eq("organization_id",state.org).order("created_at",{ascending:false}).limit(100);
+ if(error)throw error;state.audit=data||[];
+}
+function name(id){const local=(window.S&&Array.isArray(window.S.us)?window.S.us:[]).find(u=>u.id===id||u.auth_id===id);return local?.nom||("Utilisateur "+String(id||"").slice(0,8));}
+function render(){
+ const status=el("sic-status"),root=el("sic-content");if(!root)return;
+ document.querySelectorAll("[data-sic-tab]").forEach(b=>b.classList.toggle("active",b.dataset.sicTab===state.tab));
+ const unread=state.notifications.filter(n=>!n.read_at).length;el("sic-unread").textContent=unread?"("+unread+")":"";
+ if(state.tab==="messages"){
+ root.innerHTML=`<div class="sic-layout"><div class="box"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h3>Conversations</h3><button class="p" id="sic-new">Nouveau groupe</button></div><div class="sic-list">${state.conversations.map(x=>`<button class="sic-item ${x.id===state.conversation?"active":""}" data-sic-conv="${esc(x.id)}"><b>${esc(x.title||"Conversation privée")}</b><div class="sic-muted">${x.conversation_type==="group"?"Groupe":"Conversation"} · ${new Date(x.updated_at||x.created_at).toLocaleString("fr-FR")}</div></button>`).join("")||'<p class="sic-muted">Aucune conversation. Créez un groupe pour commencer.</p>'}</div></div>
+ <div class="box"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h3>${esc(state.conversations.find(x=>x.id===state.conversation)?.title||"Messages")}</h3><button class="s" id="sic-refresh">Actualiser</button></div><div class="sic-chat" id="sic-chat">${state.messages.map(m=>`<div class="sic-msg ${m.sender_id===state.user.id?"mine":""}"><div class="sic-muted">${esc(name(m.sender_id))} · ${new Date(m.created_at).toLocaleString("fr-FR")}</div><div>${esc(m.body)}</div></div>`).join("")||'<p class="sic-muted">Sélectionnez une conversation ou créez un groupe.</p>'}</div><div class="sic-compose"><textarea id="sic-message" maxlength="10000" placeholder="Écrire un message…"></textarea><button class="p" id="sic-send" ${state.conversation?"":"disabled"}>Envoyer</button></div><p class="sic-muted">Les messages sont visibles uniquement par les membres de la conversation.</p></div></div>`;
+ root.querySelectorAll("[data-sic-conv]").forEach(b=>b.addEventListener("click",async()=>{state.conversation=b.dataset.sicConv;try{await loadMessages();render()}catch(e){showError(e)}}));
+ el("sic-new")?.addEventListener("click",newGroup);el("sic-refresh")?.addEventListener("click",refresh);el("sic-send")?.addEventListener("click",sendMessage);
+ }else if(state.tab==="announcements"){
+ root.innerHTML=`<div class="box"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h3>Annonces et notes de service</h3>${permittedAdmin()?'<button class="p" id="sic-ann-new">Nouvelle annonce</button>':""}</div><div class="sic-list">${state.announcements.map(a=>`<article class="sic-item"><b>${esc(a.title)}</b><div class="sic-muted">${a.published?"Publiée":"Brouillon"} · ${new Date(a.published_at||a.created_at).toLocaleString("fr-FR")}</div><p style="white-space:pre-wrap">${esc(a.body)}</p>${a.published?'<button class="s" data-sic-read="'+esc(a.id)+'">Marquer comme lue</button>':""}</article>`).join("")||'<p class="sic-muted">Aucune annonce.</p>'}</div></div>`;
+ el("sic-ann-new")?.addEventListener("click",newAnnouncement);root.querySelectorAll("[data-sic-read]").forEach(b=>b.addEventListener("click",()=>markAnnouncement(b.dataset.sicRead)));
+ }else if(state.tab==="notifications"){
+ root.innerHTML=`<div class="box"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h3>Mes notifications</h3><button class="s" id="sic-readall">Tout marquer comme lu</button></div><div class="sic-list">${state.notifications.map(n=>`<article class="sic-item"><b>${esc(n.title)}</b> ${n.read_at?"":'<span class="bd wa">Non lue</span>'}<div>${esc(n.body)}</div><div class="sic-muted">${new Date(n.created_at).toLocaleString("fr-FR")}</div>${n.read_at?"":'<button class="s" data-sic-notif="'+esc(n.id)+'">Marquer comme lue</button>'}</article>`).join("")||'<p class="sic-muted">Aucune notification.</p>'}</div></div>`;
+ el("sic-readall")?.addEventListener("click",async()=>{try{const c=cloud();const {error}=await c.from("sib_internal_notifications").update({read_at:new Date().toISOString()}).eq("user_id",state.user.id).is("read_at",null);if(error)throw error;await loadNotifications();render()}catch(e){showError(e)}});
+ root.querySelectorAll("[data-sic-notif]").forEach(b=>b.addEventListener("click",async()=>{try{const {error}=await cloud().from("sib_internal_notifications").update({read_at:new Date().toISOString()}).eq("id",b.dataset.sicNotif).eq("user_id",state.user.id);if(error)throw error;await loadNotifications();render()}catch(e){showError(e)}}));
+ }else{
+ if(!permittedAdmin()){root.innerHTML='<div class="box">Le journal d’audit est réservé à l’Administrateur et à la Direction.</div>';return;}
+ root.innerHTML='<div class="box"><div style="display:flex;justify-content:space-between;align-items:center"><h3>Journal des communications</h3><button class="s" id="sic-audit-refresh">Actualiser</button></div><div class="tw"><table><thead><tr><th>Date</th><th>Utilisateur</th><th>Action</th><th>Objet</th><th>Détails</th></tr></thead><tbody>'+state.audit.map(a=>'<tr><td>'+esc(new Date(a.created_at).toLocaleString("fr-FR"))+'</td><td>'+esc(name(a.actor_user_id))+'</td><td>'+esc(a.action)+'</td><td>'+esc(a.entity_type+" "+(a.entity_id||""))+'</td><td>'+esc(JSON.stringify(a.details||{}))+'</td></tr>').join("")+'</tbody></table></div></div>';
+ el("sic-audit-refresh")?.addEventListener("click",async()=>{try{await loadAudit();render()}catch(e){showError(e)}});
+ }
+ status.textContent="Connecté · rôle : "+state.role+" · "+state.members.length+" membre(s) actif(s).";
+}
+async function newGroup(){
+ const available=state.members.filter(m=>m.user_id!==state.user.id);
+ if(!available.length){alert("Aucun autre membre actif n’est disponible.");return;}
+ const title=prompt("Nom du groupe ou de la conversation :");if(!title?.trim())return;
+ const ids=available.filter(m=>confirm("Ajouter "+name(m.user_id)+" ("+m.role+") au groupe « "+title.trim()+" » ?")).map(m=>m.user_id);
+ if(!ids.length){alert("Sélectionnez au moins un membre pour créer le groupe.");return;}
+ try{
+ const c=cloud();const {data:conv,error}=await c.from("sib_internal_conversations").insert({organization_id:state.org,title:title.trim(),conversation_type:"group",created_by:state.user.id}).select("id").single();if(error)throw error;
+ const members=[state.user.id,...ids].map(user_id=>({conversation_id:conv.id,user_id,added_by:state.user.id}));
+ const {error:me}=await c.from("sib_internal_conversation_members").insert(members);if(me)throw me;
+ await loadConversations();state.conversation=conv.id;await loadMessages();render();
+ }catch(e){showError(e)}
+}
+async function sendMessage(){
+ const body=el("sic-message")?.value.trim();if(!body||!state.conversation)return;
+ try{const c=cloud();const {error}=await c.from("sib_internal_messages").insert({conversation_id:state.conversation,sender_id:state.user.id,body});if(error)throw error;el("sic-message").value="";await loadMessages();await loadNotifications();render();}catch(e){showError(e)}
+}
+async function newAnnouncement(){
+ if(!permittedAdmin())return;
+ const title=prompt("Titre de l’annonce :");if(!title?.trim())return;
+ const body=prompt("Contenu de l’annonce :");if(!body?.trim())return;
+ const publish=confirm("Publier maintenant ? OK = publier, Annuler = enregistrer en brouillon.");
+ try{const c=cloud();const {error}=await c.from("sib_internal_announcements").insert({organization_id:state.org,title:title.trim(),body:body.trim(),created_by:state.user.id,published:publish,published_at:publish?new Date().toISOString():null,requires_ack:confirm("Exiger un accusé de lecture ?")});if(error)throw error;await loadAnnouncements();await loadNotifications();render();}catch(e){showError(e)}
+}
+async function markAnnouncement(id){
+ try{const c=cloud();const {error}=await c.from("sib_internal_announcement_reads").upsert({announcement_id:id,user_id:state.user.id,read_at:new Date().toISOString(),acknowledged_at:new Date().toISOString()});if(error)throw error;toast("Lecture enregistrée");}catch(e){showError(e)}
+}
+async function refresh(){try{await loadConversations();await loadAnnouncements();await loadNotifications();render()}catch(e){showError(e)}}
+function showError(e){const m=String(e?.message||e||"Erreur inconnue");console.error("SIB internal communication:",e);const status=el("sic-status");if(status)status.textContent="Erreur : "+m;toast(m,"er");}
+function renderMayaDraft(){
+ const area=el("sic-message");if(!area)return;
+ const text=area.value;
+ if(!text.trim())return toast("Saisissez d’abord le sujet ou les informations à communiquer.");
+ const promptText="Aide-moi à rédiger un message interne professionnel pour SIB Gestion à partir de ces éléments. Ne l'envoie pas. Propose un objet et un texte concis : "+text;
+ window.dispatchEvent(new CustomEvent("sib:maya-draft-request",{detail:{prompt:promptText}}));
+ toast("Pour le moment, Maya peut préparer le texte dans son assistant habituel ; l’envoi reste manuel.");
+}
+document.addEventListener("DOMContentLoaded",()=>{section();});
+const oldNav=window.nav;
+document.addEventListener("click",e=>{if(e.target.closest('[data-v="com"]')){setTimeout(()=>{section();if(!state.user){el("sic-status").textContent="Connexion à Supabase…";init().catch(showError)}},0);}});
+document.addEventListener("click",e=>{const b=e.target.closest('[data-v="com"]');if(b){const t=el("com");if(t){t.classList.remove("hide");setTimeout(()=>{try{if(!state.user)init().catch(showError);else render()}catch(err){showError(err)}},50);}}});
+window.addEventListener("sib:internal-refresh",()=>refresh());
+})();
+</script>
+<script src="./ai-agent.js" defer></script></body></html>
