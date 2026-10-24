@@ -1,4 +1,4 @@
-/* SIB Gestion — assistant IA flottant Gemini. */
+/* SIB Gestion — assistant IA flottant multi-fournisseur. */
 (function () {
   "use strict";
   if (window.__SIB_AI_AGENT_LOADED) return;
@@ -26,12 +26,12 @@
   const launch = document.createElement("button"); launch.id = "sib-ai-launch"; launch.type = "button"; launch.textContent = "✦ Assistant IA";
   launch.setAttribute("aria-label","Ouvrir l’assistant IA SIB");
   const panel = document.createElement("section"); panel.id = "sib-ai-panel"; panel.setAttribute("aria-label","Assistant IA SIB Gestion");
-  panel.innerHTML = '<div id="sib-ai-head"><div><strong>Maya · Assistant SIB</strong><small>Propulsé par Google Gemini</small></div><button id="sib-ai-close" type="button" aria-label="Fermer">×</button></div><div id="sib-ai-messages" aria-live="polite"></div><form id="sib-ai-form"><input id="sib-ai-input" maxlength="2000" autocomplete="off" placeholder="Posez votre question…" aria-label="Votre message" required><button id="sib-ai-send" type="submit">Envoyer</button></form><div id="sib-ai-note">Les actions financières et envois externes nécessitent votre validation.</div>';
+  panel.innerHTML = '<div id="sib-ai-head"><div><strong>Maya · Assistant SIB</strong><small>Propulsé par l’IA SIB</small></div><button id="sib-ai-close" type="button" aria-label="Fermer">×</button></div><div id="sib-ai-messages" aria-live="polite"></div><form id="sib-ai-form"><input id="sib-ai-input" maxlength="2000" autocomplete="off" placeholder="Posez votre question…" aria-label="Votre message" required><button id="sib-ai-send" type="submit">Envoyer</button></form><div id="sib-ai-note">Les actions financières et envois externes nécessitent votre validation.</div>';
   document.body.appendChild(launch); document.body.appendChild(panel);
   const messages = panel.querySelector("#sib-ai-messages"), input = panel.querySelector("#sib-ai-input"), send = panel.querySelector("#sib-ai-send");
   const history = [];
   function add(role,text){const el=document.createElement("div");el.className="sib-ai-msg "+(role==="user"?"user":"bot");el.textContent=text;messages.appendChild(el);messages.scrollTop=messages.scrollHeight;}
-  function open(){panel.classList.add("open");if(!messages.childElementCount)add("bot","Bonjour ! Je suis Maya, l’assistant IA de SIB Gestion, propulsé par Google Gemini. Comment puis-je vous aider ?");input.focus();}
+  function open(){panel.classList.add("open");if(!messages.childElementCount)add("bot","Bonjour ! Je suis Maya, l’assistant IA de SIB Gestion, connecté au service IA SIB. Comment puis-je vous aider ?");input.focus();}
   launch.addEventListener("click",()=>panel.classList.contains("open")?panel.classList.remove("open"):open());
   panel.querySelector("#sib-ai-close").addEventListener("click",()=>panel.classList.remove("open"));
   panel.querySelector("#sib-ai-form").addEventListener("submit",async function(e){
@@ -43,8 +43,8 @@
       const {data:sessionData,error:sessionError}=await client.auth.getSession();
       if(sessionError)throw sessionError;if(!sessionData.session)throw new Error("Connectez-vous à SIB Gestion pour utiliser l’assistant.");
       const {data,error}=await client.functions.invoke("sib-ai-agent",{body:{message,history:history.slice(-10)}});
-      if(error)throw new Error(data&&data.error||error.message||"Service Gemini indisponible.");
-      if(!data||!data.reply)throw new Error("Réponse vide du service Gemini.");
+      if(error)throw new Error(data&&data.error||error.message||"Service IA indisponible.");
+      if(!data||!data.reply)throw new Error("Réponse vide du service IA.");
       add("bot",data.reply);history.push({role:"assistant",content:data.reply});
     }catch(err){add("bot","Je ne peux pas répondre pour le moment : "+String(err.message||err));}
     finally{send.disabled=false;send.textContent="Envoyer";input.focus();}
