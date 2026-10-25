@@ -67,3 +67,13 @@ Pour chaque module, exécuter création, lecture, modification, annulation, rech
 ## Règle de mise en service
 
 Ne déclarer l'application « opérationnelle » qu'après avoir coché les tests P0 et les parcours critiques P1, obtenu des totaux financiers cohérents et documenté les résultats. Les tests de structure ne valident ni la qualité des données, ni les permissions en conditions réelles, ni les intégrations externes.
+
+
+## Corrections de sécurité appliquées le 25 octobre 2026
+
+- [x] La fonction `sib_save_app_state` exige maintenant un rôle administrateur actif (admin, administrateur, super_admin ou super admin), et non plus une simple appartenance active, avant toute écriture de l'état JSON central. Le contrôle de version optimiste est conservé.
+- [x] La politique d'insertion de `sib_internal_messages` corrèle désormais l'appartenance au véritable `conversation_id` du message. La condition tautologique `cm.conversation_id = cm.conversation_id` a été supprimée.
+- [x] Des tests de régression ont été ajoutés pour ces deux contrôles d'autorisation ; la validation GitHub sur le commit `7fb44a85357500c438d40219193eac244777e9d3` a réussi.
+- [ ] L'advisor Supabase signale encore les fonctions `SECURITY DEFINER` exécutables par les utilisateurs authentifiés. Elles doivent être testées individuellement avant tout changement de privilèges, car certaines sont utilisées par les politiques RLS ou les parcours de l'application.
+- [ ] La protection Supabase Auth contre les mots de passe compromis reste à activer dans le tableau de bord ; elle n'est pas modifiable via les outils disponibles dans cette session.
+- [ ] La synchronisation relationnelle complète, les tests navigateur multi-rôles, la restauration de sauvegarde et les parcours d'impression restent non validés.
