@@ -211,6 +211,36 @@
       currency: "GNF",
       active: x.active !== false
     }));
+
+    // service_code is unique per organization, but legacy IDs are the stable
+    // upsert key. Preserve every service row while making optional codes safe:
+    // keep the first incoming owner of a duplicated code and null out later
+    // duplicates; also avoid claiming a code already owned by another legacy row.
+    if (services.length) {
+      const { data: existingServices, error: existingServicesError } = await client
+        .from("sib_services")
+        .select("legacy_id,service_code")
+        .eq("organization_id", org);
+      if (existingServicesError) throw existingServicesError;
+      const existingCodeOwners = new Map();
+      (existingServices || []).forEach(row => {
+        const code = String(row.service_code || "").trim();
+        if (code) existingCodeOwners.set(code, String(row.legacy_id || ""));
+      });
+      const incomingCodeOwners = new Set();
+      services.forEach(row => {
+        const code = String(row.service_code || "").trim();
+        if (!code) { row.service_code = null; return; }
+        const owner = existingCodeOwners.get(code);
+        const alreadySeen = incomingCodeOwners.has(code);
+        if (alreadySeen || (owner && owner !== row.legacy_id)) {
+          row.service_code = null;
+          return;
+        }
+        incomingCodeOwners.add(code);
+      });
+    }
+
     if (clients.length) {
       const { error } = await client.from("sib_clients").upsert(clients, { onConflict: "organization_id,legacy_id" });
       if (error) throw error;
