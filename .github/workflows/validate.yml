@@ -28,3 +28,5 @@ jobs:
         run: node scripts/test-service-worker.mjs
       - name: Test sync conflict safety
         run: node scripts/test-sync-conflict.mjs
+      - name: Test shared-state authorization
+        run: node scripts/test-shared-state-security.mjs
