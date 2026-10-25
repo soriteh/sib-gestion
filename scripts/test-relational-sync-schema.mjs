@@ -23,6 +23,10 @@ assert.match(migration, /unique index if not exists sib_clients_org_legacy_id_ui
 assert.match(migration, /unique index if not exists sib_services_org_legacy_id_uidx/);
 assert.doesNotMatch(migration, /where legacy_id is not null/i,
   "Upsert conflict indexes must be inferable without a partial-index predicate");
+assert.match(migration, /from public\.organizations o[\s\S]*on conflict \(id\) do update/,
+  "The configured existing SIB organization must be bridged into the sib_* foreign-key target");
+assert.match(migration, /from public\.organization_memberships m[\s\S]*m\.active = true/,
+  "RLS membership checks must use the membership table populated by the current Auth flow");
 assert.doesNotMatch(migration, /\b(drop table|truncate|delete from)\b/i,
   "Migration must not delete business data");
 
