@@ -243,6 +243,9 @@
     if (!state || typeof state !== "object" || Array.isArray(state)) {
       throw new Error("État applicatif invalide.");
     }
+    if (state.profile && typeof state.profile === "object") {
+      await saveUserProfile(state.profile);
+    }
     const { data, error } = await client.rpc("sib_save_app_state", {
       p_organization_id: config.organizationId,
       p_state: state,
