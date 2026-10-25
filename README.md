@@ -2,36 +2,24 @@
 
 Application de gestion de Soritech Innov Business (SIB) : encaissements, caisse et banque, devis, factures, stock, formations, projets, ressources humaines et paie.
 
-## Correctif urgent — erreur avatar_data_url
+## État opérationnel — à lire avant les données réelles
 
-Si l'application affiche `Could not find the 'avatar_data_url' column of 'sib_user_profiles' in the schema cache`, le schéma de la base Supabase utilisée par le site ne correspond pas au code publié. Le fichier `supabase/08_user_profiles.sql` contient cette colonne, mais il manque probablement dans la base en ligne ou le cache PostgREST n'a pas été rechargé.
+SIB Gestion est une application web monopage déployée sur GitHub Pages, avec un client Supabase et un état applicatif JSON central versionné. Elle n'est pas encore validée pour une exploitation comptable complète sans supervision.
 
-**Correction :**
-1. Ouvrir le projet Supabase réellement configuré dans `supabase-config.js`.
-2. Aller dans **SQL Editor** et exécuter le contenu de `supabase/09_fix_avatar_data_url.sql` depuis GitHub.
-3. Vérifier que la requête de contrôle renvoie la colonne `avatar_data_url`.
-4. Recharger l'application avec `Ctrl + F5), puis enregistrer de nouveau le profil.
-
-La migration ajoute la colonne si elle manque et demande à PostgREST de recharger son cache. Elle ne supprime pas les données. Tant que ce SQL n'a pas été exécuté dans le bon projet Supabase, le correctif n'est pas actif en production. La copie temporaire locale reste à conserver jusqu'à confirmation d'une sauvegarde réussie.
-
-## État actuel — important
-
-La version publiée est une démonstration HTML autonome.
-
-- Les données métier de `index.html` sont enregistrées dans le stockage local du navigateur (`localStorage`) : elles ne sont pas partagées entre les appareils.
-- La branche de correction ajoute un export complet JSON depuis l'historique, réservé au rôle Administrateur. Cet export est une sauvegarde manuelle, pas une synchronisation ni une sauvegarde automatique ; le fichier contient des données sensibles et doit être conservé dans un emplacement sécurisé.
-- Le formulaire de connexion de cette démonstration ne constitue pas une authentification serveur sécurisée.
-- `supabase-test.html` teste l'authentification Supabase et l'appartenance à une organisation, mais ne connecte pas à lui seul les modules métier à PostgreSQL.
-- Ne pas utiliser la version de démonstration pour des données réelles confidentielles (clients, paie, finances) avant intégration et vérification de la sécurité côté serveur.
+- La connexion principale utilise Supabase Auth lorsque `SIBCloud.ready` est actif et vérifie l'appartenance à l'organisation SIB.
+- L'état métier de l'interface est enregistré dans `sib_app_state` (JSONB) avec contrôle de version. Le navigateur conserve aussi un cache local et une file d'attente hors ligne ; cette copie locale n'est pas une sauvegarde serveur.
+- Les tables relationnelles existent pour plusieurs domaines. Le miroir relationnel automatique actuellement implémenté dans `supabase-client.js` ne couvre que les clients et services. Les devis/factures, paiements, dépenses, stock, projets et RH doivent encore faire l'objet d'une intégration relationnelle complète et de rapprochements.
+- Les derniers contrôles ont trouvé un état central de version 87 avec 14 services et 27 entrées de journal, tandis que les tables relationnelles `sib_clients`, `sib_services`, `sib_documents`, `sib_payments`, `sib_expenses` et `sib_employees` étaient vides. La divergence Clients/Services doit être diagnostiquée avant de considérer les rapports relationnels comme fiables.
+- Une sauvegarde JSON manuelle est disponible dans l'interface. Elle contient des données sensibles : stocker le fichier de façon sécurisée et tester une restauration avant toute migration importante.
+- Ne pas utiliser les rapports issus des tables relationnelles comme source comptable tant que la synchronisation des modules et le rapprochement ne sont pas validés.
 
 ## Connexion centrale et multi-appareils
 
-- `supabase-config.js` centralise l'URL et la clé publique Supabase, ainsi que l'UUID connu de l'organisation SIB. Remplacer les deux valeurs `REMPLACER_...` par les valeurs du projet. Ce sont les seules valeurs de configuration à déployer; elles ne doivent pas être ressaisies sur chaque appareil.
-- `supabase-client.js` prépare un client partagé avec session Supabase persistante, connexion, déconnexion et contrôle de l'appartenance active à l'organisation `6070dc4b-5c5e-402c-911b-735cb754d241`. Il s'appuie sur les tables `organization_memberships` et `organizations` utilisées par le test de connexion existant.
-- `supabase/03_validate_existing_org.sql` est un diagnostic en lecture seule pour confirmer les tables, colonnes et politiques RLS existantes avant d'écrire la migration métier. Il ne crée ni organisation ni utilisateur.
-- Ces fichiers sont une fondation technique, pas une intégration terminée des modules. La page principale utilise encore son stockage local et son système de connexion local; le client Supabase n'est pas encore branché à tous les formulaires. Ne pas annoncer la synchronisation des données métier avant cette intégration.
-- Pour éviter une deuxième installation sur chaque appareil, l'initialisation de l'entreprise doit rester dans la base centrale. Chaque appareil doit uniquement ouvrir le même site et se connecter avec un compte existant. Ne pas créer automatiquement une nouvelle organisation au chargement.
-- Ne jamais ajouter une clé `service_role` au frontend. La clé publique est sûre uniquement avec des politiques RLS correctement configurées.
+- `supabase-config.js` centralise l'URL et la clé publique Supabase et l'UUID de l'organisation SIB. La clé publique est destinée au navigateur ; ne jamais y mettre une clé `service_role`, un mot de passe ou un jeton privé.
+- `supabase-client.js` gère la session Supabase persistante, la connexion, la déconnexion, la vérification de l'appartenance active et la lecture/écriture versionnée de l'état central.
+- `supabase-test.html` sert au diagnostic de connexion et d'appartenance ; il ne valide pas les parcours métier.
+- Le mode hors ligne conserve des changements sur l'appareil et tente une synchronisation après reconnexion. Les conflits sont bloqués plutôt qu'écrasés silencieusement. La révocation d'accès, les droits hors ligne et les scénarios multi-appareils doivent encore être testés en navigateur.
+- Le client Supabase est un fondement actif, mais la présence de tables relationnelles ne signifie pas que tous les modules y sont intégrés. Voir `docs/PRODUCTION_READINESS.md` pour les critères de validation avant production.
 
 ## Scripts Supabase
 
