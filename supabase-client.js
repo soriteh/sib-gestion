@@ -190,7 +190,38 @@
     return { clients: clients.length, services: services.length };
   }
 
-  // Dedicated profile persistence helpers are defined below.
+  async function saveUserProfile(profile) {
+    await requireSession();
+    const session = await client.auth.getSession();
+    if (session.error) throw session.error;
+    const userId = session.data.session.user.id;
+    const row = {
+      user_id: userId,
+      organization_id: config.organizationId,
+      first_name: String(profile.pn || "").trim(),
+      last_name: String(profile.nm || "").trim(),
+      full_name: String(profile.nom || "").trim(),
+      phone: String(profile.tel || "").trim(),
+      avatar_data_url: String(profile.ph || "")
+    };
+    const result = await client.from("sib_user_profiles").upsert(row, { onConflict: "user_id" });
+    if (result.error) throw result.error;
+    return true;
+  }
+
+  async function loadUserProfile() {
+    await requireSession();
+    const session = await client.auth.getSession();
+    if (session.error) throw session.error;
+    const result = await client.from("sib_user_profiles")
+      .select("first_name,last_name,full_name,phone,avatar_data_url")
+      .eq("user_id", session.data.session.user.id)
+      .eq("organization_id", config.organizationId)
+      .maybeSingle();
+    if (result.error) throw result.error;
+    return result.data;
+  }
+
   async function saveAppState(state) {
     await requireSession();
     if (!state || typeof state !== "object" || Array.isArray(state)) {
@@ -287,6 +318,8 @@
     query,
     loadAppState,
     saveAppState,
+    saveUserProfile,
+    loadUserProfile,
     syncCoreCollections,
     get relationalSyncError() { return relationalSyncError; },
     subscribeAppState,
