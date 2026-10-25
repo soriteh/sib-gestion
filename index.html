@@ -2121,12 +2121,13 @@ async function cpw(){const ce=m=>$("cerr").textContent=m;if((await hp(V("cp0"),C
 const SY=()=>(S.set&&S.set.sym)||"GNF";
 let PS={};
 function coHead(){const s=S.set||{},l=[s.adr,[s.ville,s.pays].filter(Boolean).join(", "),s.tel,s.mail,s.web].filter(Boolean),legal=[s.rccm?"RCCM : "+s.rccm:"",s.nif?"NIF : "+s.nif:""].filter(Boolean);return`<div class="sib-doc-head" style="display:flex;gap:12px;align-items:center;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #d8deea;color:#172033">${s.logo?`<img src="${s.logo}" alt="Logo ${esc(s.nom||"SIB")}" style="display:block;height:52px;max-width:125px;object-fit:contain">`:""}<div style="min-width:0"><b style="font-size:14px">${esc(s.nom||"Soritech Innov Business")}</b>${l.length?`<br><small>${l.map(esc).join(" · ")}</small>`:""}${legal.length?`<br><small>${legal.map(esc).join(" · ")}</small>`:""}<br><small style="color:#53627a">${esc(s.app||"SIB Gestion")}</small></div></div>`}
-function applyLogo(){const s=S.set||{},n=s.nom||"Soritech Innov Business",app=s.app||"SIB Gestion";
- document.querySelectorAll(".mk").forEach(m=>{m.classList.toggle("has",!!s.logo);m.innerHTML=s.logo?`<img src="${s.logo}" alt="Logo ${esc(n)}">`:esc((s.court||"SIB").slice(0,4))});
- const splashLogo=document.querySelector("#sib-startup .sib-startup-logo"),splashName=document.querySelector("#sib-startup .sib-startup-name");if(splashLogo){splashLogo.innerHTML=s.logo?`<img src="${s.logo}" alt="${esc(n)}">`:esc((s.court||"SIB").slice(0,4));splashLogo.classList.toggle("has-image",!!s.logo)}if(splashName)splashName.textContent=app;
+function applyLogo(){const s=S.set||{},n=s.nom||"Soritech Innov Business",app=s.app||"SIB Gestion",fallbackLogo='<img src="./assets/sib-mark.svg" alt="Logo SIB" decoding="async">';
+ const logoMarkup=s.logo?`<img src="${s.logo}" alt="Logo ${esc(n)}" decoding="async">`:fallbackLogo;
+ document.querySelectorAll(".mk").forEach(m=>{m.classList.add("has");m.innerHTML=logoMarkup});
+ const splashLogo=document.querySelector("#sib-startup .sib-startup-logo"),splashName=document.querySelector("#sib-startup .sib-startup-name");if(splashLogo){splashLogo.innerHTML=logoMarkup;splashLogo.classList.add("has-image")}if(splashName)splashName.textContent=app;
  $("lgh").textContent=n;$("bnm").textContent=app;document.title=app;
  document.querySelectorAll(".cur").forEach(x=>x.textContent=SY());
- let l=document.querySelector('link[rel="icon"]');if(s.fav){if(!l){l=document.createElement("link");l.rel="icon";document.head.appendChild(l)}l.href=s.fav}else if(l)l.remove()}
+ let l=document.querySelector('link[rel="icon"]');if(s.fav){if(!l){l=document.createElement("link");l.rel="icon";document.head.appendChild(l)}l.href=s.fav}else if(l)l.href='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Crect width=%2264%22 height=%2264%22 rx=%2214%22 fill=%22%23ffffff%22/%3E%3Ctext x=%2232%22 y=%2244%22 font-size=%2230%22 font-family=%22Arial,sans-serif%22 font-weight=%22bold%22 text-anchor=%22middle%22 fill=%22%230057b9%22%3ESIB%3C/text%3E%3C/svg%3E'}
 const smsg=(t,x)=>{const m=$("sst");if(m){m.className="msg "+t;m.textContent=x}};
 function drawSet(){if(!$("set"))return;if(RO!="Administrateur"){$("set").innerHTML='<div class="box">Accès réservé à l\'administrateur.</div>';return}
  const s=S.set,pre=s.pre||{},fl=(id,l,v,t="text")=>`<div><label for="${id}">${l}</label><input id="${id}" type="${t}" value="${esc(v||"")}" autocomplete="off"></div>`;
