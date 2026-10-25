@@ -1418,6 +1418,7 @@ async function retryPendingCloudSave(){
  if(!pending?.state)return;
  sibPendingRetryBusy=true;
  let savedThisSnapshot=false;
+ let newerSnapshotPending=false;
  try{
   await window.SIBCloud.saveAppState(pending.state);
   let current;try{current=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null")}catch(_){}
@@ -1428,7 +1429,7 @@ async function retryPendingCloudSave(){
   }else if(current?.state){
    // A newer edit arrived while this network request was in flight.
    // Keep it and schedule another write instead of leaving it stranded locally.
-   schedulePendingCloudRetry(500);
+   newerSnapshotPending=true;
   }
   if(savedThisSnapshot&&typeof toast==="function")toast("Connexion rétablie : les modifications en attente ont été synchronisées.","ok",{ms:4500});
  }catch(err){
@@ -1439,7 +1440,7 @@ async function retryPendingCloudSave(){
    sibPendingRetryDelay=Math.min(Math.round(sibPendingRetryDelay*1.8),120000);
    schedulePendingCloudRetry(sibPendingRetryDelay);
   }
- }finally{sibPendingRetryBusy=false;if(cloudQueuedSnapshot&&cloudSessionReady&&!cloudWriteRunning&&!sibPendingConflict)cloudSaveChain=drainCloudWrites()}
+ }finally{sibPendingRetryBusy=false;if(newerSnapshotPending&&!sibPendingConflict)schedulePendingCloudRetry(500);if(cloudQueuedSnapshot&&cloudSessionReady&&!cloudWriteRunning&&!sibPendingConflict)cloudSaveChain=drainCloudWrites()}
 }
 window.addEventListener("online",()=>{sibPendingRetryDelay=10000;schedulePendingCloudRetry(1500)});
 async function drainCloudWrites(){
