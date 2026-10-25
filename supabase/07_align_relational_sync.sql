@@ -3,6 +3,50 @@
 -- Prérequis : supabase/01_core_schema.sql et tables public.sib_clients/sib_services.
 begin;
 
+-- The frontend uses the established organizations/organization_memberships tables.
+-- Mirror the existing organization UUID into the new sib_* schema so its foreign
+-- keys accept the same organization ID. This does not create a second tenant ID.
+insert into public.sib_organizations (id, name, short_name, currency_code, active)
+select o.id, o.name, o.short_name, 'GNF', true
+from public.organizations o
+where o.id = '6070dc4b-5c5e-402c-911b-735cb754d241'::uuid
+on conflict (id) do update
+set name = excluded.name,
+    short_name = excluded.short_name,
+    currency_code = excluded.currency_code,
+    active = true;
+
+do $
+begin
+  if not exists (
+    select 1 from public.sib_organizations
+    where id = '6070dc4b-5c5e-402c-911b-735cb754d241'::uuid
+  ) then
+    raise exception 'Organisation SIB introuvable dans public.organizations. Vérifiez l''UUID avant de poursuivre.';
+  end if;
+end $;
+
+-- Use the same membership source as Supabase Auth sign-in. The original
+-- sib_memberships table is not populated by the current invitation flow.
+create or replace function public.sib_is_member(p_organization_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $
+  select exists (
+    select 1
+    from public.organization_memberships m
+    where m.organization_id = p_organization_id
+      and m.user_id = (select auth.uid())
+      and m.active = true
+  );
+$;
+
+revoke all on function public.sib_is_member(uuid) from public, anon;
+grant execute on function public.sib_is_member(uuid) to authenticated;
+
 alter table public.sib_clients
   add column if not exists legacy_id text,
   add column if not exists client_code text,
