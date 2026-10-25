@@ -842,11 +842,29 @@ nav .lob{min-height:34px;font-size:11px}
   animation:loginLogoOrbit 10s linear infinite!important;
 }
 #lgn .lgl .lgb .mk::after{
-  content:""!important;position:absolute!important;width:13px!important;height:13px!important;
-  top:50%!important;right:-9px!important;left:auto!important;transform:translateY(-50%)!important;
-  border-radius:50%!important;background:#ff7800!important;border:3px solid #fff!important;
-  z-index:3!important;opacity:1!important;visibility:visible!important;
-  box-shadow:0 0 0 0 rgba(255,120,0,.38)!important;
+  content:none!important;display:none!important;
+}
+/* Le point orange est attaché au cadre extérieur, jamais à l'image du logo */
+#lgn .lgl .lgb .mk::before{
+  content:""!important;position:absolute!important;inset:-9px!important;z-index:2!important;
+  border:1px solid rgba(255,255,255,.48)!important;border-right-color:#ff7800!important;
+  border-bottom-color:rgba(0,87,185,.75)!important;border-radius:32px!important;
+  opacity:.9!important;pointer-events:none!important;animation:loginLogoOrbit 10s linear infinite!important;
+}
+#lgn .lgl .lgb{position:relative!important}
+#lgn .lgl .lgb .mk{overflow:visible!important}
+#lgn .lgl .lgb .mk::before{
+  /* Point placé sur l'extrémité droite du contour extérieur */
+}
+#lgn .lgl .lgb .mk{--login-logo-frame-radius:32px}
+#lgn .lgl .lgb .mk{ }
+#lgn .lgl .lgb .mk::marker{content:none!important}
+#lgn .lgl .lgb .mk:has(img)::after{
+  content:""!important;display:block!important;position:absolute!important;
+  width:13px!important;height:13px!important;top:50%!important;right:-11px!important;
+  left:auto!important;transform:translateY(-50%)!important;border-radius:50%!important;
+  background:#ff7800!important;border:3px solid #fff!important;z-index:4!important;
+  opacity:1!important;visibility:visible!important;box-shadow:0 0 0 0 rgba(255,120,0,.38)!important;
   animation:loginLogoDot 2.4s ease-out infinite!important;
 }
 #lgn .lgl .lgb .mk img{position:relative!important;z-index:1!important;filter:drop-shadow(0 2px 2px rgba(7,26,54,.08))!important}
