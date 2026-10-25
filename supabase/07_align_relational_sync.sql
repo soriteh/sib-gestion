@@ -19,15 +19,13 @@ alter table public.sib_services
   add column if not exists currency text not null default 'GNF';
 
 -- Supabase upsert(..., onConflict: 'organization_id,legacy_id') requires
--- a matching unique constraint/index. Partial indexes permit rows that have
--- not yet been migrated from the legacy local state.
+-- a matching non-partial unique index. PostgreSQL permits multiple NULL
+-- legacy IDs in a regular unique index, so unmigrated rows remain compatible.
 create unique index if not exists sib_clients_org_legacy_id_uidx
-  on public.sib_clients (organization_id, legacy_id)
-  where legacy_id is not null;
+  on public.sib_clients (organization_id, legacy_id);
 
 create unique index if not exists sib_services_org_legacy_id_uidx
-  on public.sib_services (organization_id, legacy_id)
-  where legacy_id is not null;
+  on public.sib_services (organization_id, legacy_id);
 
 -- Keep the four client categories accepted by the current interface.
 -- Normalize existing values before installing the matching constraint.
