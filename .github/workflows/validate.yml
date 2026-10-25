@@ -30,3 +30,5 @@ jobs:
         run: node scripts/test-sync-conflict.mjs
       - name: Test shared-state authorization
         run: node scripts/test-shared-state-security.mjs
+      - name: Test relational sync schema compatibility
+        run: node scripts/test-relational-sync-schema.mjs
