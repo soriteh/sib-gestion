@@ -190,6 +190,7 @@
     return { clients: clients.length, services: services.length };
   }
 
+  // Dedicated profile persistence helpers are defined below.
   async function saveAppState(state) {
     await requireSession();
     if (!state || typeof state !== "object" || Array.isArray(state)) {
