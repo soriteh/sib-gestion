@@ -2207,7 +2207,7 @@ async function saveProfileAndConfirm(){
 Object.assign(ACT,{
  profcancel(){if(PP){ask("Abandonner la photo sélectionnée qui n’a pas été enregistrée ?",()=>{PP=undefined;drawProf();pmsg("ok","Modifications annulées : les valeurs enregistrées ont été rechargées.")},{title:"Annuler les modifications",danger:1,ok:"Abandonner"});return;}drawProf();pmsg("ok","Valeurs enregistrées rechargées.")},
  async profsave(){const u=CU,pn=V("p_pn").trim(),nm=V("p_nm").trim(),tel=V("p_tel").trim(),er=[];
-  if(!pn)er.push("le prénom est requis");if(!nm)er.push("le nom est requis");if(pn.length>40||nm.length>40)er.push("40 caractères maximum pour le prénom et le nom");if(tel&&!/^\\+?[\\d\\s().-]{6,20}$/.test(tel))er.push("téléphone invalide");
+  if(!pn)er.push("le prénom est requis");if(!nm)er.push("le nom est requis");if(pn.length>40||nm.length>40)er.push("40 caractères maximum pour le prénom et le nom");if(tel&&!/^\+?[\d\s().-]{6,20}$/.test(tel))er.push("téléphone invalide");
   if(er.length){pmsg("er","Enregistrement impossible : "+er.join(" ; ")+".");return toast("Corrigez les champs signalés")}
   const ch=[];if(u.pn!=pn)ch.push("prénom");if(u.nm!=nm)ch.push("nom");if((u.tel||"")!=tel)ch.push("téléphone");if(PP!==undefined&&PP!==u.ph)ch.push("photo");
   if(!ch.length)return pmsg("ok","Aucune modification à enregistrer.");
