@@ -23,19 +23,19 @@ function check(source, label) {
 
 function checkHtmlScripts(relativePath) {
   const html = readFileSync(resolve(root, relativePath), "utf8");
-  if (!/^\\s*<!doctype html>/i.test(html)) {
+  if (!/^\s*<!doctype html>/i.test(html)) {
     console.error(`[HTML ERROR] ${relativePath} must begin with <!doctype html>.`);
     failed = true;
     return;
   }
 
-  const scriptTag = /<script\\b([^>]*)>([\\s\\S]*?)<\\/script\\s*>/gi;
+  const scriptTag = /<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi;
   let match;
   let inlineCount = 0;
   while ((match = scriptTag.exec(html)) !== null) {
     const attrs = match[1] || "";
-    if (/\\bsrc\\s*=/i.test(attrs)) continue;
-    const typeMatch = attrs.match(/\\btype\\s*=\\s*["']?([^\\s"'>]+)/i);
+    if (/\bsrc\s*=/i.test(attrs)) continue;
+    const typeMatch = attrs.match(/\btype\s*=\s*["']?([^\s"'>]+)/i);
     const type = typeMatch ? typeMatch[1].toLowerCase() : "text/javascript";
     if (!["text/javascript", "application/javascript", "module"].includes(type)) continue;
     const source = match[2].trim();
@@ -61,7 +61,7 @@ try {
 
   // Guard against accidentally publishing placeholders or a privileged Supabase key.
   const config = readFileSync(resolve(root, "supabase-config.js"), "utf8");
-  if (/REMPLACER_/i.test(config) || /(?:publishableKey|anonKey)\\s*:\\s*["'][^"']*(?:service_role|SUPABASE_SERVICE_ROLE_KEY)/i.test(config)) {
+  if (/REMPLACER_/i.test(config) || /(?:publishableKey|anonKey)\s*:\s*["'][^"']*(?:service_role|SUPABASE_SERVICE_ROLE_KEY)/i.test(config)) {
     console.error("[CONFIG ERROR] Public Supabase config contains a placeholder or privileged-key marker.");
     failed = true;
   } else {
