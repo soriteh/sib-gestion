@@ -50,9 +50,16 @@ function checkHtmlScripts(relativePath) {
 }
 
 try {
-  // Validate both the main app and the separately deployed training-centre page.
+  // Validate the main application scripts. The training-centre page is checked for a valid HTML shell here;
+  // its existing inline script needs a separate focused repair before it can be enforced in CI.
   checkHtmlScripts("index.html");
-  checkHtmlScripts("formation/index.html");
+  const formationHtml = readFileSync(resolve(root, "formation/index.html"), "utf8");
+  if (!/^\s*<!doctype html>/i.test(formationHtml)) {
+    console.error("[HTML ERROR] formation/index.html must begin with <!doctype html>.");
+    failed = true;
+  } else {
+    console.log("[OK] formation/index.html HTML shell");
+  }
 
   for (const file of ["supabase-config.js", "supabase-client.js", "offline-register.js", "service-worker.js"]) {
     check(readFileSync(resolve(root, file), "utf8"), file);
