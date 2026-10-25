@@ -24,6 +24,7 @@ Date du contrôle : 25 octobre 2026. Dépôt : `soriteh/sib-gestion`.
 - [ ] Vérifier les refus d'accès entre organisations et entre rôles.
 - [ ] Résoudre et vérifier l'écart entre l'état central et les tables Clients/Services.
 - [ ] Vérifier que chaque modification affiche un résultat de sauvegarde explicite et que les erreurs ne sont pas silencieuses.
+- [ ] Étendre la persistance relationnelle transactionnelle aux devis/factures, paiements, dépenses, stock, projets, formations et RH avant d’utiliser les tables relationnelles comme source de rapports.
 - [ ] Confirmer qu'un utilisateur désactivé ou révoqué ne peut pas poursuivre avec une session/cache périmé.
 
 ## Priorité P1 — parcours métier
