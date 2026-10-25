@@ -86,3 +86,12 @@ La fonction Supabase `sib-invite-user` est déployée sur le projet SIB avec la 
 2. Authentication → URL Configuration : définir l'URL du site SIB et autoriser les URL de redirection d'activation.
 3. Vérifier que les variables système Supabase sont disponibles côté Edge Function. Ne jamais copier la clé `service_role` dans GitHub ou le navigateur.
 4. Effectuer un test contrôlé avec une adresse e-mail que vous pouvez consulter, puis vérifier activation, connexion et refus pour un non-administrateur.
+
+
+## Sécurité temporaire de l'état partagé — migration 06
+
+Le stockage JSON central contient encore plusieurs domaines métier dans un même document. Tant que les permissions par module et les tables relationnelles dédiées ne sont pas terminées, la migration `supabase/06_secure_shared_app_state.sql` limite la lecture et l'écriture de cet état aux membres actifs dont le rôle est Administrateur (ou une variante explicitement reconnue).
+
+**Action requise dans Supabase :** après vérification sur un environnement de test, exécuter ce script dans le SQL Editor du projet SIB. Cette migration ne supprime aucune donnée métier, mais les comptes non administrateurs ne pourront plus lire ni modifier l'état JSON partagé tant que les autorisations granulaires ne seront pas mises en place. Ne pas l'exécuter en production sans avoir confirmé le compte administrateur de secours.
+
+Le contrôle automatique `scripts/test-shared-state-security.mjs` vérifie la présence des garde-fous dans la migration; il ne remplace pas un test d'intégration dans Supabase. Les tables relationnelles `sib_clients` et `sib_services` nécessitent elles aussi leurs propres politiques RLS et des tests de droits avant un usage avec des comptes non administrateurs.
