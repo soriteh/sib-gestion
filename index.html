@@ -1417,11 +1417,20 @@ async function retryPendingCloudSave(){
  let pending;try{pending=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null")}catch(_){return}
  if(!pending?.state)return;
  sibPendingRetryBusy=true;
+ let savedThisSnapshot=false;
  try{
   await window.SIBCloud.saveAppState(pending.state);
   let current;try{current=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null")}catch(_){}
-  if(current&&current.savedAt===pending.savedAt){localStorage.removeItem(SIB_PENDING_KEY);sibPendingRetryDelay=10000}
-  if(typeof toast==="function")toast("Connexion rétablie : les modifications en attente ont été synchronisées.","ok",{ms:4500});
+  if(current&&current.savedAt===pending.savedAt){
+   localStorage.removeItem(SIB_PENDING_KEY);
+   savedThisSnapshot=true;
+   sibPendingRetryDelay=10000;
+  }else if(current?.state){
+   // A newer edit arrived while this network request was in flight.
+   // Keep it and schedule another write instead of leaving it stranded locally.
+   schedulePendingCloudRetry(500);
+  }
+  if(savedThisSnapshot&&typeof toast==="function")toast("Connexion rétablie : les modifications en attente ont été synchronisées.","ok",{ms:4500});
  }catch(err){
   console.warn("SIB pending save retry failed:",err);
   if(isCloudVersionConflict(err)){
