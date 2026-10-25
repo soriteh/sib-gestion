@@ -33,11 +33,16 @@ assert.doesNotMatch(migration, /\b(drop table|truncate|delete from)\b/i,
 console.log("Relational sync schema compatibility tests passed.");
 
 const profileMigration = readFileSync("supabase/08_user_profiles.sql", "utf8");
-assert.match(profileMigration, /create table if not exists public\\.sib_user_profiles/);
-assert.match(profileMigration, /references auth\\.users\\(id\\)/);
+const profileFix = readFileSync("supabase/09_fix_avatar_data_url.sql", "utf8");
+assert.match(profileMigration, /create table if not exists public\.sib_user_profiles/);
+assert.match(profileMigration, /references auth\.users\(id\)/);
 assert.match(profileMigration, /enable row level security/i);
-assert.match(profileMigration, /user_id = \\(select auth\\.uid\\(\\)\\)/);
-assert.match(client, /async function saveUserProfile\\(profile\\)/);
-assert.match(client, /from\\("sib_user_profiles"\\)\\.upsert/);
-assert.match(client, /await saveUserProfile\\(state\\.profile\\)/);
+assert.match(profileMigration, /user_id = \(select auth\.uid\(\)\)/);
+assert.match(profileFix, /add column if not exists first_name/);
+assert.match(profileFix, /add column if not exists last_name/);
+assert.match(profileFix, /add column if not exists avatar_data_url/);
+assert.match(profileFix, /notify pgrst, 'reload schema'/i);
+assert.match(client, /async function saveUserProfile\(profile\)/);
+assert.match(client, /from\("sib_user_profiles"\)\.upsert/);
+assert.match(client, /await saveUserProfile\(state\.profile\)/);
 console.log("Dedicated user profile persistence checks passed.");
