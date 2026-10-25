@@ -5,8 +5,8 @@
   window.__SIB_AI_AGENT_LOADED = true;
   const css = `
   body.lo #sib-ai-launch,body.lo #sib-ai-panel{display:none!important;visibility:hidden!important;pointer-events:none!important}
-  #sib-ai-launch{position:fixed;right:22px;bottom:22px;z-index:9998;width:64px;height:64px;min-width:64px;min-height:64px;aspect-ratio:1/1;box-sizing:border-box;display:grid;place-items:center;border:1px solid rgba(255,255,255,.9);border-radius:12px;background:#fff;padding:2px;overflow:hidden;box-shadow:0 8px 28px #071a3640;cursor:pointer;transition:transform .2s,box-shadow .2s}
-  #sib-ai-launch:hover{transform:translateY(-2px);box-shadow:0 12px 32px #071a3660}#sib-ai-launch img{display:block!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;object-position:center!important;aspect-ratio:1/1!important;border-radius:9px!important;padding:1px;flex:none}
+  #sib-ai-launch{position:fixed;right:22px;bottom:22px;z-index:9998;width:64px;height:64px;min-width:64px;min-height:64px;aspect-ratio:1/1;box-sizing:border-box;display:grid;place-items:center;border:1px solid rgba(255,255,255,.9);border-radius:12px;background:#fff;padding:3px;overflow:hidden;box-shadow:0 8px 28px #071a3640;cursor:pointer;transition:transform .2s,box-shadow .2s}
+  #sib-ai-launch:hover{transform:translateY(-2px);box-shadow:0 12px 32px #071a3660}#sib-ai-launch img{display:block!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;object-position:center!important;aspect-ratio:1/1!important;border-radius:8px!important;padding:0!important;margin:0!important;flex:none!important;transform:none!important;filter:none!important}
   #sib-ai-launch.sib-ai-logo-failed{background:#fff}#sib-ai-launch:focus-visible{outline:3px solid #ff7800;outline-offset:3px}
   #sib-ai-panel{position:fixed;right:22px;bottom:82px;z-index:9999;width:min(380px,calc(100vw - 28px));height:min(540px,calc(100vh - 115px));background:#ffffff!important;color:#071a36!important;opacity:1!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border:1px solid #cbd5e1;border-radius:16px;box-shadow:0 18px 60px #071a3670;display:none;overflow:hidden;font:14px system-ui;isolation:isolate}
   #sib-ai-panel.open{display:flex;flex-direction:column}
@@ -27,8 +27,8 @@
   const style = document.createElement("style"); style.textContent = css; document.head.appendChild(style);
   const launch = document.createElement("button"); launch.id = "sib-ai-launch"; launch.type = "button";
   const logo = document.createElement("img");
-  /* Use the exact same square mark as the sidebar; resolve from the app document, not the script URL. */
-  const logoUrl = new URL("./assets/sib-mark.svg?v=20261025-maya-logo-3", document.baseURI).href;
+  /* Use the exact same square mark as the sidebar. Resolve from the app document and bypass stale asset caches. */
+  const logoUrl = new URL("./assets/sib-mark.svg?v=20261025-maya-logo-4", document.baseURI).href;
   logo.src = logoUrl;
   logo.onerror = function () { this.onerror = null; launch.classList.add("sib-ai-logo-failed"); this.remove(); };
   logo.alt = "Logo SIB"; logo.loading = "eager"; logo.decoding = "async";
