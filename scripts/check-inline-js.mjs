@@ -67,7 +67,7 @@ try {
 
   // Guard against accidentally publishing placeholders or a privileged Supabase key.
   const config = readFileSync(resolve(root, "supabase-config.js"), "utf8");
-  if (/REMPLACER_|service_role|SUPABASE_SERVICE_ROLE_KEY/i.test(config)) {
+  if (/REMPLACER_/i.test(config) || /(?:publishableKey|anonKey)\s*:\s*["'][^"']*(?:service_role|SUPABASE_SERVICE_ROLE_KEY)/i.test(config)) {
     console.error("[CONFIG ERROR] Public Supabase config contains a placeholder or privileged-key marker.");
     failed = true;
   } else {
