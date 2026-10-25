@@ -126,7 +126,8 @@ function makeHarness({ membershipError = null, stateError = null, bootstrapError
   await h.cloud.signIn("admin@example.test", "password");
   const sync = await h.cloud.syncCoreCollections({
     c: [
-      { id: 10, n: "Client test", t: "+224600000000", mail: "client@example.test", p: 99 },
+      { id: 10, n: "Client test", type: "Particulier", t: "+224600000000", mail: "client@example.test", p: 99 },
+      { id: 12, n: "École test", type: "Établissement scolaire" },
       null,
       { id: 11, n: "   " }
     ],
@@ -135,13 +136,15 @@ function makeHarness({ membershipError = null, stateError = null, bootstrapError
       { id: "srv-2", n: "   " }
     ]
   });
-  assert.equal(sync.clients, 1);
+  assert.equal(sync.clients, 2);
   assert.equal(sync.services, 1);
   assert.equal(h.upsertCalls.length, 2, "clients and services should each be upserted");
   const clientRows = h.upsertCalls.find(call => call.table === "sib_clients").rows;
-  assert.equal(clientRows.length, 1);
+  assert.equal(clientRows.length, 2);
   assert.equal(clientRows[0].legacy_id, "10");
   assert.equal(clientRows[0].name, "Client test");
+  assert.equal(clientRows[0].client_type, "Particulier", "client types must match the live Supabase check constraint");
+  assert.equal(clientRows[1].client_type, "Établissement scolaire", "school client type must preserve the database enum label");
   assert.equal(clientRows[0].client_code, null, "blank optional client codes must not collide on the organization/code unique key");
   assert.equal(clientRows[0].created_by, "user-1");
   const serviceRows = h.upsertCalls.find(call => call.table === "sib_services").rows;
