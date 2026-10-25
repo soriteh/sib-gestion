@@ -142,11 +142,13 @@ function makeHarness({ membershipError = null, stateError = null, bootstrapError
   assert.equal(clientRows.length, 1);
   assert.equal(clientRows[0].legacy_id, "10");
   assert.equal(clientRows[0].name, "Client test");
+  assert.equal(clientRows[0].client_code, null, "blank optional client codes must not collide on the organization/code unique key");
   assert.equal(clientRows[0].created_by, "user-1");
   const serviceRows = h.upsertCalls.find(call => call.table === "sib_services").rows;
   assert.equal(serviceRows.length, 1);
   assert.equal(serviceRows[0].legacy_id, "srv-1");
   assert.equal(serviceRows[0].currency, "GNF");
+  assert.equal(serviceRows[0].service_code, null, "blank optional service codes must not collide on the organization/code unique key");
   assert.equal(serviceRows[0].unit_price, 250000);
   assert.equal(h.upsertCalls.every(call => call.options.onConflict === "organization_id,legacy_id"), true);
 }
