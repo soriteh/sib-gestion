@@ -451,16 +451,16 @@ button[data-a="profcancel"]:hover, button[data-id]:hover,
 @keyframes sibStartStars{to{background-position:0 144px,35px -198px}}
 #sib-startup.done{opacity:0;visibility:hidden;pointer-events:none}
 .sib-startup-inner{display:flex;flex-direction:column;align-items:center;gap:15px;padding:24px;text-align:center}
-.sib-startup-logo{width:76px;height:76px;display:grid;place-items:center;border-radius:22px;background:linear-gradient(135deg,#3984f5,#0752b6);font-size:23px;font-weight:800;letter-spacing:-1px;box-shadow:0 12px 38px rgba(35,112,232,.38);position:relative;animation:sibStartFloat 2s ease-in-out infinite}
+.sib-startup-logo{width:104px;height:104px;display:grid;place-items:center;border-radius:24px;background:linear-gradient(135deg,#3984f5,#0752b6);font-size:23px;font-weight:800;letter-spacing:-1px;box-shadow:0 12px 38px rgba(35,112,232,.38);position:relative;animation:sibStartFloat 2s ease-in-out infinite;flex:none;overflow:visible}
 .sib-startup-logo:after{content:"";position:absolute;inset:-7px;border:1px solid rgba(255,255,255,.42);border-right-color:#ed7d31;border-radius:27px;animation:sibStartOrbit 4s linear infinite}
-.sib-startup-name{font-size:20px;font-weight:800;letter-spacing:.02em}.sib-startup-logo.has-image{background:#fff;padding:7px}.sib-startup-logo img{display:block;width:100%;height:100%;object-fit:contain;border-radius:15px}
+.sib-startup-name{font-size:20px;font-weight:800;letter-spacing:.02em}.sib-startup-logo.has-image{background:#fff;padding:2px;border:1px solid rgba(255,255,255,.75)}.sib-startup-logo img{display:block;width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain;object-position:center;border-radius:18px}
 .sib-startup-label{font-size:13px;color:#c5d5ee}
 .sib-startup-track{width:154px;height:3px;border-radius:9px;background:rgba(255,255,255,.17);overflow:hidden;margin-top:3px}
 .sib-startup-track:after{content:"";display:block;width:42%;height:100%;border-radius:9px;background:#ed7d31;animation:sibStartProgress 1.25s ease-in-out infinite}
 @keyframes sibStartFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
 @keyframes sibStartOrbit{to{transform:rotate(360deg)}}
 @keyframes sibStartProgress{0%{transform:translateX(-110%)}100%{transform:translateX(370%)}}
-@media(prefers-reduced-motion:reduce){#sib-startup,#sib-startup:before,#sib-startup:after,.sib-startup-logo,.sib-startup-logo:after,.sib-startup-track:after{animation:none!important}.sib-startup-logo{transform:none!important}}
+@media(prefers-reduced-motion:reduce){#sib-startup,#sib-startup:before,#sib-startup:after,.sib-startup-logo,.sib-startup-logo:after,.sib-startup-track:after{animation:none!important}.sib-startup-logo{transform:none!important;width:104px;height:104px}}
 
 /* SIB PREMIUM UI — finition visuelle globale */
 :root{--bg:#f3f6fc;--sf:#fff;--tx:#15233b;--mu:#687891;--ln:#e3e9f3;--ac:#245fcb;--ac2:#eaf1ff;--or:#ef873f;--sh:0 2px 5px rgba(20,38,70,.035),0 12px 34px rgba(20,38,70,.065)}
