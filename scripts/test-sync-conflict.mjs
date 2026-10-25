@@ -36,4 +36,16 @@ assert.doesNotMatch(boot, /CU=\{id:cachedUser\.id[\s\S]{0,500}enter\(true\)/,
   "Cached profile alone must never authorize offline entry");
 assert.match(boot, /Les données locales en attente sont conservées/);
 
-console.log("Offline authentication safety regression tests passed (4 assertions).");
+
+const retryStart = html.indexOf("async function retryPendingCloudSave()");
+const retryEnd = html.indexOf("window.addEventListener(\"online\"", retryStart);
+assert.ok(retryStart >= 0 && retryEnd > retryStart, "Pending cloud retry handler must exist");
+const retry = html.slice(retryStart, retryEnd);
+assert.match(retry, /current\.savedAt===pending\.savedAt/,
+  "Only the exact snapshot that was sent may be removed from pending storage");
+assert.match(retry, /else if\(current\?\.state\)[\s\S]*schedulePendingCloudRetry\(500\)/,
+  "A newer snapshot created during an in-flight retry must be scheduled automatically");
+assert.match(retry, /savedThisSnapshot&&typeof toast/,
+  "The success notice must only appear when the pending snapshot was actually cleared");
+
+console.log("Offline authentication and pending-sync regression tests passed.");
