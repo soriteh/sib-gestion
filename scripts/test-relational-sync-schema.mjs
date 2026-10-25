@@ -31,3 +31,13 @@ assert.doesNotMatch(migration, /\b(drop table|truncate|delete from)\b/i,
   "Migration must not delete business data");
 
 console.log("Relational sync schema compatibility tests passed.");
+
+const profileMigration = readFileSync("supabase/08_user_profiles.sql", "utf8");
+assert.match(profileMigration, /create table if not exists public\\.sib_user_profiles/);
+assert.match(profileMigration, /references auth\\.users\\(id\\)/);
+assert.match(profileMigration, /enable row level security/i);
+assert.match(profileMigration, /user_id = \\(select auth\\.uid\\(\\)\\)/);
+assert.match(client, /async function saveUserProfile\\(profile\\)/);
+assert.match(client, /from\\("sib_user_profiles"\\)\\.upsert/);
+assert.match(client, /await saveUserProfile\\(state\\.profile\\)/);
+console.log("Dedicated user profile persistence checks passed.");
