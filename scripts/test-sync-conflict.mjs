@@ -43,8 +43,10 @@ assert.ok(retryStart >= 0 && retryEnd > retryStart, "Pending cloud retry handler
 const retry = html.slice(retryStart, retryEnd);
 assert.match(retry, /current\.savedAt===pending\.savedAt/,
   "Only the exact snapshot that was sent may be removed from pending storage");
-assert.match(retry, /else if\(current\?\.state\)[\s\S]*schedulePendingCloudRetry\(500\)/,
-  "A newer snapshot created during an in-flight retry must be scheduled automatically");
+assert.match(retry, /else if\(current\?\.state\)[\s\S]*newerSnapshotPending=true/,
+  "A newer snapshot created during an in-flight retry must be detected");
+assert.match(retry, /finally\{sibPendingRetryBusy=false;[\s\S]*newerSnapshotPending&&!sibPendingConflict\)schedulePendingCloudRetry\(500\)/,
+  "Retry must be scheduled after the current request releases its busy lock");
 assert.match(retry, /savedThisSnapshot&&typeof toast/,
   "The success notice must only appear when the pending snapshot was actually cleared");
 
