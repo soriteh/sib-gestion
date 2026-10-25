@@ -2060,6 +2060,7 @@ async function doGo(){const m=LM;if($("lbt").classList.contains("ld"))return;
     const email=result.user.email||l,parts=(email.split("@")[0]||"Administrateur").split(/[._-]+/).filter(Boolean);
     CU={id:result.user.id,pn:parts[0]||"Administrateur",nm:parts.slice(1).join(" "),nom:[parts[0]||"Administrateur",...parts.slice(1)].join(" "),mail:email,login:email,role:result.membership.role,actif:true,cloud:true,last:null};
     S.us=[CU];RO=CU.role;cloudSessionReady=true;FA=0;applyLogo();activateCloudRealtime();bz(0);enter(true);
+    if(window.SIBCloud.relationalSyncError){toast("Synchronisation relationnelle incomplète : "+window.SIBCloud.relationalSyncError+" Les données centrales restent enregistrées, mais vérifiez le miroir Clients/Services avant tout rapprochement comptable.","wa",{sticky:true});}
     if(!remote){await cloudSaveChain;toast("Espace central SIB initialisé. Les données seront partagées après connexion sur les autres appareils.","ok",{ms:6000});}return;
    }catch(err){bz(0);return er(err?.message||"Connexion Supabase impossible. Vérifiez la configuration et la migration SQL.");}
   }
