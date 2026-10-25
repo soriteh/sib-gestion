@@ -157,7 +157,7 @@
       legacy_id: String(x.id),
       client_code: String(x.code || x.no || ""),
       name: String(x.n || "").trim(),
-      client_type: ["Particulier", "Entreprise", "Établissement scolaire", "Autre"].includes(x.type) ? x.type : "Entreprise",
+      client_type: x.type === "Particulier" || x.type === "particulier" ? "particulier" : x.type === "Établissement scolaire" || x.type === "etablissement_scolaire" ? "etablissement_scolaire" : x.type === "Autre" || x.type === "autre" ? "autre" : "entreprise",
       phone: String(x.t || x.tel || x.phone || ""),
       email: String(x.mail || x.email || ""),
       address: String(x.a || x.adr || x.address || ""),
