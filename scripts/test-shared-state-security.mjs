@@ -6,6 +6,10 @@ const latestHardening = readFileSync(
   "supabase/migrations/20261025060000_restrict_shared_state_writes_to_admins.sql",
   "utf8"
 );
+const messagingHardening = readFileSync(
+  "supabase/migrations/20261025070000_fix_internal_message_membership_policy.sql",
+  "utf8"
+);
 assert.match(migration, /create policy sib_app_state_admin_read/i);
 assert.match(migration, /drop policy if exists sib_app_state_member_read/i);
 assert.match(migration, /lower\(trim\(m\.role\)\) in \('admin', 'administrateur', 'super_admin', 'super admin'\)/i);
@@ -25,4 +29,11 @@ assert.match(latestHardening, /errcode = '42501'/i);
 assert.match(latestHardening, /version = p_expected_version/i);
 assert.doesNotMatch(latestHardening, /drop table|truncate table|delete from public\.sib_app_state/i);
 
-console.log("Shared app-state authorization regression tests passed (15 assertions).");
+// Regression: the message-send policy must correlate the membership row to the
+// message being inserted; never permit a tautology such as cm.conversation_id=cm.conversation_id.
+assert.match(messagingHardening, /cm\.conversation_id = sib_internal_messages\.conversation_id/i);
+assert.match(messagingHardening, /cm\.user_id = \(select auth\.uid\(\)\)/i);
+assert.match(messagingHardening, /sender_id = \(select auth\.uid\(\)\)/i);
+assert.doesNotMatch(messagingHardening, /cm\.conversation_id = cm\.conversation_id/i);
+
+console.log("Shared state and internal messaging authorization regression tests passed (19 assertions).");
