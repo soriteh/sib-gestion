@@ -5,7 +5,7 @@
   window.__SIB_AI_AGENT_LOADED = true;
   const css = `
   body.lo #sib-ai-launch,body.lo #sib-ai-panel{display:none!important;visibility:hidden!important;pointer-events:none!important}
-  #sib-ai-launch{position:fixed;right:22px;bottom:22px;z-index:9998;width:62px;height:62px;display:grid;place-items:center;border:2px solid #fff;border-radius:18px;background:#fff;padding:5px;box-shadow:0 8px 28px #071a3640;cursor:pointer;transition:transform .2s,box-shadow .2s}
+  #sib-ai-launch{position:fixed;right:22px;bottom:22px;z-index:9998;width:112px;height:62px;display:grid;place-items:center;border:2px solid #fff;border-radius:18px;background:#fff;padding:5px;box-shadow:0 8px 28px #071a3640;cursor:pointer;transition:transform .2s,box-shadow .2s}
   #sib-ai-launch:hover{transform:translateY(-2px);box-shadow:0 12px 32px #071a3660}#sib-ai-launch img{display:block;width:100%;height:100%;object-fit:contain;border-radius:12px}
   #sib-ai-launch:focus-visible{outline:3px solid #ff7800;outline-offset:3px}
   #sib-ai-panel{position:fixed;right:22px;bottom:82px;z-index:9999;width:min(380px,calc(100vw - 28px));height:min(540px,calc(100vh - 115px));background:#ffffff!important;color:#071a36!important;opacity:1!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border:1px solid #cbd5e1;border-radius:16px;box-shadow:0 18px 60px #071a3670;display:none;overflow:hidden;font:14px system-ui;isolation:isolate}
@@ -22,7 +22,7 @@
   #sib-ai-send{border:0;border-radius:10px;background:#ff7800;color:#fff;font-weight:700;padding:0 14px;cursor:pointer}
   #sib-ai-send:disabled{opacity:.65;cursor:wait}
   #sib-ai-note{flex:0 0 auto;font-size:11px;padding:0 12px 10px;background:#fff!important;color:#475569!important;opacity:1}
-  @media(max-width:480px){#sib-ai-panel{right:10px;bottom:76px;width:calc(100vw - 20px);height:min(540px,calc(100vh - 100px))}#sib-ai-launch{right:14px;bottom:14px;width:56px;height:56px;border-radius:15px}}
+  @media(max-width:480px){#sib-ai-panel{right:10px;bottom:76px;width:calc(100vw - 20px);height:min(540px,calc(100vh - 100px))}#sib-ai-launch{right:14px;bottom:14px;width:104px;height:56px;border-radius:15px}}
   `;
   const style = document.createElement("style"); style.textContent = css; document.head.appendChild(style);
   const launch = document.createElement("button"); launch.id = "sib-ai-launch"; launch.type = "button";
@@ -30,8 +30,8 @@
   logo.src = new URL("assets/sib-logo.svg", document.currentScript.src).href;
   logo.alt = ""; logo.loading = "eager"; logo.decoding = "async";
   launch.appendChild(logo);
-  launch.setAttribute("aria-label","Ouvrir l’assistant SIB Gestion");
-  launch.title = "Assistant SIB Gestion";
+  launch.setAttribute("aria-label","Ouvrir Maya, l’assistant de SIB Gestion");
+  launch.title = "Ouvrir Maya · SIB Gestion";
   const panel = document.createElement("section"); panel.id = "sib-ai-panel"; panel.setAttribute("aria-label","Assistant IA SIB Gestion");
   panel.innerHTML = '<div id="sib-ai-head"><div><strong>Maya · Assistant SIB</strong><small>Propulsé par l’IA SIB</small></div><button id="sib-ai-close" type="button" aria-label="Fermer">×</button></div><div id="sib-ai-messages" aria-live="polite"></div><form id="sib-ai-form"><input id="sib-ai-input" maxlength="2000" autocomplete="off" placeholder="Posez votre question…" aria-label="Votre message" required><button id="sib-ai-send" type="submit">Envoyer</button></form><div id="sib-ai-note">Les actions financières et envois externes nécessitent votre validation.</div>';
   document.body.appendChild(launch); document.body.appendChild(panel);
