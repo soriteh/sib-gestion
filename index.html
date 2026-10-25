@@ -262,7 +262,7 @@ nav{position:fixed;inset:0 auto 0 0;width:270px;height:100%;padding-top:calc(18p
 .sg2{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
 .idc{display:flex;gap:14px;align-items:flex-start}
 .pvw{width:96px;height:96px;border-radius:14px;border:1px dashed var(--ln);display:grid;place-items:center;flex:none;background:repeating-conic-gradient(var(--ac2) 0 25%,var(--sf) 0 50%) 50%/16px 16px;overflow:hidden}
-.pvw.fv{width:56px;height:56px;border-radius:10px}.pvw img{max-width:100%;max-height:100%;object-fit:contain}.pvw .pe{font-size:12px;color:var(--mu);background:var(--sf);padding:2px 6px;border-radius:6px}
+.pvw.fv{width:56px;height:56px;border-radius:10px}.pvw img{display:block;width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain;object-position:center}.mk img{display:block;width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain;object-position:center;flex:none}.mk.has{display:flex;align-items:center;justify-content:center;overflow:hidden}.pvw .pe{font-size:12px;color:var(--mu);background:var(--sf);padding:2px 6px;border-radius:6px}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);opacity:0}
 .sbar{position:sticky;bottom:0;display:flex;gap:10px;align-items:center;justify-content:flex-end;flex-wrap:wrap;padding:14px 0 calc(14px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,var(--bg) 35%);z-index:5}
 .msg{margin-right:auto;font-size:14px;padding:7px 12px;border-radius:9px}.msg:empty{display:none}
@@ -1892,6 +1892,7 @@ function refreshServiceSelects(){
 }
 document.querySelector("main").addEventListener("click",e=>{const b=e.target.closest("[data-a]");if(b&&ACT[b.dataset.a])ACT[b.dataset.a](b.dataset.i,b.dataset.j)});
 document.querySelector("main").addEventListener("change",e=>{const i=e.target.id;
+ if(i==="s_logo"||i==="s_fav"){const f=e.target.files&&e.target.files[0];if(!f)return;const isLogo=i==="s_logo",max=isLogo?300*1024:100*1024,allowed=isLogo?["image/png","image/jpeg","image/webp","image/svg+xml"]:["image/png","image/svg+xml","image/x-icon","image/vnd.microsoft.icon"];if(!allowed.includes(f.type)){e.target.value="";smsg("er","Format de fichier non pris en charge.");return}if(f.size>max){e.target.value="";smsg("er",isLogo?"Logo trop lourd : 300 Ko maximum.":"Favicon trop lourd : 100 Ko maximum.");return}const rd=new FileReader();rd.onload=()=>{const val=String(rd.result||"");if(isLogo&&f.type==="image/svg+xml"&&(/<script|on\\w+\\s*=|javascript:/i.test(val)||/<\\s*foreignObject/i.test(val))){e.target.value="";smsg("er","SVG refusé : contenu actif non autorisé.");return}PS[isLogo?"logo":"fav"]=val;const pv=$("pv_"+(isLogo?"logo":"fav"));if(pv)pv.outerHTML=`<img id="pv_${isLogo?"logo":"fav"}" src="${val}" alt="Aperçu du logo" style="width:100%;height:100%;object-fit:contain">`;const pn=$("pn_"+(isLogo?"logo":"fav"));if(pn)pn.textContent="Aperçu prêt : cliquez sur « Enregistrer les modifications ».";smsg("ok","Aperçu mis à jour. Pensez à enregistrer les modifications.");updDirty()};rd.readAsDataURL(f);return}
  if(i=="vs")$("vp").value=SV.find(s=>s[0]==e.target.value)[1];
  if(i=="zf"){const s=SV.find(s=>s[0]==e.target.value);if(s)$("zx").value=s[1]}
  if(i=="rm"&&e.target.value){RM=e.target.value;draw()}
