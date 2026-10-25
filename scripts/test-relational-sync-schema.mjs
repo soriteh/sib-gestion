@@ -31,6 +31,11 @@ assert.doesNotMatch(migration, /\b(drop table|truncate|delete from)\b/i,
   "Migration must not delete business data");
 
 console.log("Relational sync schema compatibility tests passed.");
+assert.match(app, /if\(window\.SIBCloud\.relationalSyncError\)\{toast\(/,
+  "The app must visibly warn after sign-in when the relational mirror fails");
+assert.match(app, /Les données centrales restent enregistrées/,
+  "The warning must distinguish canonical cloud state from relational mirror status");
+
 
 const profileMigration = readFileSync("supabase/08_user_profiles.sql", "utf8");
 const profileFix = readFileSync("supabase/09_fix_avatar_data_url.sql", "utf8");
