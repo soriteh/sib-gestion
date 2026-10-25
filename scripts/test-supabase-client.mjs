@@ -5,7 +5,7 @@ import { resolve } from "node:path";
 
 const clientSource = readFileSync(resolve("supabase-client.js"), "utf8");
 
-function makeHarness({ membershipError = null, stateError = null, bootstrapError = null, upsertError = null, role = "admin" } = {}) {
+function makeHarness({ membershipError = null, stateError = null, bootstrapError = null, upsertError = null, role = "admin", existingServices = [] } = {}) {
   let signOutCalls = 0;
   const upsertCalls = [];
   const auth = {
@@ -48,6 +48,9 @@ function makeHarness({ membershipError = null, stateError = null, bootstrapError
         throw new Error("Unexpected maybeSingle query: " + table);
       },
       then(resolve, reject) {
+        if (table === "sib_services") {
+          return Promise.resolve({ data: existingServices, error: null }).then(resolve, reject);
+        }
         if (table !== "organization_memberships") {
           return Promise.reject(new Error("Unexpected awaited query: " + table)).then(resolve, reject);
         }
@@ -128,6 +131,26 @@ function makeHarness({ membershipError = null, stateError = null, bootstrapError
     (error) => /chargement des données centrales est temporairement indisponible/.test(error?.message || "")
   );
   assert.equal(h.signOutCalls, 0, "transient app-state API outage must preserve the Auth session");
+}
+
+{
+  const h = makeHarness({
+    existingServices: [{ legacy_id: "old-service", service_code: "DUP-1" }]
+  });
+  await h.cloud.signIn("admin@example.test", "password");
+  const sync = await h.cloud.syncCoreCollections({
+    c: [],
+    sv: [
+      { id: "new-1", n: "Service code déjà utilisé", code: "DUP-1" },
+      { id: "new-2", n: "Premier code répété", code: "DUP-2" },
+      { id: "new-3", n: "Deuxième code répété", code: "DUP-2" },
+      { id: "new-4", n: "Service sans code", code: "   " }
+    ]
+  });
+  assert.equal(sync.services, 4, "duplicate codes must not discard service rows");
+  const rows = h.upsertCalls.find(call => call.table === "sib_services").rows;
+  assert.deepEqual(rows.map(row => row.service_code), [null, "DUP-2", null, null],
+    "conflicting or duplicate optional codes must be nulled without dropping services");
 }
 
 {
