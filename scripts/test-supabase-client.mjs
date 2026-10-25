@@ -5,7 +5,7 @@ import { resolve } from "node:path";
 
 const clientSource = readFileSync(resolve("supabase-client.js"), "utf8");
 
-function makeHarness({ membershipError = null, stateError = null, bootstrapError = null, upsertError = null } = {}) {
+function makeHarness({ membershipError = null, stateError = null, bootstrapError = null, upsertError = null, role = "admin" } = {}) {
   let signOutCalls = 0;
   const upsertCalls = [];
   const auth = {
@@ -53,7 +53,7 @@ function makeHarness({ membershipError = null, stateError = null, bootstrapError
         }
         if (membershipError) return Promise.reject(membershipError).then(resolve, reject);
         return Promise.resolve({
-          data: [{ role: "admin", active: true, organization_id: "org-1", organizations: { name: "SIB" } }],
+          data: [{ role, active: true, organization_id: "org-1", organizations: { name: "SIB" } }],
           error: null
         }).then(resolve, reject);
       }
@@ -83,6 +83,15 @@ function makeHarness({ membershipError = null, stateError = null, bootstrapError
 
   vm.runInNewContext(clientSource, { window, console, Promise, String, Number, Error });
   return { cloud: window.SIBCloud, upsertCalls, get signOutCalls() { return signOutCalls; } };
+}
+
+{
+  const h = makeHarness({ role: "Caissier" });
+  await assert.rejects(
+    () => h.cloud.signIn("admin@example.test", "password"),
+    (error) => /accès métier.*rôle/i.test(error?.message || "") && /données partagées sont protégées/i.test(error?.message || "")
+  );
+  assert.equal(h.signOutCalls, 1, "limited roles must not keep an authenticated session without role-scoped data access");
 }
 
 {
@@ -177,4 +186,4 @@ function makeHarness({ membershipError = null, stateError = null, bootstrapError
   assert.equal(h.signOutCalls, 0, "a mirror failure must not sign the user out");
 }
 
-console.log("Supabase authentication and core relational sync tests passed (8 cases).");
+console.log("Supabase authentication and core relational sync tests passed (9 cases).");
