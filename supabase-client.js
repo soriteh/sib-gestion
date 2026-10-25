@@ -108,6 +108,22 @@
         console.error("SIB relational sync on sign-in failed:", syncError);
       }
     }
+    try {
+      const savedProfile = await loadUserProfile();
+      if (savedProfile) {
+        appState = appState || { state: {}, version: null, updatedAt: null };
+        appState.state = appState.state || {};
+        appState.state.profile = {
+          pn: savedProfile.first_name,
+          nm: savedProfile.last_name,
+          nom: savedProfile.full_name,
+          tel: savedProfile.phone,
+          ph: savedProfile.avatar_data_url || ""
+        };
+      }
+    } catch (profileError) {
+      console.warn("Profil dédié indisponible ; vérifiez la migration 08 :", profileError);
+    }
     return { user: data.user, membership, appState };
   }
 
