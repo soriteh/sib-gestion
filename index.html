@@ -2186,15 +2186,38 @@ function drawProf(){if(!$("prof")||!CU)return;const u=CU,ph=PP!==undefined?PP:u.
  <div class="box"><h3 class="sh">Informations personnelles</h3><p class="sd">Ces informations peuvent être modifiées par vous.</p><div class="sg2">${fl("p_pn","Prénom",u.pn)}${fl("p_nm","Nom",u.nm)}${fl("p_tel","Téléphone",u.tel,"tel")}</div></div>
  <div class="box"><h3 class="sh">Compte et sécurité</h3><p class="sd">L'email et le rôle sont gérés par l'administrateur.</p><div class="sg2">${fl("p_mail","Email",u.mail||"","email",1)}${fl("p_role","Rôle",u.role,"text",1)}${fl("p_login","Identifiant",u.login,"text",1)}</div><p class="sd" style="margin:12px 0">Dernière connexion : ${u.last?new Date(u.last).toLocaleString("fr-FR"):"—"}</p><button class="s" data-u="pw">Changer le mot de passe</button></div>
  <div class="sbar"><span class="msg" id="pst" role="status"></span><button class="s dg" data-a="profcancel">Annuler</button><button class="p" data-a="profsave">Enregistrer les modifications</button></div>`}
+async function saveProfileAndConfirm(){
+ if(sibPendingConflict)throw new Error("Un conflit de synchronisation bloque l’enregistrement. Téléchargez la sauvegarde locale avant de reprendre.");
+ if(!window.SIBCloud?.ready||!cloudSessionReady)throw new Error("Aucune session Supabase active. Reconnectez-vous avant d’enregistrer le profil.");
+ const snapshot=cloudSnapshot(),pendingStored=storePendingCloudSnapshot(snapshot);
+ try{localStorage.setItem("sib-offline-state-v1",JSON.stringify({savedAt:Date.now(),state:snapshot}));}catch(_){}
+ if(!navigator.onLine){if(!pendingStored)throw new Error("Stockage local indisponible : impossible de mettre la modification en attente.");return "offline";}
+ const previousChain=cloudSaveChain;if(previousChain)await previousChain;
+ if(sibPendingConflict)throw new Error("Un conflit de synchronisation bloque l’enregistrement.");
+ if(cloudWriteRunning||sibPendingRetryBusy)throw new Error("Une autre sauvegarde est en cours. Réessayez dans quelques secondes.");
+ cloudWriteRunning=true;
+ try{
+  await window.SIBCloud.saveAppState(snapshot);
+  let pending=null;try{pending=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null")}catch(_){}
+  if(pending&&pending.state&&JSON.stringify(pending.state)===JSON.stringify(snapshot))localStorage.removeItem(SIB_PENDING_KEY);
+  sibPendingRetryDelay=10000;return "cloud";
+ }catch(err){console.error("SIB profile cloud save failed:",err);throw new Error("Supabase n’a pas confirmé la sauvegarde du profil : "+String(err?.message||err))}
+ finally{cloudWriteRunning=false;if(cloudQueuedSnapshot&&cloudSessionReady&&!sibPendingConflict)cloudSaveChain=drainCloudWrites()}
+}
 Object.assign(ACT,{
  profcancel(){if(PP){ask("Abandonner la photo sélectionnée qui n’a pas été enregistrée ?",()=>{PP=undefined;drawProf();pmsg("ok","Modifications annulées : les valeurs enregistrées ont été rechargées.")},{title:"Annuler les modifications",danger:1,ok:"Abandonner"});return;}drawProf();pmsg("ok","Valeurs enregistrées rechargées.")},
- profsave(){const u=CU,pn=V("p_pn").trim(),nm=V("p_nm").trim(),tel=V("p_tel").trim(),er=[];
-  if(!pn)er.push("le prénom est requis");if(!nm)er.push("le nom est requis");if(pn.length>40||nm.length>40)er.push("40 caractères maximum pour le prénom et le nom");if(tel&&!/^\+?[\d\s().-]{6,20}$/.test(tel))er.push("téléphone invalide");
+ async profsave(){const u=CU,pn=V("p_pn").trim(),nm=V("p_nm").trim(),tel=V("p_tel").trim(),er=[];
+  if(!pn)er.push("le prénom est requis");if(!nm)er.push("le nom est requis");if(pn.length>40||nm.length>40)er.push("40 caractères maximum pour le prénom et le nom");if(tel&&!/^\\+?[\\d\\s().-]{6,20}$/.test(tel))er.push("téléphone invalide");
   if(er.length){pmsg("er","Enregistrement impossible : "+er.join(" ; ")+".");return toast("Corrigez les champs signalés")}
   const ch=[];if(u.pn!=pn)ch.push("prénom");if(u.nm!=nm)ch.push("nom");if((u.tel||"")!=tel)ch.push("téléphone");if(PP!==undefined&&PP!==u.ph)ch.push("photo");
   if(!ch.length)return pmsg("ok","Aucune modification à enregistrer.");
-  u.pn=pn;u.nm=nm;u.nom=pn+" "+nm;u.tel=tel;if(PP!==undefined)u.ph=PP;S.profile={pn:u.pn,nm:u.nm,nom:u.nom,tel:u.tel,ph:u.ph||""};PP=undefined;lg("Profil modifié : "+ch.join(", "));save();drawAm();draw();pmsg("ok","Profil mis à jour : "+ch.join(", ")+".");toast("Profil mis à jour")},
- phdel(){ask("Voulez-vous vraiment supprimer votre photo de profil ? Vos initiales seront affichées à la place.",()=>{CU.ph="";PP=undefined;lg("Photo de profil supprimée");save();drawAm();drawProf();pmsg("ok","Photo supprimée.");toast("Photo supprimée")},{title:"Supprimer la photo",danger:1,ok:"Supprimer"})}});
+  u.pn=pn;u.nm=nm;u.nom=pn+" "+nm;u.tel=tel;if(PP!==undefined)u.ph=PP;S.profile={pn:u.pn,nm:u.nm,nom:u.nom,tel:u.tel,ph:u.ph||""};lg("Profil modifié : "+ch.join(", "));drawAm();draw();
+  const btn=$("prof")?.querySelector('[data-a="profsave"]');if(btn){btn.disabled=true;btn.textContent="Enregistrement…"}
+  try{const result=await saveProfileAndConfirm();PP=undefined;drawProf();if(result==="cloud"){pmsg("ok","Profil confirmé et sauvegardé dans Supabase.");toast("Profil sauvegardé dans Supabase")}else{pmsg("wa","Profil conservé sur cet appareil ; synchronisation en attente de la reconnexion.");toast("Profil enregistré localement ; synchronisation en attente","wa")}}
+  catch(err){pmsg("er","Profil modifié mais sauvegarde cloud non confirmée. "+String(err?.message||err));toast("Échec de sauvegarde du profil : "+String(err?.message||err),"er",{sticky:true})}
+  finally{const current=$("prof")?.querySelector('[data-a="profsave"]');if(current){current.disabled=false;current.textContent="Enregistrer les modifications"}updDirty()}
+ },
+ phdel(){ask("Voulez-vous vraiment supprimer votre photo de profil ?",async()=>{const old=CU.ph;CU.ph="";S.profile={...(S.profile||{}),pn:CU.pn,nm:CU.nm,nom:CU.nom,tel:CU.tel,ph:""};PP=undefined;lg("Photo de profil supprimée");drawAm();drawProf();try{const result=await saveProfileAndConfirm();pmsg(result==="cloud"?"ok":"wa",result==="cloud"?"Suppression de la photo confirmée dans Supabase.":"Photo supprimée localement ; synchronisation en attente de la reconnexion.");toast(result==="cloud"?"Photo supprimée et sauvegardée":"Photo supprimée localement ; synchronisation en attente",result==="cloud"?"ok":"wa")}catch(err){CU.ph=old;S.profile={...(S.profile||{}),ph:old||""};drawAm();drawProf();pmsg("er","Suppression non confirmée : "+String(err?.message||err));toast("Impossible de confirmer la suppression dans Supabase","er",{sticky:true})}},{title:"Supprimer la photo",danger:1,ok:"Supprimer"})}});
 document.addEventListener("change",e=>{if(e.target.id!="p_ph")return;const f=e.target.files[0];if(!f)return;
  if(!/^image\/(png|jpeg|webp)$/.test(f.type)){e.target.value="";return pmsg("er","Format non pris en charge (PNG, JPG ou WebP).")}if(f.size>256000){e.target.value="";return pmsg("er","Photo trop lourde (250 Ko maximum).")}
  const rd=new FileReader();rd.onload=()=>{PP=rd.result;$("pv_ph").innerHTML=`<img src="${rd.result}" alt="Aperçu de la photo">`;$("pn_ph").textContent="Nouvelle photo prête : cliquez sur « Enregistrer les modifications ».";pmsg("ok","Aperçu mis à jour, non encore enregistré.");updDirty()};rd.readAsDataURL(f)});
