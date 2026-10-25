@@ -63,3 +63,15 @@ assert.match(app, /sib_push_subscriptions/);
 assert.match(app, /table:"sib_internal_notifications"/);
 assert.match(app, /Notification\.permission==="granted"/);
 console.log("Notification center, push subscription, and service-worker checks passed.");
+
+const pushDispatcher = readFileSync("supabase/functions/sib-push-send/index.ts", "utf8");
+const notificationGuide = readFileSync("docs/NOTIFICATIONS.md", "utf8");
+assert.match(pushDispatcher, /VAPID_PRIVATE_KEY/);
+assert.match(pushDispatcher, /authorization !== "Bearer " \+ serviceKey/);
+assert.match(pushDispatcher, /sib_push_subscriptions/);
+assert.match(pushDispatcher, /sendNotification/);
+assert.match(pushDispatcher, /status === 404 \|\| status === 410/);
+assert.match(notificationGuide, /Database Webhooks/);
+assert.match(notificationGuide, /WHATSAPP_ACCESS_TOKEN/);
+assert.doesNotMatch(pushDispatcher, /WHATSAPP_ACCESS_TOKEN\s*=\s*["'][^"']+["']/);
+console.log("Push dispatcher security and channel configuration checks passed.");
