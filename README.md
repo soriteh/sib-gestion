@@ -95,3 +95,10 @@ Le stockage JSON central contient encore plusieurs domaines métier dans un mêm
 **Action requise dans Supabase :** après vérification sur un environnement de test, exécuter ce script dans le SQL Editor du projet SIB. Cette migration ne supprime aucune donnée métier, mais les comptes non administrateurs ne pourront plus lire ni modifier l'état JSON partagé tant que les autorisations granulaires ne seront pas mises en place. Ne pas l'exécuter en production sans avoir confirmé le compte administrateur de secours.
 
 Le contrôle automatique `scripts/test-shared-state-security.mjs` vérifie la présence des garde-fous dans la migration; il ne remplace pas un test d'intégration dans Supabase. Les tables relationnelles `sib_clients` et `sib_services` nécessitent elles aussi leurs propres politiques RLS et des tests de droits avant un usage avec des comptes non administrateurs.
+
+
+### `supabase/07_align_relational_sync.sql` — compatibilité de synchronisation Clients/Services
+
+Le client Supabase effectue un `upsert` des clients et services avec la clé `organization_id,legacy_id`. Le schéma initial `01_core_schema.sql` ne contenait pas toutes les colonnes utilisées par ce client. La migration 07 ajoute les colonnes manquantes, les index uniques requis par PostgreSQL et aligne les catégories client acceptées par l'interface. Elle est additive et ne supprime pas les données.
+
+**Ordre :** auditer la base avec `00_audit_schema.sql`, confirmer que `01_core_schema.sql` a été appliqué et que les tables `sib_clients` et `sib_services` existent, puis tester la migration 07 dans un environnement de développement avant de l'appliquer à la base utilisée. La présence du script dans GitHub ne signifie pas qu'il a été exécuté dans Supabase.
