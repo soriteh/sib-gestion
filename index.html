@@ -2434,10 +2434,31 @@ async function loadAnnouncements(){
  const c=cloud();const {data,error}=await c.from("sib_internal_announcements").select("id,title,body,audience,requires_ack,published,created_by,published_at,created_at").eq("organization_id",state.org).order("created_at",{ascending:false}).limit(100);
  if(error)throw error;state.announcements=data||[];
 }
+async function enableSibPushNotifications(){
+ const c=cloud();
+ if(!("serviceWorker" in navigator)||!("PushManager" in window)||!("Notification" in window)){
+  alert("Les notifications push ne sont pas prises en charge par ce navigateur. Les notifications dans l’application restent disponibles.");return;
+ }
+ const publicKey=String(window.SIB_PUSH_PUBLIC_KEY||"").trim();
+ if(!publicKey){alert("Le centre de notifications est disponible. Pour activer les alertes push même lorsque SIB Gestion est fermé, il faut configurer SIB_PUSH_PUBLIC_KEY et le service serveur VAPID. Aucun secret ne doit être placé dans le navigateur.");return;}
+ const permission=await Notification.requestPermission();
+ if(permission!=="granted"){alert("Autorisez les notifications dans les paramètres du navigateur puis réessayez.");return;}
+ const registration=await navigator.serviceWorker.ready;
+ const subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:Uint8Array.from(atob(publicKey.replace(/-/g,"+").replace(/_/g,"/")),ch=>ch.charCodeAt(0))});
+ const json=subscription.toJSON(),cfg=window.SIB_SUPABASE_CONFIG||{};
+ const {data:{user},error:userError}=await c.auth.getUser();if(userError)throw userError;if(!user)throw new Error("Session SIB absente.");
+ const {error}=await c.from("sib_push_subscriptions").upsert({
+  organization_id:cfg.organizationId,user_id:user.id,endpoint:json.endpoint,
+  p256dh:json.keys?.p256dh||"",auth_secret:json.keys?.auth||"",user_agent:navigator.userAgent.slice(0,500)
+ },{onConflict:"user_id,endpoint"});
+ if(error)throw error;
+ alert("Cet appareil est inscrit aux notifications push. L’envoi en arrière-plan nécessite aussi le service serveur VAPID.");
+}
 async function loadNotifications(){
  const c=cloud();const {data,error}=await c.from("sib_internal_notifications").select("id,notification_type,title,body,target_type,target_id,read_at,created_at").eq("user_id",state.user.id).order("created_at",{ascending:false}).limit(100);
  if(error)throw error;state.notifications=data||[];
 }
+
 async function loadAudit(){
  const c=cloud();const {data,error}=await c.from("sib_internal_audit").select("id,actor_user_id,action,entity_type,entity_id,details,created_at").eq("organization_id",state.org).order("created_at",{ascending:false}).limit(100);
  if(error)throw error;state.audit=data||[];
@@ -2456,7 +2477,8 @@ function render(){
  root.innerHTML=`<div class="box"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h3>Annonces et notes de service</h3>${permittedAdmin()?'<button class="p" id="sic-ann-new">Nouvelle annonce</button>':""}</div><div class="sic-list">${state.announcements.map(a=>`<article class="sic-item"><b>${esc(a.title)}</b><div class="sic-muted">${a.published?"Publiée":"Brouillon"} · ${new Date(a.published_at||a.created_at).toLocaleString("fr-FR")}</div><p style="white-space:pre-wrap">${esc(a.body)}</p>${a.published?'<button class="s" data-sic-read="'+esc(a.id)+'">Marquer comme lue</button>':""}</article>`).join("")||'<p class="sic-muted">Aucune annonce.</p>'}</div></div>`;
  el("sic-ann-new")?.addEventListener("click",newAnnouncement);root.querySelectorAll("[data-sic-read]").forEach(b=>b.addEventListener("click",()=>markAnnouncement(b.dataset.sicRead)));
  }else if(state.tab==="notifications"){
- root.innerHTML=`<div class="box"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h3>Mes notifications</h3><button class="s" id="sic-readall">Tout marquer comme lu</button></div><div class="sic-list">${state.notifications.map(n=>`<article class="sic-item"><b>${esc(n.title)}</b> ${n.read_at?"":'<span class="bd wa">Non lue</span>'}<div>${esc(n.body)}</div><div class="sic-muted">${new Date(n.created_at).toLocaleString("fr-FR")}</div>${n.target_type==="attendance_checkin"&&!n.read_at?'<button class="p" data-sic-confirm-attendance="'+esc(n.target_id)+'">Confirmer ma présence</button>':n.read_at?"":'<button class="s" data-sic-notif="'+esc(n.id)+'">Marquer comme lue</button>'}</article>`).join("")||'<p class="sic-muted">Aucune notification.</p>'}</div></div>`;
+ root.innerHTML=`<div class="box"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h3>Mes notifications</h3><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="s" id="sic-enable-push">Activer les notifications push</button><button class="s" id="sic-readall">Tout marquer comme lu</button></div></div><div class="sic-list">${state.notifications.map(n=>`<article class="sic-item"><b>${esc(n.title)}</b> ${n.read_at?"":'<span class="bd wa">Non lue</span>'}<div>${esc(n.body)}</div><div class="sic-muted">${new Date(n.created_at).toLocaleString("fr-FR")}</div>${n.target_type==="attendance_checkin"&&!n.read_at?'<button class="p" data-sic-confirm-attendance="'+esc(n.target_id)+'">Confirmer ma présence</button>':n.read_at?"":'<button class="s" data-sic-notif="'+esc(n.id)+'">Marquer comme lue</button>'}</article>`).join("")||'<p class="sic-muted">Aucune notification.</p>'}</div></div>`;
+ el("sic-enable-push")?.addEventListener("click",async()=>{const b=el("sic-enable-push");if(b)b.disabled=true;try{await enableSibPushNotifications()}catch(e){showError(e)}finally{if(b)b.disabled=false}});
  el("sic-readall")?.addEventListener("click",async()=>{try{const c=cloud();const {error}=await c.from("sib_internal_notifications").update({read_at:new Date().toISOString()}).eq("user_id",state.user.id).is("read_at",null);if(error)throw error;await loadNotifications();render()}catch(e){showError(e)}});
  root.querySelectorAll("[data-sic-notif]").forEach(b=>b.addEventListener("click",async()=>{try{const {error}=await cloud().from("sib_internal_notifications").update({read_at:new Date().toISOString()}).eq("id",b.dataset.sicNotif).eq("user_id",state.user.id);if(error)throw error;await loadNotifications();render()}catch(e){showError(e)}}));
  root.querySelectorAll("[data-sic-confirm-attendance]").forEach(b=>b.addEventListener("click",async()=>{if(b.disabled)return;b.disabled=true;b.textContent="Confirmation…";try{const {data,error}=await cloud().rpc("sib_attendance_confirm",{p_checkin_id:b.dataset.sicConfirmAttendance});if(error)throw error;const result=Array.isArray(data)?data[0]:data;if(!result)throw new Error("Le serveur n’a retourné aucun statut.");await cloud().from("sib_internal_notifications").update({read_at:new Date().toISOString()}).eq("user_id",state.user.id).eq("target_type","attendance_checkin").eq("target_id",b.dataset.sicConfirmAttendance);await loadNotifications();render();alert(result.attendance_status==="present"?"Présence confirmée dans le délai.":"Confirmation reçue après le délai : votre statut est RETARD.");}catch(e){b.disabled=false;b.textContent="Confirmer ma présence";showError(e)}}));
