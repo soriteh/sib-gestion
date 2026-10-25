@@ -21,6 +21,8 @@ for (const column of ["legacy_id", "service_code", "category", "unit", "currency
 }
 assert.match(migration, /unique index if not exists sib_clients_org_legacy_id_uidx/);
 assert.match(migration, /unique index if not exists sib_services_org_legacy_id_uidx/);
+assert.doesNotMatch(migration, /where legacy_id is not null/i,
+  "Upsert conflict indexes must be inferable without a partial-index predicate");
 assert.doesNotMatch(migration, /\b(drop table|truncate|delete from)\b/i,
   "Migration must not delete business data");
 
