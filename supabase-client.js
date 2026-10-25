@@ -171,7 +171,7 @@
     const clients = (Array.isArray(state.c) ? state.c : []).filter(x => x && x.id != null && String(x.n || "").trim()).map(x => ({
       organization_id: org,
       legacy_id: String(x.id),
-      client_code: String(x.code || x.no || ""),
+      client_code: String(x.code || x.no || "").trim() || null,
       name: String(x.n || "").trim(),
       client_type: x.type === "Particulier" || x.type === "particulier" ? "particulier" : x.type === "Établissement scolaire" || x.type === "etablissement_scolaire" ? "etablissement_scolaire" : x.type === "Autre" || x.type === "autre" ? "autre" : "entreprise",
       phone: String(x.t || x.tel || x.phone || ""),
@@ -185,7 +185,7 @@
     const services = (Array.isArray(state.sv) ? state.sv : []).filter(x => x && x.id != null && String(x.n || "").trim()).map(x => ({
       organization_id: org,
       legacy_id: String(x.id),
-      service_code: String(x.code || x.no || ""),
+      service_code: String(x.code || x.no || "").trim() || null,
       name: String(x.n || "").trim(),
       description: String(x.description || x.desc || ""),
       category: String(x.category || x.cat || ""),
