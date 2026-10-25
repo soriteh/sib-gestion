@@ -29,13 +29,21 @@ create unique index if not exists sib_services_org_legacy_id_uidx
   on public.sib_services (organization_id, legacy_id)
   where legacy_id is not null;
 
--- Normalize legacy client types to the constraints already defined in 01_core_schema.sql.
+-- Keep the four client categories accepted by the current interface.
+-- Normalize existing values before installing the matching constraint.
+alter table public.sib_clients
+  drop constraint if exists sib_clients_client_type_check;
+
 update public.sib_clients
 set client_type = case
   when lower(trim(client_type)) in ('particulier', 'individual') then 'particulier'
+  when lower(trim(client_type)) in ('etablissement scolaire', 'établissement scolaire', 'etablissement_scolaire') then 'etablissement_scolaire'
+  when lower(trim(client_type)) = 'autre' then 'autre'
   else 'entreprise'
-end
-where client_type is not null
-  and client_type not in ('particulier', 'entreprise');
+end;
+
+alter table public.sib_clients
+  add constraint sib_clients_client_type_check
+  check (client_type in ('particulier', 'entreprise', 'etablissement_scolaire', 'autre'));
 
 commit;
