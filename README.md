@@ -2,6 +2,18 @@
 
 Application de gestion de Soritech Innov Business (SIB) : encaissements, caisse et banque, devis, factures, stock, formations, projets, ressources humaines et paie.
 
+## Correctif urgent — erreur avatar_data_url
+
+Si l'application affiche `Could not find the 'avatar_data_url' column of 'sib_user_profiles' in the schema cache`, le schéma de la base Supabase utilisée par le site ne correspond pas au code publié. Le fichier `supabase/08_user_profiles.sql` contient cette colonne, mais il manque probablement dans la base en ligne ou le cache PostgREST n'a pas été rechargé.
+
+**Correction :**
+1. Ouvrir le projet Supabase réellement configuré dans `supabase-config.js`.
+2. Aller dans **SQL Editor** et exécuter le contenu de `supabase/09_fix_avatar_data_url.sql` depuis GitHub.
+3. Vérifier que la requête de contrôle renvoie la colonne `avatar_data_url`.
+4. Recharger l'application avec `Ctrl + F5), puis enregistrer de nouveau le profil.
+
+La migration ajoute la colonne si elle manque et demande à PostgREST de recharger son cache. Elle ne supprime pas les données. Tant que ce SQL n'a pas été exécuté dans le bon projet Supabase, le correctif n'est pas actif en production. La copie temporaire locale reste à conserver jusqu'à confirmation d'une sauvegarde réussie.
+
 ## État actuel — important
 
 La version publiée est une démonstration HTML autonome.
@@ -21,45 +33,17 @@ La version publiée est une démonstration HTML autonome.
 - Pour éviter une deuxième installation sur chaque appareil, l'initialisation de l'entreprise doit rester dans la base centrale. Chaque appareil doit uniquement ouvrir le même site et se connecter avec un compte existant. Ne pas créer automatiquement une nouvelle organisation au chargement.
 - Ne jamais ajouter une clé `service_role` au frontend. La clé publique est sûre uniquement avec des politiques RLS correctement configurées.
 
-### Activation de la synchronisation multi-appareils
-
-La version courante ajoute un stockage central partagé pour l'état métier de l'application. Il s'agit d'une étape de transition : les modules utilisent encore un état applicatif JSON centralisé, plutôt que des tables relationnelles séparées par module.
-
-1. Dans `supabase-config.js`, remplacer `REMPLACER_PAR_URL_SUPABASE` et `REMPLACER_PAR_CLE_PUBLISHABLE` par l'URL du projet Supabase SIB et sa clé publique (publishable/anon). Ne jamais utiliser une clé `service_role`.
-2. Dans le SQL Editor du projet Supabase existant, exécuter `supabase/04_shared_app_state.sql`. Le script utilise l'organisation déjà connue `6070dc4b-5c5e-402c-911b-735cb754d241` et les appartenances `organization_memberships`; il ne crée pas d'organisation.
-3. Publier les fichiers sur la branche `main`, puis ouvrir le même site sur chaque appareil et se connecter avec le même compte Supabase Auth.
-4. Le premier accès crée l'état applicatif central s'il n'existe pas encore. Les modifications sont enregistrées par version, et une modification concurrente est refusée plutôt que d'écraser silencieusement les changements d'un autre appareil.
-5. Quand un autre appareil modifie les données, l'application signale la mise à jour et propose de recharger pour afficher la version centrale.
-
-**Limites de cette première synchronisation :** les identifiants et mots de passe des comptes locaux ne sont pas copiés dans l'état partagé. L'authentification principale est Supabase Auth et le rôle est lu depuis `organization_memberships`. La gestion complète des utilisateurs/permissions doit ensuite être reliée aux adhésions Supabase. Les règles métier doivent encore être migrées vers des tables relationnelles dédiées pour bénéficier de validations par module. L'application doit être testée après activation avant usage opérationnel.
-
-## Adresse e-mail de référence SIB
-
-- Adresse initiale configurée dans `supabase-config.js` : `sib.innovbuss@gmail.com`, dans la propriété publique `referenceEmail`. Cette valeur sert de référence côté application et peut être modifiée dans la configuration sans changer la logique métier.
-- Cette propriété n'est pas un secret et ne configure pas à elle seule l'adresse expéditrice des invitations.
-- Pour changer l'adresse qui expédie les e-mails d'activation, ouvrez Supabase Dashboard → Authentication → SMTP Settings et configurez un fournisseur SMTP qui autorise cette adresse. Puis vérifiez Authentication → URL Configuration pour l'URL de redirection après activation.
-- Ne mettez jamais un mot de passe SMTP ni une clé privée dans `supabase-config.js` ou dans le navigateur.
-
 ## Scripts Supabase
 
-### `supabase/00_audit_schema.sql` — lecture seule
+- `supabase/00_audit_schema.sql` : audit du schéma en lecture seule.
+- `supabase/01_core_schema.sql` : tables de base préfixées `sib_`.
+- `supabase/04_shared_app_state.sql` : stockage central de l'état applicatif.
+- `supabase/06_secure_shared_app_state.sql` : restriction temporaire de l'état partagé aux administrateurs.
+- `supabase/07_align_relational_sync.sql` : compatibilité de synchronisation Clients/Services.
+- `supabase/08_user_profiles.sql` : table dédiée aux profils utilisateur.
+- `supabase/09_fix_avatar_data_url.sql` : correctif additif si la colonne photo du profil est absente et rechargement du cache PostgREST.
 
-Inventorie les tables, colonnes, clés, état RLS, politiques et fonctions du schéma `public`. Il ne modifie aucune table ni donnée.
-
-### `supabase/01_core_schema.sql` — fondation additive, pas encore reliée à l'interface
-
-Prépare un ensemble initial de tables isolées préfixées `sib_` pour organisations, membres, clients, services, devis/factures, lignes de document, comptes financiers, paiements, dépenses et journal d'audit. Active RLS et ajoute des politiques de base d'accès par appartenance à l'organisation.
-
-**Précautions :**
-- Ce fichier ne remplace pas le schéma existant et ne migre pas automatiquement les données enregistrées dans le navigateur.
-- Il n'est pas encore connecté aux formulaires de `index.html`; son ajout seul ne rend donc pas l'application multi-utilisateur.
-- Les permissions fines par rôle, les règles comptables serveur, les écritures d'audit automatiques, les mouvements de stock, les formations, les projets et les RH/paie restent à implémenter et à tester.
-- Avant exécution sur une base réelle, exécuter l'audit en lecture seule, vérifier les noms de tables existants et tester les scripts sur un projet de développement ou une sauvegarde.
-- Ne jamais partager de mot de passe, clé `service_role`, jeton d'accès ou données personnelles réelles.
-
-### `supabase/02_integrity_audit.sql` — garde-fous et audit, pas encore exécuté
-
-Ajoute des déclencheurs PostgreSQL pour journaliser les insertions/modifications et verrouiller les documents, paiements et dépenses dès qu'ils ne sont plus au statut brouillon. Les suppressions directes de ces écritures sont bloquées. Cette migration dépend de `01_core_schema.sql` et doit être testée d'abord dans un projet de développement : les corrections et annulations devront ensuite être réalisées par un flux explicite de contre-écriture.
+La présence d'un script dans GitHub ne signifie pas qu'il a été exécuté dans Supabase. Exécuter les migrations dans l'ordre et seulement après vérification de la base cible. Ne jamais exposer de clé `service_role`, mot de passe ou jeton dans le frontend.
 
 ## Parcours de travail
 
@@ -74,38 +58,8 @@ Ajoute des déclencheurs PostgreSQL pour journaliser les insertions/modification
 
 Le site GitHub Pages se met à jour après publication des changements sur la branche utilisée par Pages. Tester les changements sur une branche dédiée avant de les intégrer à `main`.
 
-
-### Invitations par e-mail des nouveaux utilisateurs
+## Invitations par e-mail des nouveaux utilisateurs
 
 La fonction Supabase `sib-invite-user` est déployée sur le projet SIB avec la vérification JWT activée. Elle vérifie que l'appelant possède une appartenance active avec le rôle Administrateur, puis utilise Supabase Auth pour envoyer une invitation et rattacher le compte à `organization_memberships`. Le frontend appelle cette fonction via `SIBCloud.inviteUser`; aucun secret `service_role` n'est exposé au navigateur.
 
-**État : code intégré à `main), fonction serveur déployée, tests d'envoi réel et configuration SMTP encore à confirmer.** L'invitation n'est disponible que lorsque l'utilisateur administrateur est connecté avec Supabase. Le parcours local de démonstration n'envoie pas d'e-mail.
-
-À vérifier dans Supabase avant usage réel :
-1. Authentication → SMTP Settings : configurer et tester un fournisseur SMTP transactionnel pour la livraison fiable des invitations.
-2. Authentication → URL Configuration : définir l'URL du site SIB et autoriser les URL de redirection d'activation.
-3. Vérifier que les variables système Supabase sont disponibles côté Edge Function. Ne jamais copier la clé `service_role` dans GitHub ou le navigateur.
-4. Effectuer un test contrôlé avec une adresse e-mail que vous pouvez consulter, puis vérifier activation, connexion et refus pour un non-administrateur.
-
-
-## Sécurité temporaire de l'état partagé — migration 06
-
-Le stockage JSON central contient encore plusieurs domaines métier dans un même document. Tant que les permissions par module et les tables relationnelles dédiées ne sont pas terminées, la migration `supabase/06_secure_shared_app_state.sql` limite la lecture et l'écriture de cet état aux membres actifs dont le rôle est Administrateur (ou une variante explicitement reconnue).
-
-**Action requise dans Supabase :** après vérification sur un environnement de test, exécuter ce script dans le SQL Editor du projet SIB. Cette migration ne supprime aucune donnée métier, mais les comptes non administrateurs ne pourront plus lire ni modifier l'état JSON partagé tant que les autorisations granulaires ne seront pas mises en place. Ne pas l'exécuter en production sans avoir confirmé le compte administrateur de secours.
-
-Le contrôle automatique `scripts/test-shared-state-security.mjs` vérifie la présence des garde-fous dans la migration; il ne remplace pas un test d'intégration dans Supabase. Les tables relationnelles `sib_clients` et `sib_services` nécessitent elles aussi leurs propres politiques RLS et des tests de droits avant un usage avec des comptes non administrateurs.
-
-
-### `supabase/07_align_relational_sync.sql` — compatibilité de synchronisation Clients/Services
-
-Le client Supabase effectue un `upsert` des clients et services avec la clé `organization_id,legacy_id`. Le schéma initial `01_core_schema.sql` ne contenait pas toutes les colonnes utilisées par ce client. La migration 07 ajoute les colonnes manquantes, les index uniques requis par PostgreSQL et aligne les catégories client acceptées par l'interface. Elle est additive et ne supprime pas les données.
-
-**Ordre :** auditer la base avec `00_audit_schema.sql`, confirmer que `01_core_schema.sql` a été appliqué et que les tables `sib_clients` et `sib_services` existent, puis tester la migration 07 dans un environnement de développement avant de l'appliquer à la base utilisée. La présence du script dans GitHub ne signifie pas qu'il a été exécuté dans Supabase.
-
-
-### Profils utilisateurs dédiés
-
-La migration `supabase/08_user_profiles.sql` crée `public.sib_user_profiles`, liée à l'utilisateur Supabase Auth. Elle autorise chaque membre actif à lire et modifier uniquement son propre profil grâce à RLS. Les enregistrements du profil (prénom, nom, téléphone et photo) sont écrits dans cette table lors d'une sauvegarde cloud de l'application et rechargés à la connexion.
-
-Ordre requis : exécuter d'abord `supabase/01_core_schema.sql`, puis `supabase/07_align_relational_sync.sql`, puis `supabase/08_user_profiles.sql` dans le SQL Editor du projet Supabase. Le code GitHub ne lance pas ces migrations automatiquement. Avant d'exécuter la migration 08, vérifier que la migration 07 a bien été appliquée et que l'organisation SIB configurée existe. Après application, tester avec un compte utilisateur, modifier le profil, se déconnecter puis se reconnecter pour vérifier la persistance cloud. Sans migration 08, l'enregistrement cloud affichera une erreur au lieu d'affirmer que le profil a été sauvegardé.
+La configuration SMTP et les tests d'envoi réel restent à confirmer dans Supabase avant usage opérationnel.
