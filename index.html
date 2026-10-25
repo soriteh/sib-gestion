@@ -462,6 +462,13 @@ button[data-a="profcancel"]:hover, button[data-id]:hover,
 @keyframes sibStartProgress{0%{transform:translateX(-110%)}100%{transform:translateX(370%)}}
 @media(prefers-reduced-motion:reduce){#sib-startup,#sib-startup:before,#sib-startup:after,.sib-startup-logo,.sib-startup-logo:after,.sib-startup-track:after{animation:none!important}.sib-startup-logo{transform:none!important;width:120px!important;height:120px!important;min-width:120px;min-height:120px}}
 
+/* Correctif du logo dans le menu latéral : cadre stable, image entière, aucun badge superposé */
+.mk.has{width:48px!important;height:48px!important;min-width:48px;min-height:48px;padding:0!important;box-sizing:border-box;background:#fff!important;background-image:none!important;border:1px solid rgba(255,255,255,.88);border-radius:12px!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;isolation:isolate}
+.mk.has::after{display:none!important;content:none!important}
+.mk.has::before{inset:-4px;border-radius:15px;pointer-events:none}
+.mk.has img{display:block!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;min-width:0!important;min-height:0!important;object-fit:contain!important;object-position:center!important;border-radius:10px!important;padding:2px!important;flex:none!important;position:relative;z-index:1}
+@media(max-width:760px){.mk.has{width:44px!important;height:44px!important;min-width:44px;min-height:44px}}
+
 /* SIB PREMIUM UI — finition visuelle globale */
 :root{--bg:#f3f6fc;--sf:#fff;--tx:#15233b;--mu:#687891;--ln:#e3e9f3;--ac:#245fcb;--ac2:#eaf1ff;--or:#ef873f;--sh:0 2px 5px rgba(20,38,70,.035),0 12px 34px rgba(20,38,70,.065)}
 body{background:radial-gradient(ellipse at 8% 0%,rgba(56,112,220,.055),transparent 34%),var(--bg);font-family:"Plus Jakarta Sans",Inter,system-ui,-apple-system,sans-serif;letter-spacing:-.012em}
