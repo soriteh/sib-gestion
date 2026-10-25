@@ -31,10 +31,6 @@ assert.doesNotMatch(migration, /\b(drop table|truncate|delete from)\b/i,
   "Migration must not delete business data");
 
 console.log("Relational sync schema compatibility tests passed.");
-assert.match(app, /if\(window\.SIBCloud\.relationalSyncError\)\{toast\(/,
-  "The app must visibly warn after sign-in when the relational mirror fails");
-assert.match(app, /Les données centrales restent enregistrées/,
-  "The warning must distinguish canonical cloud state from relational mirror status");
 
 
 const profileMigration = readFileSync("supabase/08_user_profiles.sql", "utf8");
@@ -55,6 +51,11 @@ console.log("Dedicated user profile persistence checks passed.");
 const pushMigration = readFileSync("supabase/migrations/20261025013000_push_notification_subscriptions.sql", "utf8");
 const serviceWorker = readFileSync("service-worker.js", "utf8");
 const app = readFileSync("index.html", "utf8");
+assert.match(app, /if\(window\.SIBCloud\.relationalSyncError\)\{toast\(/,
+  "The app must visibly warn after sign-in when the relational mirror fails");
+assert.match(app, /Les données centrales restent enregistrées/,
+  "The warning must distinguish canonical cloud state from relational mirror status");
+
 assert.match(pushMigration, /create table if not exists public\.sib_push_subscriptions/i);
 assert.match(pushMigration, /enable row level security/i);
 assert.match(pushMigration, /user_id = \(select auth\.uid\(\)\)/);
