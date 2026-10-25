@@ -16,6 +16,10 @@ Date du contrôle : 25 octobre 2026. Dépôt : `soriteh/sib-gestion`.
 - La fonction Edge `sib-push-send` est déployée. Les secrets VAPID et le webhook serveur doivent être configurés avant de confirmer les notifications push en arrière-plan. WhatsApp dépend aussi des paramètres Meta et du consentement des destinataires.
 - Le service GitHub Pages et les tests automatisés étaient réussis sur les commits vérifiés. Aucun test complet de navigateur, de restauration de sauvegarde ou de synchronisation multi-appareils n'a été réalisé par ce contrôle.
 
+## Blocage architectural confirmé — accès multi-rôles
+
+La table `sib_app_state` contient l'ensemble de l'état métier JSON et sa politique de lecture actuelle est réservée aux administrateurs actifs. Le parcours de connexion charge cet état avant de terminer ; par conséquent, les comptes non administrateurs risquent d'être rejetés au chargement des données. **Ne pas ouvrir cette table à tous les membres** : elle contient aussi des données financières et RH sans cloisonnement par module. Pour rendre l'application multi-utilisateur sûre, il faut migrer les modules vers des tables dédiées, avec autorisations par rôle et opérations transactionnelles, puis adapter le client pour charger uniquement les données autorisées. Cette migration est un prérequis à l'exploitation par plusieurs rôles.
+
 ## Priorité P0 — avant toute donnée critique
 
 - [ ] Exporter une sauvegarde complète de l'état central et la conserver hors du navigateur.
