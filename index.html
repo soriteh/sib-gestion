@@ -2412,7 +2412,24 @@ async function init(){
  state.role=ms[0].role||"";
  const {data:all,error:ae}=await c.from("organization_memberships").select("user_id,role,active").eq("organization_id",state.org).eq("active",true);
  if(ae)throw ae;state.members=all||[];
- await loadConversations();await loadAnnouncements();await loadNotifications();render();
+ await loadConversations();await loadAnnouncements();await loadNotifications();
+ // Live notifications while the application is open; background delivery uses the VAPID push dispatcher.
+ if(!window.__SIB_NOTIFICATION_CHANNEL){
+  window.__SIB_NOTIFICATION_CHANNEL=c.channel("sib-notifications-"+state.user.id)
+   .on("postgres_changes",{event:"INSERT",schema:"public",table:"sib_internal_notifications",filter:"user_id=eq."+state.user.id},async payload=>{
+    const n=payload.new||{};if(!n.id)return;
+    if(!state.notifications.some(x=>x.id===n.id)){state.notifications.unshift(n);if(state.notifications.length>100)state.notifications.length=100;}
+    try{
+     if("Notification" in window&&Notification.permission==="granted"&&"serviceWorker" in navigator){
+      const reg=await navigator.serviceWorker.ready;
+      await reg.showNotification(String(n.title||"SIB Gestion"),{body:String(n.body||"Nouvelle notification").slice(0,240),icon:new URL("./icons/sib-icon.svg",location.href).href,tag:String(n.id),data:{url:location.href}});
+     }
+    }catch(err){console.warn("SIB notification display failed:",err);}
+    if(state.tab==="notifications")render();
+    const unread=el("sic-unread");if(unread)unread.textContent=state.notifications.filter(x=>!x.read_at).length?"("+state.notifications.filter(x=>!x.read_at).length+")":"";
+   }).subscribe();
+ }
+ render();
 }
 async function loadConversations(){
  const c=cloud();
