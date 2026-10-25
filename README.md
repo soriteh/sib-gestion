@@ -102,3 +102,10 @@ Le contrôle automatique `scripts/test-shared-state-security.mjs` vérifie la pr
 Le client Supabase effectue un `upsert` des clients et services avec la clé `organization_id,legacy_id`. Le schéma initial `01_core_schema.sql` ne contenait pas toutes les colonnes utilisées par ce client. La migration 07 ajoute les colonnes manquantes, les index uniques requis par PostgreSQL et aligne les catégories client acceptées par l'interface. Elle est additive et ne supprime pas les données.
 
 **Ordre :** auditer la base avec `00_audit_schema.sql`, confirmer que `01_core_schema.sql` a été appliqué et que les tables `sib_clients` et `sib_services` existent, puis tester la migration 07 dans un environnement de développement avant de l'appliquer à la base utilisée. La présence du script dans GitHub ne signifie pas qu'il a été exécuté dans Supabase.
+
+
+### Profils utilisateurs dédiés
+
+La migration `supabase/08_user_profiles.sql` crée `public.sib_user_profiles`, liée à l'utilisateur Supabase Auth. Elle autorise chaque membre actif à lire et modifier uniquement son propre profil grâce à RLS. Les enregistrements du profil (prénom, nom, téléphone et photo) sont écrits dans cette table lors d'une sauvegarde cloud de l'application et rechargés à la connexion.
+
+Ordre requis : exécuter d'abord `supabase/01_core_schema.sql`, puis `supabase/07_align_relational_sync.sql`, puis `supabase/08_user_profiles.sql` dans le SQL Editor du projet Supabase. Le code GitHub ne lance pas ces migrations automatiquement. Avant d'exécuter la migration 08, vérifier que la migration 07 a bien été appliquée et que l'organisation SIB configurée existe. Après application, tester avec un compte utilisateur, modifier le profil, se déconnecter puis se reconnecter pour vérifier la persistance cloud. Sans migration 08, l'enregistrement cloud affichera une erreur au lieu d'affirmer que le profil a été sauvegardé.
