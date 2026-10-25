@@ -65,6 +65,11 @@
     return memberships[0];
   }
 
+  function isAdminRole(role) {
+    return ["admin", "administrateur", "super_admin", "super admin"]
+      .includes(String(role || "").trim().toLocaleLowerCase("fr"));
+  }
+
   async function signIn(email, password) {
     if (!client) throw new Error("Connexion centrale non configurée. Renseignez l'URL et la clé publique dans supabase-config.js.");
     const { data, error } = await client.auth.signInWithPassword({ email, password });
@@ -87,6 +92,18 @@
         throw new Error("Mot de passe accepté, mais ce compte n'a pas d'appartenance active à Soritech Innov Business. Exécutez supabase/05_fix_admin_membership.sql dans le SQL Editor Supabase, puis reconnectez-vous.");
       }
       throw membershipError;
+    }
+
+    // The shared JSON contains finance and HR data without module-level RLS.
+    // Never allow a limited role to load it; the role-scoped relational UI is
+    // required before enabling these accounts for normal app access.
+    if (!isAdminRole(membership.role)) {
+      try { await client.auth.signOut(); } catch (signOutError) {
+        console.warn("SIB: sign-out after role access denial did not complete:", signOutError);
+      }
+      throw new Error("Votre compte est authentifié, mais l’accès métier pour le rôle « " +
+        String(membership.role || "non défini") +
+        " » n’est pas encore activé. Les données partagées sont protégées. Un administrateur doit finaliser les accès par module avant d’ouvrir ce compte.");
     }
 
     let appState;
