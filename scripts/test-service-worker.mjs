@@ -26,4 +26,4 @@ assert.ok(htmlSource.includes('<script src="./ai-agent.js?v=20261026-maya-voice-
 assert.ok(mayaSource.includes("assets/maya-ai.svg?v=20261026-maya-ai-1"), "Maya UI must use the versioned AI logo");
 assert.match(source, /sib-gestion-offline-/);
 
-console.log("Service worker offline cache regression tests passed (8 assertions).");
+console.log("Service worker offline cache regression tests passed.");
