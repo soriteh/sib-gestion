@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+<title id="title">Maya — Intelligence artificielle SIB</title>
+<desc id="desc">Emblème lumineux d’intelligence artificielle bleu électrique et orange, avec noyau neural et orbite.</desc>
+<defs>
+ <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#071A36"/><stop offset="1" stop-color="#0057B9"/></linearGradient>
+ <radialGradient id="core"><stop stop-color="#FFFFFF"/><stop offset=".3" stop-color="#BDEBFF"/><stop offset="1" stop-color="#36A9FF"/></radialGradient>
+ <linearGradient id="orbit" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#FF7800"/><stop offset="1" stop-color="#FFC078"/></linearGradient>
+ <filter id="glow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="3.5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<rect x="4" y="4" width="120" height="120" rx="31" fill="url(#bg)"/>
+<rect x="5.5" y="5.5" width="117" height="117" rx="29.5" fill="none" stroke="#65C9FF" stroke-opacity=".65" stroke-width="1.5"/>
+<circle cx="64" cy="61" r="34" fill="#0057B9" fill-opacity=".24" stroke="#6BCFFF" stroke-opacity=".7" stroke-width="1.5"/>
+<g stroke="#9BE5FF" stroke-width="2.5" stroke-linecap="round" fill="none" filter="url(#glow)">
+ <path d="M64 38v10M64 74v10M41 61h10M77 61h10M48 45l7 7M73 70l7 7M80 45l-7 7M55 70l-7 7"/>
+ <path d="M54 54q10-9 20 0v14q-10 9-20 0z" stroke="#D9F7FF" stroke-width="2"/>
+ <path d="M59 59h10M59 64h10" stroke="#FF7800" stroke-width="2.5"/>
+</g>
+<circle cx="64" cy="61" r="5" fill="url(#core)" filter="url(#glow)"/>
+<path d="M18 75C24 38 58 19 89 30c17 6 25 19 21 32-4 15-24 26-45 24" fill="none" stroke="url(#orbit)" stroke-width="3.5" stroke-linecap="round" filter="url(#glow)"/>
+<circle cx="108" cy="62" r="5.5" fill="#FF7800" stroke="#FFE0BD" stroke-width="1.5" filter="url(#glow)"/>
+<circle cx="25" cy="40" r="2.5" fill="#FF7800"/>
+<path d="M42 96h44" stroke="#70D8FF" stroke-width="2" stroke-linecap="round" opacity=".8"/>
+<text x="64" y="113" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="800" letter-spacing="2" fill="#FFFFFF">MAYA</text>
+</svg>
