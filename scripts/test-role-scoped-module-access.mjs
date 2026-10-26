@@ -61,4 +61,26 @@ for (const policy of broadPolicies) {
   assert.match(sql, new RegExp(`drop policy if exists ${policy}\\b`, "i"), `Must remove broad policy: ${policy}`);
 }
 
-console.log(`Role-scoped module access migration checks passed (${requiredPolicies.length} policies verified).`);
+
+const integrityPath = new URL("../supabase/migrations/20261026030000_financial_write_integrity.sql", import.meta.url);
+const integritySql = readFileSync(integrityPath, "utf8");
+assert.match(integritySql, /\bbegin\s*;/i);
+assert.match(integritySql, /\bcommit\s*;/i);
+assert.doesNotMatch(integritySql, /\bdrop\s+(table|schema|database)\b/i, "Integrity migration must preserve data and schema.");
+assert.match(integritySql, /create policy sib_documents_delete_drafts_leadership[\s\S]*?lower\(trim\(status\)\) = any\(array\['draft','brouillon'\]\)/i);
+for (const policy of [
+  "sib_payments_update_leadership_accounting",
+  "sib_expenses_update_leadership_accounting",
+  "sib_financial_accounts_update_finance_roles",
+  "sib_leaves_hr_direction_admin_update",
+  "sib_payroll_items_hr_admin_direction_update",
+  "sib_payroll_periods_hr_admin_direction_update",
+]) {
+  assert.match(integritySql, new RegExp(`create policy ${policy}\\b`, "i"), `Missing controlled update policy: ${policy}`);
+}
+assert.doesNotMatch(integritySql, /create policy sib_(?:payments|expenses|financial_accounts|payroll_items|payroll_periods|leaves)_[a-z0-9_]+\s+on\s+public\.sib_[a-z_]+\s+for all/i, "Sensitive financial/HR tables must not regain broad ALL policies.");
+for (const table of ["sib_payments", "sib_expenses", "sib_financial_accounts", "sib_payroll_items", "sib_payroll_periods", "sib_leaves"]) {
+  assert.match(integritySql, new RegExp(`drop policy if exists [a-z0-9_]+ on public\\.${table}`, "i"), `Expected replacement of prior broad policies for ${table}`);
+}
+
+console.log(`Role-scoped module access and financial integrity migrations checked (${requiredPolicies.length} role policies plus finance controls).`);
