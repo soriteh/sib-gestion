@@ -94,35 +94,30 @@
       throw membershipError;
     }
 
-    // The shared JSON contains finance and HR data without module-level RLS.
-    // Never allow a limited role to load it; the role-scoped relational UI is
-    // required before enabling these accounts for normal app access.
-    if (!isAdminRole(membership.role)) {
-      try { await client.auth.signOut(); } catch (signOutError) {
-        console.warn("SIB: sign-out after role access denial did not complete:", signOutError);
+    // The shared JSON contains cross-module finance and HR data without
+    // module-level RLS. Only administrator roles may load it. Other active
+    // members receive a restricted workspace and use their own profile plus
+    // role-scoped communication features until their business modules are
+    // backed by dedicated relational tables and policies.
+    let appState = null;
+    if (isAdminRole(membership.role)) {
+      try {
+        appState = await loadAppState();
+      } catch (stateError) {
+        if (isTransientDataApiError(stateError)) {
+          throw new Error("Connexion acceptée par Supabase, mais le chargement des données centrales est temporairement indisponible (PGRST002/PGRST003). La session est conservée pour éviter une déconnexion automatique. Réessayez dans quelques instants.");
+        }
+        try { await client.auth.signOut(); } catch (signOutError) {
+          console.warn("SIB: sign-out after failed state load did not complete:", signOutError);
+        }
+        throw stateError;
       }
-      throw new Error("Votre compte est authentifié, mais l’accès métier pour le rôle « " +
-        String(membership.role || "non défini") +
-        " » n’est pas encore activé. Les données partagées sont protégées. Un administrateur doit finaliser les accès par module avant d’ouvrir ce compte.");
-    }
-
-    let appState;
-    try {
-      appState = await loadAppState();
-    } catch (stateError) {
-      if (isTransientDataApiError(stateError)) {
-        throw new Error("Connexion acceptée par Supabase, mais le chargement des données centrales est temporairement indisponible (PGRST002/PGRST003). La session est conservée pour éviter une déconnexion automatique. Réessayez dans quelques instants.");
-      }
-      try { await client.auth.signOut(); } catch (signOutError) {
-        console.warn("SIB: sign-out after failed state load did not complete:", signOutError);
-      }
-      throw stateError;
-    }
-    if (appState?.state) {
-      try { await syncCoreCollections(appState.state); }
-      catch (syncError) {
-        relationalSyncError = String(syncError?.message || syncError);
-        console.error("SIB relational sync on sign-in failed:", syncError);
+      if (appState?.state) {
+        try { await syncCoreCollections(appState.state); }
+        catch (syncError) {
+          relationalSyncError = String(syncError?.message || syncError);
+          console.error("SIB relational sync on sign-in failed:", syncError);
+        }
       }
     }
     try {
@@ -380,6 +375,7 @@
     signOut,
     currentUser,
     getMembership,
+    isAdminRole,
     requireSession,
     query,
     loadAppState,
