@@ -1,7 +1,7 @@
 /* SIB Gestion offline support — GitHub Pages subpath safe. */
 "use strict";
 
-const VERSION = "sib-gestion-offline-v5";
+const VERSION = "sib-gestion-offline-v6";
 const SCOPE_URL = self.registration.scope;
 const urlFor = path => new URL(path, SCOPE_URL).href;
 
@@ -11,6 +11,8 @@ const urlFor = path => new URL(path, SCOPE_URL).href;
 const REQUIRED_SHELL = [
   "./",
   "./index.html",
+  "./ai-agent.js?v=20261026-maya-voice-3",
+  "./assets/maya-ai.svg?v=20261026-maya-ai-1",
   "./supabase-config.js",
   "./supabase-client.js",
   "./manifest.webmanifest",
