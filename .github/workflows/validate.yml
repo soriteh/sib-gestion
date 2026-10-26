@@ -36,3 +36,5 @@ jobs:
         run: node scripts/test-role-data-security.mjs
       - name: Test multi-user restricted workspace and state isolation
         run: node scripts/test-multi-user-access.mjs
+      - name: Test role-scoped business module policies
+        run: node scripts/test-role-scoped-module-access.mjs
