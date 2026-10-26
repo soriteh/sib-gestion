@@ -83,4 +83,14 @@ for (const table of ["sib_payments", "sib_expenses", "sib_financial_accounts", "
   assert.match(integritySql, new RegExp(`drop policy if exists [a-z0-9_]+ on public\\.${table}`, "i"), `Expected replacement of prior broad policies for ${table}`);
 }
 
-console.log(`Role-scoped module access and financial integrity migrations checked (${requiredPolicies.length} role policies plus finance controls).`);
+
+const indexPath = new URL("../supabase/migrations/20261026040000_index_uncovered_foreign_keys.sql", import.meta.url);
+const indexSql = readFileSync(indexPath, "utf8");
+assert.match(indexSql, /\bbegin\s*;/i);
+assert.match(indexSql, /\bcommit\s*;/i);
+assert.doesNotMatch(indexSql, /\bdrop\s+(table|schema|database)\b/i, "Index migration must not drop data or schema.");
+assert.match(indexSql, /create index if not exists/i);
+assert.match(indexSql, /cardinality\(c\.conkey\) = 1/i);
+assert.match(indexSql, /i\.indisvalid[\s\S]*?i\.indkey\[0\] = c\.conkey\[1\]/i);
+
+console.log(`Role-scoped module access, financial integrity and FK index migrations checked (${requiredPolicies.length} role policies plus finance controls).`);
