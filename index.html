@@ -1511,6 +1511,36 @@ tbody tr:nth-child(2){animation-delay:15ms}tbody tr:nth-child(3){animation-delay
 @media(prefers-reduced-motion:reduce){
   #lgn .lgl .lgb .mk::before,#lgn .lgl .lgb .mk::after{animation:none!important}
 }
+
+/* Correctif : le point orange tourne sur le périmètre complet du cadre */
+#lgn .lgl .lgb .mk::after{
+  content:""!important;
+  position:absolute!important;
+  inset:-16px!important;
+  display:block!important;
+  width:auto!important;
+  height:auto!important;
+  top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;
+  z-index:4!important;
+  border:0!important;
+  border-radius:34px!important;
+  background:radial-gradient(circle at 50% 0%,#ff7800 0 5px,#fff 5.5px 7px,transparent 7.5px)!important;
+  opacity:1!important;visibility:visible!important;
+  box-shadow:none!important;
+  offset-path:none!important;
+  transform-origin:center center!important;
+  transform:rotate(0deg)!important;
+  animation:sibLoginDotAroundFrame 4s linear infinite!important;
+  pointer-events:none!important;
+}
+@keyframes sibLoginDotAroundFrame{
+  from{transform:rotate(0deg)}
+  to{transform:rotate(360deg)}
+}
+@media(prefers-reduced-motion:reduce){
+  #lgn .lgl .lgb .mk::after{animation:none!important}
+}
+
 </style>
 
 </head><body>
