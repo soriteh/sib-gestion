@@ -322,15 +322,26 @@
   async function inviteUser(email, fullName, role) {
     await requireSession();
     if (!client) throw new Error("Supabase n'est pas configuré.");
-    const { data, error } = await client.functions.invoke("sib-invite-user", {
-      body: { email, full_name: fullName, role }
-    });
+    const { data, error } = await client.functions.invoke("sib-invite-user", { body: { email, full_name: fullName, role } });
     if (error) {
-      const detail = data?.error || error.message || "Erreur inconnue";
-      throw new Error("Invitation e-mail impossible : " + detail);
+      let detail = data?.error || "";
+      if (!detail && error.context && typeof error.context.clone === "function") { try { const body = await error.context.clone().json(); detail = body?.error || body?.message || ""; } catch (_) {} }
+      throw new Error("Invitation e-mail impossible : " + (detail || error.message || "Erreur inconnue"));
     }
     if (!data?.ok) throw new Error(data?.error || "Le service d'invitation n'a pas confirmé l'envoi.");
     return data;
+  }
+
+  async function listUsers() {
+    await requireSession();
+    const { data, error } = await client.functions.invoke("sib-invite-user", { body: { action: "list" } });
+    if (error) {
+      let detail = data?.error || "";
+      if (!detail && error.context && typeof error.context.clone === "function") { try { const body = await error.context.clone().json(); detail = body?.error || body?.message || ""; } catch (_) {} }
+      throw new Error(detail || error.message || "Impossible de charger les utilisateurs.");
+    }
+    if (!data?.ok || !Array.isArray(data.users)) throw new Error(data?.error || "Réponse invalide du service utilisateurs.");
+    return data.users;
   }
 
   async function signUpFirstAdmin(email, password, fullName) {
@@ -372,6 +383,7 @@
     signIn,
     signUpFirstAdmin,
     inviteUser,
+    listUsers,
     signOut,
     currentUser,
     getMembership,
