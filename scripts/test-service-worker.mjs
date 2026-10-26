@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const source = readFileSync("service-worker.js", "utf8");
+const htmlSource = readFileSync("index.html", "utf8");
+const mayaSource = readFileSync("ai-agent.js", "utf8");
 
 // Guard the specific regression found during the offline audit: relative
 // cache keys must be resolved against the deployed GitHub Pages subpath.
@@ -20,6 +22,8 @@ assert.match(source, /const OPTIONAL_SHELL = \[/);
 assert.match(source, /await self\.skipWaiting\(\)/);
 assert.match(source, /await self\.clients\.claim\(\)/);
 assert.match(source, /const VERSION = "sib-gestion-offline-v6"/, "cache version must change when offline shell assets change");
+assert.match(htmlSource, /<script src="\\.\\/ai-agent\\.js\\?v=20261026-maya-voice-3" defer><\\/script>/, "HTML must request the cache-busted Maya assistant");
+assert.match(mayaSource, /assets\\/maya-ai\\.svg\\?v=20261026-maya-ai-1/, "Maya UI must use the versioned AI logo");
 assert.match(source, /sib-gestion-offline-/);
 
 console.log("Service worker offline cache regression tests passed (8 assertions).");
