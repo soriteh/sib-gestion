@@ -1,6 +1,6 @@
 # SIB Gestion — plan de mise en service
 
-Date du contrôle : 25 octobre 2026. Dépôt : `soriteh/sib-gestion`.
+Date du contrôle : 26 octobre 2026. Dépôt : `soriteh/sib-gestion`.
 
 ## Décision actuelle
 
@@ -8,11 +8,11 @@ Date du contrôle : 25 octobre 2026. Dépôt : `soriteh/sib-gestion`.
 
 ## Constats vérifiés sur le projet Supabase configuré
 
-- L'organisation SIB possède une ligne dans `sib_app_state`, version 87, état JSON d'environ 145 Ko.
-- L'état central contenait 14 services et 27 entrées dans le journal au moment du contrôle.
+- L'organisation SIB possède une ligne dans `sib_app_state`, version 106 au contrôle du 26 octobre 2026.
+- L'état central contient 14 services et 46 entrées dans le journal ; la collection Clients est vide. Ces nombres décrivent l'état central à l'instant du contrôle.
 - Le contrôle initial a trouvé les tables relationnelles `sib_clients`, `sib_services`, `sib_documents`, `sib_payments`, `sib_expenses` et `sib_employees` vides. Une migration additive a ensuite rapproché les 14 services du JSON central dans `sib_services` ; vérification post-migration : 14 services, aucun code vide enregistré comme chaîne vide, 0 client (cohérent avec l'état central sans client). Les tables documents, paiements, dépenses et employés restent vides.
 - La synchronisation relationnelle dans le client actuel ne traite que les collections Clients et Services. Le code de connexion absorbe toujours les erreurs du miroir pour préserver l'état JSON central, mais l'interface affiche maintenant un avertissement visible. Le mapping a été corrigé pour enregistrer les codes client/service absents comme `NULL` au lieu d'une chaîne vide, afin d'éviter les collisions sur les index uniques.
-- RLS était activé sur les tables `sib_*` inspectées. Cela ne suffit pas à prouver que chaque politique refuse correctement toutes les opérations non autorisées.
+- RLS est activé sur les tables `sib_*` inspectées. Une migration additive a depuis renforcé les politiques sur `sib_user_profiles`, `sib_employees`, `sib_attendance` et `sib_audit_log`. Les politiques effectives ont été relues dans Supabase et les privilèges UPDATE/DELETE du journal d'audit ont été vérifiés comme refusés pour `authenticated`. Cela ne prouve pas à lui seul que tous les parcours applicatifs par rôle sont opérationnels.
 - La fonction Edge `sib-push-send` est déployée. Les secrets VAPID et le webhook serveur doivent être configurés avant de confirmer les notifications push en arrière-plan. WhatsApp dépend aussi des paramètres Meta et du consentement des destinataires.
 - Le service GitHub Pages et les tests automatisés étaient réussis sur les commits vérifiés. Aucun test complet de navigateur, de restauration de sauvegarde ou de synchronisation multi-appareils n'a été réalisé par ce contrôle.
 
@@ -68,6 +68,12 @@ Pour chaque module, exécuter création, lecture, modification, annulation, rech
 
 Ne déclarer l'application « opérationnelle » qu'après avoir coché les tests P0 et les parcours critiques P1, obtenu des totaux financiers cohérents et documenté les résultats. Les tests de structure ne valident ni la qualité des données, ni les permissions en conditions réelles, ni les intégrations externes.
 
+
+## Corrections de sécurité appliquées le 26 octobre 2026
+
+- [x] La migration `20261026010000_role_scoped_sensitive_data_policies.sql` limite la lecture/écriture des profils au profil propre de l'utilisateur, restreint l'administration des dossiers employés et des présences à Admin/RH/Direction, autorise un employé à lire uniquement ses propres données de présence, et réserve la lecture du journal d'audit à Admin/Direction. Les clients ne peuvent plus modifier ni supprimer les lignes d'audit.
+- [x] Migration appliquée sur le projet Supabase connecté ; règles actives et privilèges du journal vérifiés par requête SQL.
+- [x] Le test `scripts/test-role-data-security.mjs` est intégré à GitHub Actions ; l'exécution `40253664375` est réussie : https://github.com/soriteh/sib-gestion/actions/runs/40253664375.
 
 ## Corrections de sécurité appliquées le 25 octobre 2026
 
