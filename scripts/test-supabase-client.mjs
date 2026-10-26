@@ -90,11 +90,10 @@ function makeHarness({ membershipError = null, stateError = null, bootstrapError
 
 {
   const h = makeHarness({ role: "Caissier" });
-  await assert.rejects(
-    () => h.cloud.signIn("admin@example.test", "password"),
-    (error) => /accès métier.*rôle/i.test(error?.message || "") && /données partagées sont protégées/i.test(error?.message || "")
-  );
-  assert.equal(h.signOutCalls, 1, "limited roles must not keep an authenticated session without role-scoped data access");
+  const result = await h.cloud.signIn("admin@example.test", "password");
+  assert.equal(result.membership.role, "Caissier", "active limited-role members may authenticate");
+  assert.equal(result.appState, null, "limited-role members must not load the shared finance/HR JSON state");
+  assert.equal(h.signOutCalls, 0, "a valid limited-role session remains authenticated in the restricted workspace");
 }
 
 {
@@ -209,4 +208,4 @@ function makeHarness({ membershipError = null, stateError = null, bootstrapError
   assert.equal(h.signOutCalls, 0, "a mirror failure must not sign the user out");
 }
 
-console.log("Supabase authentication and core relational sync tests passed (9 cases).");
+console.log("Supabase authentication, restricted-role access and core relational sync tests passed.");
