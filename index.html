@@ -1449,6 +1449,66 @@ tbody tr:nth-child(2){animation-delay:15ms}tbody tr:nth-child(3){animation-delay
 }
 </style>
 
+
+<style id="sib-login-logo-frame-animation">
+/* Animation renforcée exclusivement autour du cadre du logo de connexion */
+#lgn .lgl .lgb .mk{
+  position:relative!important;
+  overflow:visible!important;
+  box-shadow:none!important;
+}
+#lgn .lgl .lgb .mk::before{
+  content:""!important;
+  position:absolute!important;
+  inset:-10px!important;
+  z-index:2!important;
+  border:2px solid transparent!important;
+  border-top-color:#ff7800!important;
+  border-right-color:rgba(255,120,0,.72)!important;
+  border-bottom-color:rgba(255,255,255,.82)!important;
+  border-left-color:rgba(0,87,185,.9)!important;
+  border-radius:34px!important;
+  background:transparent!important;
+  opacity:1!important;
+  box-shadow:0 0 7px rgba(255,120,0,.22),inset 0 0 0 transparent!important;
+  pointer-events:none!important;
+  transform-origin:center!important;
+  animation:sibLoginFrameOrbit 5s linear infinite,sibLoginFrameGlow 2.6s ease-in-out infinite!important;
+}
+#lgn .lgl .lgb .mk::after{
+  content:""!important;
+  position:absolute!important;
+  display:block!important;
+  width:13px!important;height:13px!important;
+  top:-14px!important;right:-14px!important;left:auto!important;bottom:auto!important;
+  z-index:4!important;
+  border-radius:50%!important;
+  background:#ff7800!important;
+  border:3px solid #fff!important;
+  opacity:1!important;visibility:visible!important;
+  box-shadow:0 0 0 0 rgba(255,120,0,.5)!important;
+  transform:none!important;
+  animation:sibLoginFrameDot 2s ease-out infinite!important;
+}
+#lgn .lgl .lgb .mk img{position:relative!important;z-index:1!important;box-shadow:none!important;filter:none!important}
+@keyframes sibLoginFrameOrbit{
+  0%{transform:rotate(0deg);border-radius:34px}
+  50%{border-radius:29px}
+  100%{transform:rotate(360deg);border-radius:34px}
+}
+@keyframes sibLoginFrameGlow{
+  0%,100%{filter:brightness(.92);box-shadow:0 0 5px rgba(255,120,0,.18)!important}
+  50%{filter:brightness(1.22);box-shadow:0 0 15px rgba(255,120,0,.48)!important}
+}
+@keyframes sibLoginFrameDot{
+  0%{box-shadow:0 0 0 0 rgba(255,120,0,.55)}
+  70%,100%{box-shadow:0 0 0 8px rgba(255,120,0,0)}
+}
+@media(prefers-reduced-motion:reduce){
+  #lgn .lgl .lgb .mk::before,#lgn .lgl .lgb .mk::after{animation:none!important}
+}
+</style>
+
 </head><body>
 <div id="sib-startup" role="status" aria-live="polite"><div class="sib-startup-inner"><div class="sib-startup-logo" aria-hidden="true">SIB</div><div class="sib-startup-name">SIB Gestion</div><div class="sib-startup-label">Chargement de votre espace…</div><div class="sib-startup-track" aria-hidden="true"></div></div></div>
 <div class="app">
