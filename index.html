@@ -2384,12 +2384,20 @@ async function boot(){applyLogo();
   try{
    const onlineData=await Promise.race([(async()=>{const current=await window.SIBCloud.currentUser();const remote=window.SIBCloud.isAdminRole(current.membership.role)?await window.SIBCloud.loadAppState():null;let dedicatedProfile=null;try{dedicatedProfile=await window.SIBCloud.loadUserProfile()}catch(profileLoadError){console.warn("SIB: profil dédié indisponible au démarrage; utilisation du profil central en cache.",profileLoadError)}return [current,remote,dedicatedProfile]})(),new Promise((_,reject)=>setTimeout(()=>reject(new Error("Délai de connexion dépassé : tentative de démarrage hors ligne.")),7000))]);const current=onlineData[0],remote=onlineData[1],dedicatedProfile=onlineData[2];
    let pendingCloud=null;try{pendingCloud=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null")}catch(_){}
+   const currentIsAdmin=window.SIBCloud.isAdminRole(current.membership.role);
+   // Never hydrate a restricted user's session from browser-wide cached JSON:
+   // the same browser may previously have been used by an administrator.
+   if(!currentIsAdmin){
+    sibPendingConflict=false;
+    S=D0();
+   }else{
    sibPendingConflict=!!(pendingCloud?.state&&remote?.state);
    if(sibPendingConflict){
     console.warn("SIB: sauvegarde locale en conflit avec l’état central; aucune écriture automatique ne sera faite.");
     S={...D0(),...remote.state};S.set={...D0().set,...S.set};S.set.pre={...D0().set.pre,...S.set.pre};S.set.rh={...D0().set.rh,...S.set.rh};
    }else if(pendingCloud?.state){S={...D0(),...pendingCloud.state};S.set={...D0().set,...S.set};S.set.pre={...D0().set.pre,...S.set.pre};S.set.rh={...D0().set.rh,...S.set.rh};}
    else if(remote){S={...D0(),...remote.state};S.set={...D0().set,...S.set};S.set.pre={...D0().set.pre,...S.set.pre};S.set.rh={...D0().set.rh,...S.set.rh};}else{S=D0();}
+   }
    const email=current.user.email||"",parts=(email.split("@")[0]||"Administrateur").split(/[._-]+/).filter(Boolean);
    const profile=(S.profile&&typeof S.profile==="object")?S.profile:{};
    if(dedicatedProfile){
@@ -2397,7 +2405,7 @@ async function boot(){applyLogo();
    }
    const savedProfile=(S.profile&&typeof S.profile==="object")?S.profile:profile;
    CU={id:current.user.id,pn:savedProfile.pn||parts[0]||"Administrateur",nm:savedProfile.nm||parts.slice(1).join(" "),nom:savedProfile.nom||[savedProfile.pn||parts[0]||"Administrateur",savedProfile.nm||parts.slice(1).join(" ")].filter(Boolean).join(" "),mail:email,login:email,role:current.membership.role,actif:true,cloud:true,last:null,tel:savedProfile.tel||"",ph:savedProfile.ph||""};
-   S.us=[CU];RO=CU.role;cloudSessionReady=true;try{localStorage.setItem("sib-offline-profile-v1",JSON.stringify({id:CU.id,email:CU.mail,pn:CU.pn,nm:CU.nm,nom:CU.nom,role:CU.role,savedAt:Date.now()}));localStorage.setItem("sib-offline-state-v1",JSON.stringify({savedAt:Date.now(),state:cloudSnapshot()}));}catch(cacheErr){console.warn("SIB offline snapshot unavailable:",cacheErr)}applyLogo();activateCloudRealtime();enter(true);if(!remote)await cloudSaveChain;return;
+   S.us=[CU];RO=CU.role;cloudSessionReady=true;try{localStorage.setItem("sib-offline-profile-v1",JSON.stringify({id:CU.id,email:CU.mail,pn:CU.pn,nm:CU.nm,nom:CU.nom,role:CU.role,savedAt:Date.now()}));if(currentIsAdmin)localStorage.setItem("sib-offline-state-v1",JSON.stringify({savedAt:Date.now(),state:cloudSnapshot()}));}catch(cacheErr){console.warn("SIB offline snapshot unavailable:",cacheErr)}applyLogo();activateCloudRealtime();enter(true);if(!remote)await cloudSaveChain;return;
   }catch(err){
   console.warn("SIB cloud session unavailable:",err);
   const offlineNetworkFailure = navigator.onLine === false || /Délai de connexion dépassé|PGRST002|PGRST003|schema cache|Timed out acquiring connection|HTTP 5\d\d|status.?5\d\d|Failed to fetch|NetworkError|fetch failed|Load failed|Network request failed|CORS|cross-origin/i.test(String(err && err.message || err || ""));
