@@ -1407,6 +1407,48 @@ body,.top,main,.box,.k,.pp,.md>.box,input,select,textarea,button.s,.theme-manual
 </style>
 
 <script src="./offline-register.js" defer></script>
+
+<style id="sib-motion-enhancements">
+/* SIB Gestion — animations d'interface fluides et discrètes */
+@keyframes sibPageEnter{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes sibLoginCardEnter{from{opacity:0;transform:translateY(18px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes sibBlobDrift{0%,100%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(12px,-15px,0) scale(1.04)}}
+@keyframes sibHeroGlow{0%,100%{background-position:0% 50%,100% 50%,0% 50%}50%{background-position:15% 60%,85% 40%,100% 50%}}
+@keyframes sibActionPop{0%{transform:scale(.97)}60%{transform:scale(1.025)}100%{transform:scale(1)}}
+@keyframes sibLineReveal{from{opacity:0;transform:translateX(-5px)}to{opacity:1;transform:translateX(0)}}
+@keyframes sibModalEnter{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+main>section.in2{animation:sibPageEnter .42s cubic-bezier(.2,.7,.2,1) both}
+main>section.in2 .box,main>section.in2 .k{animation:sibCardIn .48s cubic-bezier(.2,.7,.2,1) both;animation-delay:var(--card-delay,35ms)}
+main>section.in2 .gd>*:nth-child(1){--card-delay:35ms}
+main>section.in2 .gd>*:nth-child(2){--card-delay:75ms}
+main>section.in2 .gd>*:nth-child(3){--card-delay:115ms}
+main>section.in2 .gd>*:nth-child(4){--card-delay:155ms}
+main>section.in2 .gd>*:nth-child(n+5){--card-delay:190ms}
+.hero{background-size:100% 100%,100% 100%,200% 200%;animation:sibHeroGlow 12s ease-in-out infinite}
+#lgn .blob{animation:sibBlobDrift 9s ease-in-out infinite}
+#lgn .blob.b2{animation-delay:-4.5s}
+#lgn .lgcard{animation:sibLoginCardEnter .55s cubic-bezier(.2,.7,.2,1) both}
+#lgn .lgcard input:focus{transition:box-shadow .25s ease,border-color .25s ease,background .25s ease}
+#lgn .lgcard button{transition:transform .2s ease,filter .2s ease,box-shadow .2s ease}
+#lgn .lgcard button:hover{transform:translateY(-2px);filter:brightness(1.04)}
+#lgn .lgcard button:active{transform:scale(.98)}
+button.p,button.s,.qa button{transition:transform .2s ease,box-shadow .22s ease,background-color .2s ease,border-color .2s ease,color .2s ease}
+button.p:hover,.qa button:hover{transform:translateY(-2px)}
+button.p:active,button.s:active,.qa button:active{animation:sibActionPop .22s ease}
+#nv button{transition:background .22s ease,color .22s ease,transform .22s ease}
+#nv button.on{animation:sibLineReveal .25s ease both}
+tbody tr{animation:sibLineReveal .25s ease both}
+tbody tr:nth-child(2){animation-delay:15ms}tbody tr:nth-child(3){animation-delay:30ms}tbody tr:nth-child(4){animation-delay:45ms}tbody tr:nth-child(5){animation-delay:60ms}
+#mdl:not(.hide){animation:sibPageEnter .25s ease both}
+#mdl:not(.hide)>.box{animation:sibModalEnter .3s cubic-bezier(.2,.7,.2,1) both}
+#toast.on{animation:sibModalEnter .28s cubic-bezier(.2,.7,.2,1) both}
+@media(prefers-reduced-motion:reduce){
+ #sib-motion-enhancements~*{animation:none!important}
+ main>section.in2,main>section.in2 .box,main>section.in2 .k,.hero,#lgn .blob,#lgn .lgcard,tbody tr,#mdl:not(.hide),#mdl:not(.hide)>.box,#toast.on{animation:none!important}
+ button.p:hover,.qa button:hover,#lgn .lgcard button:hover{transform:none!important}
+}
+</style>
+
 </head><body>
 <div id="sib-startup" role="status" aria-live="polite"><div class="sib-startup-inner"><div class="sib-startup-logo" aria-hidden="true">SIB</div><div class="sib-startup-name">SIB Gestion</div><div class="sib-startup-label">Chargement de votre espace…</div><div class="sib-startup-track" aria-hidden="true"></div></div></div>
 <div class="app">
