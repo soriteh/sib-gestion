@@ -2332,14 +2332,14 @@ async function refreshHeaderNotifications(){
   const unread=rows.filter(n=>!n.read_at).length;
   const badge=$("bcn"),popup=$("npp");if(!badge||!popup)return;
   const businessCount=Number(badge.dataset.businessCount||0);
-  const total=businessCount+unread;
+  const total=unread;
   badge.textContent=total>99?"99+":String(total);badge.classList.toggle("hide",total===0);
   const businessItems=Array.from(popup.querySelectorAll("li.al")).map(li=>li.outerHTML).join("");
-  const notifItems=rows.map(n=>'<li style="display:block;padding:10px 0;border-bottom:1px solid var(--ln);white-space:normal"><span style="display:flex;gap:7px;align-items:start"><i class="dot" style="flex:none;margin-top:6px;background:var(--'+(n.read_at?'mu':'or')+')"></i><span style="flex:1;min-width:0"><b style="font-size:13px">'+esc(n.title||"Notification")+'</b><br><small>'+esc(n.body||"")+'</small><br><small>'+esc(new Date(n.created_at).toLocaleString("fr-FR"))+(n.read_at?"":" · Non lue")+'</small>'+'<br><button type="button" class="s" data-header-notif-open="'+esc(n.id)+'" style="margin-top:7px;font-size:12px;padding:4px 8px">Lire dans une bulle</button>'+(n.read_at?'':' <button type="button" class="s" data-header-notif-read="'+esc(n.id)+'" style="margin-top:7px;font-size:12px;padding:4px 8px">Marquer comme lue</button>')+'</span></span></li>').join("");
+  const notifItems=rows.map(n=>'<li data-header-notif-row="'+esc(n.id)+'" role="button" tabindex="0" aria-label="Ouvrir la notification" style="display:block;padding:10px 0;border-bottom:1px solid var(--ln);white-space:normal;cursor:pointer"><span style="display:flex;gap:7px;align-items:start"><i class="dot" style="flex:none;margin-top:6px;background:var(--'+(n.read_at?'mu':'or')+')"></i><span style="flex:1;min-width:0"><b style="font-size:13px">'+esc(n.title||"Notification")+'</b><br><small>'+esc(n.body||"")+'</small><br><small>'+esc(new Date(n.created_at).toLocaleString("fr-FR"))+(n.read_at?"":" · Non lue")+'</small>'+'<br><button type="button" class="s" data-header-notif-open="'+esc(n.id)+'" style="margin-top:7px;font-size:12px;padding:4px 8px">Lire dans une bulle</button>'+(n.read_at?'':' <button type="button" class="s" data-header-notif-read="'+esc(n.id)+'" style="margin-top:7px;font-size:12px;padding:4px 8px">Marquer comme lue</button>')+'</span></span></li>').join("");
   popup.innerHTML='<b>Notifications</b>'+(notifItems?'<div style="max-height:55vh;overflow:auto"><ul class="ls">'+notifItems+'</ul></div>':'<p style="color:var(--mu);font-size:13px">Aucune notification interne.</p>')+(businessItems?'<b style="display:block;margin-top:10px">Alertes de gestion</b><ul class="ls">'+businessItems+'</ul>':'');
-  popup.querySelectorAll("[data-header-notif-open]").forEach(button=>button.addEventListener("click",async event=>{
+  popup.querySelectorAll("[data-header-notif-row]").forEach(item=>{const openNotification=async event=>{
    event.preventDefault();event.stopPropagation();
-   const notification=rows.find(n=>String(n.id)===button.dataset.headerNotifOpen);if(!notification)return;
+   if(event.target.closest("[data-header-notif-read]"))return;const notification=rows.find(n=>String(n.id)===item.dataset.headerNotifRow);if(!notification)return;
    const date=new Date(notification.created_at).toLocaleString("fr-FR");
    $("mdc").innerHTML='<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><span style="display:grid;place-items:center;width:38px;height:38px;flex:none;border-radius:12px;background:var(--ac2);color:var(--ac);font-size:20px">🔔</span><div><h2 style="margin:0;font-size:19px">'+esc(notification.title||"Notification")+'</h2><small style="color:var(--mu)">'+esc(date)+'</small></div></div><div style="white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.65;padding:14px;border-radius:12px;background:var(--bg);border:1px solid var(--ln)">'+esc(notification.body||"Aucun détail supplémentaire.")+'</div><p style="font-size:12px;color:var(--mu);margin-top:10px">'+(notification.read_at?"Notification déjà lue":"Notification marquée comme lue à l’ouverture.")+'</p>';
    $("mdl").classList.remove("hide");$("npp").classList.add("hide");
@@ -2347,7 +2347,7 @@ async function refreshHeaderNotifications(){
     try{const update=await client.from("sib_internal_notifications").update({read_at:new Date().toISOString()}).eq("id",notification.id).eq("user_id",user.id).is("read_at",null);if(update.error)throw update.error;await refreshHeaderNotifications();}
     catch(error){console.warn("Impossible de marquer la notification comme lue:",error);}
    }
-  }));
+  };item.addEventListener("click",openNotification);item.addEventListener("keydown",event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();openNotification(event);}});});
   popup.querySelectorAll("[data-header-notif-read]").forEach(button=>button.addEventListener("click",async event=>{
    event.preventDefault();event.stopPropagation();button.disabled=true;
    try{
