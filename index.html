@@ -1909,7 +1909,48 @@ const ACT={
  tr_att_add(){const studentId=V("tr_att_student"),sessionId=V("tr_att_session"),student=S.etudiants.find(x=>String(x.id)===String(studentId));if(!student||!sessionId)return toast("Choisissez l’apprenant et la session.");const date=V("tr_att_date")||new Date().toISOString().slice(0,10),status=V("tr_att_status")||"Présent";if(S.trainingAttendance.some(x=>String(x.studentId)===String(studentId)&&String(x.sessionId)===String(sessionId)&&x.date===date))return toast("La présence de cet apprenant est déjà enregistrée pour cette session et cette date.");S.trainingAttendance.push({id:trainingId("PRES"),studentId,sessionId,date,status});save();draw();toast("Présence enregistrée.");},
  tr_ass_add(){const studentId=V("tr_ass_student"),courseId=V("tr_ass_course"),label=V("tr_ass_label").trim(),score=Number(V("tr_ass_score")),maxScore=Number(V("tr_ass_max"));if(!studentId||!courseId||!label||!(maxScore>0)||score<0||score>maxScore)return toast("Vérifiez l’apprenant, la formation et les notes.");S.trainingAssessments.push({id:trainingId("NOTE"),studentId,courseId,label,score,maxScore,date:V("tr_ass_date")||new Date().toISOString().slice(0,10)});save();draw();toast("Évaluation enregistrée.");},
  tr_cert_add(){const studentId=V("tr_cert_student"),courseId=V("tr_cert_course"),student=S.etudiants.find(x=>String(x.id)===String(studentId)),course=S.courses.find(x=>String(x.id)===String(courseId));if(!student||!course)return toast("Choisissez un apprenant et une formation.");const notes=S.trainingAssessments.filter(x=>String(x.studentId)===String(studentId)&&String(x.courseId)===String(courseId));if(!notes.length||!notes.every(x=>Number(x.score)>=Number(x.maxScore)*0.5))return toast("Pour délivrer l’attestation, enregistrez d’abord les évaluations et vérifiez que les notes atteignent au moins 50 %.");if(S.trainingCertificates.some(x=>String(x.studentId)===String(studentId)&&String(x.courseId)===String(courseId)))return toast("Une attestation existe déjà pour cet apprenant et cette formation.");S.trainingCertificates.push({id:trainingId("CERT"),number:trainingId("SIB-CERT"),studentId,courseId,date:V("tr_cert_date")||new Date().toISOString().slice(0,10)});save();draw();toast("Attestation générée.");},
- tr_cert_print(id){const cert=S.trainingCertificates.find(x=>String(x.id)===String(id));if(!cert)return;const student=S.etudiants.find(x=>String(x.id)===String(cert.studentId)),course=S.courses.find(x=>String(x.id)===String(cert.courseId));const w=window.open("","_blank");if(!w)return toast("Autorisez les fenêtres contextuelles pour imprimer l’attestation.");w.document.write('<!doctype html><html lang="fr"><meta charset="utf-8"><title>Attestation SIB</title><style>body{font-family:Arial,sans-serif;margin:0;padding:35px;color:#071A36}.cert{border:8px double #0057B9;padding:55px;text-align:center;min-height:70vh}h1{color:#0057B9;font-size:34px}h2{color:#FF7800}p{font-size:18px;line-height:1.8}.num{margin-top:45px;font-size:12px}</style><div class="cert"><h2>SORITECH INNOV BUSINESS</h2><p>INNOVER • DÉVELOPPER • CONNECTER</p><h1>ATTESTATION DE FORMATION</h1><p>Nous attestons que</p><h2>'+esc(student?.name||"Apprenant")+'</h2><p>a suivi avec succès la formation</p><h2>'+esc(course?.name||"Formation")+'</h2><p>Délivrée le '+esc(cert.date)+'</p><div class="num">Référence : '+esc(cert.number)+'</div><p>Signature et cachet du centre</p></div><script>window.onload=()=>window.print()<\/script></html>');w.document.close();},
+ tr_cert_print(id){const cert=S.trainingCertificates.find(x=>String(x.id)===String(id));if(!cert)return;const student=S.etudiants.find(x=>String(x.id)===String(cert.studentId)),course=S.courses.find(x=>String(x.id)===String(cert.courseId));const w=window.open("","_blank");if(!w)return toast("Autorisez les fenêtres contextuelles pour imprimer l’attestation.");w.document.write('<!doctype html><html lang="fr"><meta charset="utf-8"><title>Attestation SIB</title><style>body{font-family:Arial,sans-serif;margin:0;padding:35px;color:#071A36}.cert{border:8px double #0057B9;padding:55px;text-align:center;min-height:70vh}h1{color:#0057B9;font-size:34px}h2{color:#FF7800}p{font-size:18px;line-height:1.8}.num{margin-top:45px;font-size:12px}
+/* Connexion : reprendre l’anneau pulsé et le point orange du logo de chargement */
+#lgn .lgl .lgb .mk{
+  isolation:isolate!important;
+  overflow:visible!important;
+  box-shadow:0 0 0 1px rgba(255,255,255,.18),0 0 24px rgba(0,87,185,.28)!important;
+}
+#lgn .lgl .lgb .mk::before{
+  content:""!important;
+  position:absolute!important;
+  inset:-5px!important;
+  z-index:-1!important;
+  border:1px solid #ff7800!important;
+  border-radius:15px!important;
+  opacity:0!important;
+  transform:scale(.8)!important;
+  pointer-events:none!important;
+  animation:sibLogoRing 2.8s ease-out infinite!important;
+}
+#lgn .lgl .lgb .mk::after{
+  content:""!important;
+  display:block!important;
+  position:absolute!important;
+  right:-3px!important;
+  top:-3px!important;
+  left:auto!important;
+  width:11px!important;
+  height:11px!important;
+  border-radius:50%!important;
+  background:#ff7800!important;
+  border:2px solid #071a36!important;
+  z-index:3!important;
+  opacity:1!important;
+  transform:none!important;
+  box-shadow:0 0 0 0 rgba(255,120,0,.6)!important;
+  animation:sibLogoDot 2s ease-out infinite!important;
+}
+@media(prefers-reduced-motion:reduce){
+  #lgn .lgl .lgb .mk::before,#lgn .lgl .lgb .mk::after{animation:none!important}
+}
+
+</style><div class="cert"><h2>SORITECH INNOV BUSINESS</h2><p>INNOVER • DÉVELOPPER • CONNECTER</p><h1>ATTESTATION DE FORMATION</h1><p>Nous attestons que</p><h2>'+esc(student?.name||"Apprenant")+'</h2><p>a suivi avec succès la formation</p><h2>'+esc(course?.name||"Formation")+'</h2><p>Délivrée le '+esc(cert.date)+'</p><div class="num">Référence : '+esc(cert.number)+'</div><p>Signature et cachet du centre</p></div><script>window.onload=()=>window.print()<\/script></html>');w.document.close();},
  prelreset(){["prel_id","prel_libelle","prel_montant"].forEach(id=>$(id).value="");$("prel_jour").value="1";$("prel_debut").value=new Date().toISOString().slice(0,7);},
  preledit(id){const p=S.prelevements.find(x=>String(x.id)===String(id));if(!p)return;$("prel_id").value=p.id;$("prel_libelle").value=p.libelle||"";$("prel_montant").value=p.montant||"";$("prel_jour").value=p.jour||1;$("prel_debut").value=p.debut||new Date().toISOString().slice(0,7);$("prel_libelle").focus();},
  prelsave(){if(!can("banque"))return;const id=V("prel_id").trim(),libelle=V("prel_libelle").trim(),montant=+V("prel_montant"),jour=+V("prel_jour"),debut=V("prel_debut");if(!libelle||!(montant>0)||!Number.isFinite(montant)||!Number.isInteger(jour)||jour<1||jour>28||!/^[0-9]{4}-[0-9]{2}$/.test(debut))return toast("Renseignez le libellé, un montant positif, un jour entre 1 et 28 et le premier mois.");let p=id?S.prelevements.find(x=>String(x.id)===id):null;if(id&&!p)return toast("Ce prélèvement n’existe plus. Rechargez la page.");if(!p){p={id:nw(),active:true,dernierMois:""};S.prelevements.push(p);}Object.assign(p,{libelle,montant,jour,debut,active:p.active!==false});save();draw();toast("Prélèvement mensuel enregistré");},
