@@ -32,3 +32,5 @@ jobs:
         run: node scripts/test-shared-state-security.mjs
       - name: Test relational sync schema compatibility
         run: node scripts/test-relational-sync-schema.mjs
+      - name: Test role-scoped sensitive data policies
+        run: node scripts/test-role-data-security.mjs
