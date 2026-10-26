@@ -1789,6 +1789,11 @@ function save(){
   if(typeof toast==="function")toast("Sauvegarde refusée : aucune session Supabase active. Reconnectez-vous avant de modifier les données.","er");
   return;
  }
+ if(CU?.cloud&&!window.SIBCloud.isAdminRole(RO)){
+  // Restricted members must never attempt to save the shared finance/HR JSON.
+  // Their profile is saved separately by saveProfileAndConfirm().
+  return;
+ }
  const snapshot=cloudSnapshot();
  if(!navigator.onLine){
   const stored=storePendingCloudSnapshot(snapshot);
@@ -1855,7 +1860,7 @@ function renderRelances(){
  root.querySelectorAll("[data-relance-quote]").forEach(b=>b.addEventListener("click",()=>sendQuote(b.dataset.relanceQuote)));
  $("sib-follow-send")?.addEventListener("click",()=>sendOther($("sib-follow-client")?.value));
 }
-function nav(v){if(!CU||(window.SIBCloud?.ready&&!cloudSessionReady)){document.body.classList.add("lo");lgv("login");return;}if(v!==CUR&&gate(()=>nav(v)))return;document.querySelectorAll("main section").forEach(s=>{const on=s.id==v;s.classList.toggle("hide",!on);if(on){s.classList.remove("in2");void s.offsetWidth;s.classList.add("in2");setTimeout(()=>s.classList.remove("in2"),1500)}});document.querySelectorAll("#nv button").forEach(b=>b.classList.toggle("on",b.dataset.v==v));$("pt").textContent=(P.find(p=>p[0]==v)||[])[1]||"";if(v=="dash")for(const k in PV)delete PV[k];document.body.classList.remove("mo");CUR=v;if(v==="cli")renderClients();if(v==="relance")renderRelances();try{draw()}catch(err){console.error("SIB interface draw error:",err);const target=document.getElementById(v);if(target){target.classList.remove("hide");target.innerHTML='<div class="box" style="border:1px solid #e7a5a5"><h2>Erreur de chargement</h2><p>Cette page n’a pas pu être affichée. Rechargez l’application. Si le problème continue, transmettez le message ci-dessous au support.</p><pre style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></div>';const pre=target.querySelector("pre");if(pre)pre.textContent=err&& (err.stack||err.message)||String(err)}if(v==="cli")toast("Erreur pendant le chargement de la page Clients.","wa")}}
+function nav(v){if(!CU||(window.SIBCloud?.ready&&!cloudSessionReady)){document.body.classList.add("lo");lgv("login");return;}if(CU?.cloud&&window.SIBCloud?.ready&&!window.SIBCloud.isAdminRole(RO)&&!["prof","com"].includes(v)){toast("Ce module n’est pas encore activé pour votre rôle. Les données métier seront ouvertes après la mise en place de leur stockage et de leurs permissions dédiés.","wa");return;}if(v!==CUR&&gate(()=>nav(v)))return;document.querySelectorAll("main section").forEach(s=>{const on=s.id==v;s.classList.toggle("hide",!on);if(on){s.classList.remove("in2");void s.offsetWidth;s.classList.add("in2");setTimeout(()=>s.classList.remove("in2"),1500)}});document.querySelectorAll("#nv button").forEach(b=>b.classList.toggle("on",b.dataset.v==v));$("pt").textContent=(P.find(p=>p[0]==v)||[])[1]||"";if(v=="dash")for(const k in PV)delete PV[k];document.body.classList.remove("mo");CUR=v;if(v==="cli")renderClients();if(v==="relance")renderRelances();try{draw()}catch(err){console.error("SIB interface draw error:",err);const target=document.getElementById(v);if(target){target.classList.remove("hide");target.innerHTML='<div class="box" style="border:1px solid #e7a5a5"><h2>Erreur de chargement</h2><p>Cette page n’a pas pu être affichée. Rechargez l’application. Si le problème continue, transmettez le message ci-dessous au support.</p><pre style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></div>';const pre=target.querySelector("pre");if(pre)pre.textContent=err&& (err.stack||err.message)||String(err)}if(v==="cli")toast("Erreur pendant le chargement de la page Clients.","wa")}}
 
 refreshServiceSelects();$("sv").onchange=()=>$("pu").value=SV[$("sv").value]?.[1]??"";$("sv").onchange();
 ["fr","tt2","da"].forEach(i=>$(i).innerHTML=AC.map(a=>`<option>${a}</option>`).join(""));
@@ -1983,7 +1988,7 @@ $("exp").onclick=()=>{const rows=[["N°","Date","Type","Compte","Montant"],...S.
 $("backup").onclick=()=>{if(RO!=="Administrateur")return toast("Sauvegarde complète réservée à l’administrateur");const payload={app:"SIB Gestion",format_version:1,exported_at:new Date().toISOString(),data:S};const u=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:"application/json;charset=utf-8"}));const a=document.createElement("a");a.href=u;a.download="sib-gestion-sauvegarde-"+new Date().toISOString().slice(0,10)+".json";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000);toast("Sauvegarde JSON téléchargée. Conservez-la dans un emplacement sécurisé.");};
 $("rst").onclick=()=>{if(RO!="Administrateur")return toast("Réservé à l'administrateur");ask("Effacer toutes les données, y compris les utilisateurs et les paramètres ? Cette action est définitive.",()=>{S=D0();save();CU=null;try{sessionStorage.removeItem("sib-uid")}catch(_){}document.body.classList.add("lo");lgv("setup");applyLogo()},{title:"Effacer toutes les données",danger:1,ok:"Tout effacer",warn:"Cette action est définitive : utilisateurs, opérations et paramètres seront perdus."});};
 let CU=null,RO="Administrateur",DL=[],PD="",PK="",VC="",RM=new Date().toISOString().slice(0,7);
-const P=[["dash","Tableau de bord"],["sale","Encaisser"],["svc","Services"],["cli","Clients"],["relance","Relances clients"],["dev","Devis"],["fac","Factures"],["treso","Caisse"],["banque","Banque"],["dep","Dépenses"],["formation","Formations"],["fo","Fournisseurs et achats"],["st","Stock"],["pj","Projets"],["rap","Rapports"],["hist","Historique"],["jr","Journal"],["rh","Employés"],["cg","Congés"],["pr","Présences"],["pa","Paie"],["usr","Utilisateurs"],["set","Paramètres"],["prof","Mon profil"]];
+const P=[["dash","Tableau de bord"],["sale","Encaisser"],["svc","Services"],["cli","Clients"],["relance","Relances clients"],["dev","Devis"],["fac","Factures"],["treso","Caisse"],["banque","Banque"],["dep","Dépenses"],["formation","Formations"],["fo","Fournisseurs et achats"],["st","Stock"],["pj","Projets"],["rap","Rapports"],["hist","Historique"],["jr","Journal"],["rh","Employés"],["cg","Congés"],["pr","Présences"],["pa","Paie"],["usr","Utilisateurs"],["set","Paramètres"],["prof","Mon profil"],["com","Communication interne"]];
 const PM={Administrateur:0,Direction:P.map(p=>p[0]).filter(x=>x!="usr"&&x!="set"),Comptable:["dash","treso","banque","dep","fac","fo","rap","hist","pa","relance","formation"],RH:["dash","rh","cg","pr","pa"],Caissier:["dash","sale","treso","hist"],Commercial:["dash","cli","dev","fac","pj","relance"],Technicien:["dash","pj","st"],Magasinier:["dash","st","fo"]};
 const CN=()=>["Administrateur","Direction","Comptable"].includes(RO);
 const PJS=["Devis","En cours","Livré","Clôturé"],dt=x=>new Date(x).toLocaleDateString("fr-FR");
@@ -2197,7 +2202,8 @@ const GR=[["Principal",["dash","sale"]],["Ventes",["svc","cli","dev","fac"]],["F
 const IC={ia:"M12 3l1.9 5.8L20 11l-6.1 2.2L12 19l-1.9-5.8L4 11l6.1-2.2zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z",svc:"M4 5h16M4 12h16M4 19h16",dash:"M3 13h8V3H3zM13 21h8V11h-8zM3 21h8v-6H3zM13 3v6h8V3z",sale:"M12 2v20M17 6H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6",cli:"M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM22 21v-2a4 4 0 00-3-3.9M16 3.1a4 4 0 010 7.8",dev:"M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6M8 13h8M8 17h5",fac:"M4 2v20l3-2 3 2 3-2 3 2 3-2V2l-3 2-3-2-3 2-3-2zM8 8h8M8 12h8M8 16h5",treso:"M3 10l9-6 9 6M5 10v9M9 10v9M15 10v9M19 10v9M3 21h18",banque:"M2 9l10-6 10 6M4 10v9M8 10v9M16 10v9M20 10v9M2 21h20",dep:"M12 5v14M5 12l7 7 7-7",fo:"M1 3h4l2.7 12.4a2 2 0 002 1.6h9.7a2 2 0 002-1.6L23 7H6M9 21a1 1 0 100-2 1 1 0 000 2zM20 21a1 1 0 100-2 1 1 0 000 2z",formation:"M4 4h16v16H4zM8 8h8M8 12h8M8 16h5",st:"M21 8l-9-5-9 5v8l9 5 9-5zM3 8l9 5 9-5M12 13v8",etu:"M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8M20 8v6M23 11h-6",pj:"M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z",rap:"M18 20V10M12 20V4M6 20v-6",hist:"M3 12a9 9 0 109-9 9 9 0 00-6.7 3L3 8M3 3v5h5M12 7v5l3 2",jr:"M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11",rh:"M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM20 8v6M23 11h-6",cg:"M3 6a2 2 0 012-2h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2zM16 2v4M8 2v4M3 10h18",pr:"M12 22a10 10 0 100-20 10 10 0 000 20zM12 6v6l4 2",pa:"M2 7h20v10H2zM12 14a2 2 0 100-4 2 2 0 000 4zM6 12h.01M18 12h.01",set:"M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6",usr:"M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10zM9 12l2 2 4-4"};
 const svg=i=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${IC[i]}"/></svg>`;
 function mk(){
- const ok=PM[RO]||P.map(p=>p[0]),nm=Object.fromEntries(P);
+ const restrictedCloudUser=!!(CU?.cloud&&window.SIBCloud?.ready&&!window.SIBCloud.isAdminRole(RO));
+ const ok=restrictedCloudUser?["prof","com"]:(PM[RO]||P.map(p=>p[0])),nm=Object.fromEntries(P);
  $("nv").innerHTML=GR.map(([g,ids])=>{const it=ids.filter(i=>ok.includes(i));return it.length?`<p class="gt">${g}</p>`+it.map(i=>`<button data-v="${i}" title="${nm[i]}">${svg(i)}<span>${nm[i]}</span></button>`).join(""):""}).join("");
  $("nv").querySelectorAll("button").forEach(b=>b.onclick=()=>nav(b.dataset.v));nav(ok[0])}
 function sibUpdateDateTime(){
@@ -2360,7 +2366,7 @@ async function doGo(){const m=LM;if($("lbt").classList.contains("ld"))return;
     CU={id:result.user.id,pn:firstName,nm:lastName,nom:String(savedProfile.nom||"").trim()||[firstName,lastName].filter(Boolean).join(" "),mail:email,login:email,role:result.membership.role,actif:true,cloud:true,last:null,tel:String(savedProfile.tel||""),ph:String(savedProfile.ph||"")};
     S.us=[CU];RO=CU.role;cloudSessionReady=true;FA=0;applyLogo();activateCloudRealtime();bz(0);enter(true);
     if(window.SIBCloud.relationalSyncError){toast("Synchronisation relationnelle incomplète : "+window.SIBCloud.relationalSyncError+" Les données centrales restent enregistrées, mais vérifiez le miroir Clients/Services avant tout rapprochement comptable.","wa",{sticky:true});}
-    if(!remote){await cloudSaveChain;toast("Espace central SIB initialisé. Les données seront partagées après connexion sur les autres appareils.","ok",{ms:6000});}return;
+    if(!remote&&window.SIBCloud.isAdminRole(result.membership.role)){await cloudSaveChain;toast("Espace central SIB initialisé. Les données seront partagées après connexion sur les autres appareils.","ok",{ms:6000});}else if(!window.SIBCloud.isAdminRole(result.membership.role)){toast("Connexion réussie. Votre espace est limité à votre profil et à la communication interne pendant l’activation sécurisée des modules métier.","in",{ms:7000});}return;
    }catch(err){bz(0);return er(err?.message||"Connexion Supabase impossible. Vérifiez la configuration et la migration SQL.");}
   }
   const u=S.us.find(x=>x.login==l),good=(await hp(p,u?u.salt:"00"))==(u?u.hash:"x");bz(0);
@@ -2376,7 +2382,7 @@ async function boot(){applyLogo();
  if(window.SIBCloud?.ready){
   cloudSessionReady=false;
   try{
-   const onlineData=await Promise.race([(async()=>{const current=await window.SIBCloud.currentUser();const remote=await window.SIBCloud.loadAppState();let dedicatedProfile=null;try{dedicatedProfile=await window.SIBCloud.loadUserProfile()}catch(profileLoadError){console.warn("SIB: profil dédié indisponible au démarrage; utilisation du profil central en cache.",profileLoadError)}return [current,remote,dedicatedProfile]})(),new Promise((_,reject)=>setTimeout(()=>reject(new Error("Délai de connexion dépassé : tentative de démarrage hors ligne.")),7000))]);const current=onlineData[0],remote=onlineData[1],dedicatedProfile=onlineData[2];
+   const onlineData=await Promise.race([(async()=>{const current=await window.SIBCloud.currentUser();const remote=window.SIBCloud.isAdminRole(current.membership.role)?await window.SIBCloud.loadAppState():null;let dedicatedProfile=null;try{dedicatedProfile=await window.SIBCloud.loadUserProfile()}catch(profileLoadError){console.warn("SIB: profil dédié indisponible au démarrage; utilisation du profil central en cache.",profileLoadError)}return [current,remote,dedicatedProfile]})(),new Promise((_,reject)=>setTimeout(()=>reject(new Error("Délai de connexion dépassé : tentative de démarrage hors ligne.")),7000))]);const current=onlineData[0],remote=onlineData[1],dedicatedProfile=onlineData[2];
    let pendingCloud=null;try{pendingCloud=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null")}catch(_){}
    sibPendingConflict=!!(pendingCloud?.state&&remote?.state);
    if(sibPendingConflict){
@@ -2495,7 +2501,13 @@ function drawProf(){if(!$("prof")||!CU)return;const u=CU,ph=PP!==undefined?PP:u.
 async function saveProfileAndConfirm(){
  if(sibPendingConflict)throw new Error("Un conflit de synchronisation bloque l’enregistrement. Téléchargez la sauvegarde locale avant de reprendre.");
  if(!window.SIBCloud?.ready||!cloudSessionReady)throw new Error("Aucune session Supabase active. Reconnectez-vous avant d’enregistrer le profil.");
- const snapshot=cloudSnapshot(),pendingStored=storePendingCloudSnapshot(snapshot);
+ const snapshot=cloudSnapshot();
+ if(CU?.cloud&&!window.SIBCloud.isAdminRole(RO)){
+  if(!navigator.onLine)throw new Error("La modification du profil nécessite une connexion pour être confirmée par Supabase.");
+  await window.SIBCloud.saveUserProfile(snapshot.profile||{pn:CU.pn,nm:CU.nm,nom:CU.nom,tel:CU.tel,ph:CU.ph});
+  return "cloud";
+ }
+ const pendingStored=storePendingCloudSnapshot(snapshot);
  try{localStorage.setItem("sib-offline-state-v1",JSON.stringify({savedAt:Date.now(),state:snapshot}));}catch(_){}
  if(!navigator.onLine){if(!pendingStored)throw new Error("Stockage local indisponible : impossible de mettre la modification en attente.");return "offline";}
  const previousChain=cloudSaveChain;if(previousChain)await previousChain;
