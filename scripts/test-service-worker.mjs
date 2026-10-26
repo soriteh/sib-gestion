@@ -22,8 +22,8 @@ assert.match(source, /const OPTIONAL_SHELL = \[/);
 assert.match(source, /await self\.skipWaiting\(\)/);
 assert.match(source, /await self\.clients\.claim\(\)/);
 assert.match(source, /const VERSION = "sib-gestion-offline-v6"/, "cache version must change when offline shell assets change");
-assert.match(htmlSource, /<script src="\\.\\/ai-agent\\.js\\?v=20261026-maya-voice-3" defer><\\/script>/, "HTML must request the cache-busted Maya assistant");
-assert.match(mayaSource, /assets\\/maya-ai\\.svg\\?v=20261026-maya-ai-1/, "Maya UI must use the versioned AI logo");
+assert.ok(htmlSource.includes('<script src="./ai-agent.js?v=20261026-maya-voice-3" defer></script>'), "HTML must request the cache-busted Maya assistant");
+assert.ok(mayaSource.includes("assets/maya-ai.svg?v=20261026-maya-ai-1"), "Maya UI must use the versioned AI logo");
 assert.match(source, /sib-gestion-offline-/);
 
 console.log("Service worker offline cache regression tests passed (8 assertions).");
