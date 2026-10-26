@@ -62,6 +62,24 @@ Deno.serve(async (req: Request) => {
 
   let payload: Record<string, unknown>;
   try { payload = await req.json(); } catch { return respond(400, { error: "Corps JSON invalide." }); }
+  if (payload.action === "list") {
+    const { data: memberships, error: listError } = await adminClient.from("organization_memberships").select("user_id, role, active, created_at").eq("organization_id", ORG_ID).order("created_at", { ascending: true });
+    if (listError) return respond(500, { error: "Impossible de charger les adhésions utilisateurs." });
+    const authUsers: Record<string, any> = {};
+    for (let page = 1; page <= 20; page++) {
+      const { data, error } = await adminClient.auth.admin.listUsers({ page, perPage: 100 });
+      if (error) return respond(500, { error: "Impossible de charger les comptes Auth Supabase." });
+      for (const user of data.users || []) authUsers[user.id] = user;
+      if (!data.users || data.users.length < 100) break;
+    }
+    const users = (memberships || []).map((m: any) => {
+      const u = authUsers[m.user_id]; const meta = u?.user_metadata || {}; const email = String(u?.email || "").toLowerCase();
+      const fullName = String(meta.full_name || meta.name || "").trim(); const parts = fullName.split(/\s+/).filter(Boolean);
+      return { id: m.user_id, pn: meta.first_name || parts[0] || email.split("@")[0] || "Utilisateur", nm: meta.last_name || parts.slice(1).join(" "), nom: fullName || email.split("@")[0] || "Utilisateur", mail: email, login: email, role: m.role, actif: m.active === true, mc: false, cloudAuth: true, last: u?.last_sign_in_at || null, cr: m.created_at || u?.created_at || null };
+    });
+    return respond(200, { ok: true, users });
+  }
+
   const email = typeof payload.email === "string" ? payload.email.trim().toLowerCase() : "";
   const fullName = typeof payload.full_name === "string" ? payload.full_name.trim().slice(0, 160) : "";
   const role = typeof payload.role === "string" ? payload.role : "";
@@ -83,7 +101,7 @@ Deno.serve(async (req: Request) => {
     console.error("Invitation Supabase refusée:", msg);
     return respond(400, { error: msg.includes("already") || msg.includes("registered")
       ? "Cette adresse possède déjà un compte Supabase. Utilisez le parcours de rattachement d'un compte existant."
-      : "Impossible de créer l'invitation. Vérifiez la configuration e-mail de Supabase et réessayez." });
+      : ("Invitation refusée par Supabase Auth : " + msg.slice(0, 240)) });
   }
 
   const { error: addMembershipError } = await adminClient
