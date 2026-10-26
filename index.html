@@ -2767,11 +2767,34 @@ async function loadConversations(){
  if(!state.conversations.some(x=>x.id===state.conversation))state.conversation=state.conversations[0]?.id||null;
  await loadMessages();
 }
+async function watchMessages(){
+ const c=cloud(),conversationId=state.conversation;
+ if(window.__SIB_INTERNAL_MESSAGE_CHANNEL){
+  try{await c.removeChannel(window.__SIB_INTERNAL_MESSAGE_CHANNEL)}catch(e){console.warn("SIB message channel cleanup:",e)}
+  window.__SIB_INTERNAL_MESSAGE_CHANNEL=null;
+ }
+ if(!conversationId||!state.user)return;
+ window.__SIB_INTERNAL_MESSAGE_CHANNEL=c.channel("sib-internal-messages-"+conversationId)
+  .on("postgres_changes",{event:"INSERT",schema:"public",table:"sib_internal_messages",filter:"conversation_id=eq."+conversationId},async payload=>{
+   const m=payload.new;
+   if(!m||m.conversation_id!==state.conversation)return;
+   if(!state.messages.some(x=>x.id===m.id)){
+    state.messages.push(m);
+    state.messages.sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+    if(state.messages.length>200)state.messages=state.messages.slice(-200);
+   }
+   try{await c.from("sib_internal_conversation_members").update({last_read_at:new Date().toISOString()}).eq("conversation_id",conversationId).eq("user_id",state.user.id)}catch(e){console.warn("SIB read receipt update:",e)}
+   if(state.tab==="messages")render();
+  }).subscribe();
+}
 async function loadMessages(){
- state.messages=[];if(!state.conversation)return;
- const c=cloud();const {data,error}=await c.from("sib_internal_messages").select("id,conversation_id,sender_id,body,created_at").eq("conversation_id",state.conversation).order("created_at",{ascending:true}).limit(200);
+ state.messages=[];if(!state.conversation){if(window.__SIB_INTERNAL_MESSAGE_CHANNEL){try{await cloud().removeChannel(window.__SIB_INTERNAL_MESSAGE_CHANNEL)}catch(_){}window.__SIB_INTERNAL_MESSAGE_CHANNEL=null;}return;}
+ const c=cloud(),conversationId=state.conversation;
+ const {data,error}=await c.from("sib_internal_messages").select("id,conversation_id,sender_id,body,created_at").eq("conversation_id",conversationId).order("created_at",{ascending:true}).limit(200);
  if(error)throw error;state.messages=data||[];
- await c.from("sib_internal_conversation_members").update({last_read_at:new Date().toISOString()}).eq("conversation_id",state.conversation).eq("user_id",state.user.id);
+ const {error:readError}=await c.from("sib_internal_conversation_members").update({last_read_at:new Date().toISOString()}).eq("conversation_id",conversationId).eq("user_id",state.user.id);
+ if(readError)console.warn("SIB read receipt update:",readError);
+ await watchMessages();
 }
 async function loadAnnouncements(){
  const c=cloud();const {data,error}=await c.from("sib_internal_announcements").select("id,title,body,audience,requires_ack,published,created_by,published_at,created_at").eq("organization_id",state.org).order("created_at",{ascending:false}).limit(100);
@@ -2853,8 +2876,26 @@ async function newGroup(){
  }catch(e){showError(e)}
 }
 async function sendMessage(){
- const body=el("sic-message")?.value.trim();if(!body||!state.conversation)return;
- try{const c=cloud();const {error}=await c.from("sib_internal_messages").insert({conversation_id:state.conversation,sender_id:state.user.id,body});if(error)throw error;el("sic-message").value="";await loadMessages();await loadNotifications();render();}catch(e){showError(e)}
+ const area=el("sic-message"),button=el("sic-send"),body=area?.value.trim(),conversationId=state.conversation;
+ if(!body){area?.focus();return;}
+ if(!conversationId||!state.user){showError("Ouvrez une conversation avant d’envoyer un message.");return;}
+ if(body.length>10000){showError("Le message dépasse la limite de 10 000 caractères.");return;}
+ if(button?.disabled)return;
+ if(button)button.disabled=true;
+ try{
+  const c=cloud();
+  const {data:{user},error:userError}=await c.auth.getUser();
+  if(userError)throw userError;
+  if(!user)throw new Error("Votre session a expiré. Reconnectez-vous.");
+  const {error}=await c.from("sib_internal_messages").insert({conversation_id:conversationId,sender_id:user.id,body});
+  if(error)throw error;
+  if(area)area.value="";
+  await loadMessages();
+  render();
+  try{await loadNotifications()}catch(notificationError){console.warn("Message envoyé, mais actualisation des notifications impossible:",notificationError);}
+ }catch(e){showError(e)}finally{
+  const current=el("sic-send");if(current)current.disabled=!state.conversation;
+ }
 }
 async function newAnnouncement(){
  if(!permittedAdmin())return;
