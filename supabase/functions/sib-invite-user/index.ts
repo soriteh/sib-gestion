@@ -232,10 +232,70 @@ Deno.serve(async (req: Request) => {
   });
   if (inviteError || !invited.user) {
     const msg = inviteError?.message || "Invitation non créée.";
-    console.error("Invitation Supabase refusée:", msg);
-    return respond(400, { error: msg.includes("already") || msg.includes("registered")
-      ? "Cette adresse possède déjà un compte Supabase. Utilisez le parcours de rattachement d'un compte existant."
-      : ("Invitation refusée par Supabase Auth : " + msg.slice(0, 240)) });
+    const isExistingAccount = /already\s+(?:been\s+)?registered|already\s+exists|user\s+already|already\s+has\s+an\s+account/i.test(msg);
+    if (!isExistingAccount) {
+      console.error("Invitation Supabase refusée:", msg);
+      return respond(400, { error: "Invitation refusée par Supabase Auth : " + msg.slice(0, 240) });
+    }
+
+    // Compte Auth existant : le rattacher à SIB au lieu d'exiger une seconde invitation.
+    // Recherche exacte par e-mail, en parcourant les pages Auth pour éviter un faux négatif.
+    let existingUser: any = null;
+    for (let page = 1; page <= 20; page++) {
+      const { data: pageData, error: pageError } = await adminClient.auth.admin.listUsers({ page, perPage: 100 });
+      if (pageError) {
+        console.error("Recherche du compte Auth existant impossible:", pageError.message);
+        return respond(500, { error: "Le compte existe déjà, mais sa recherche a échoué. Réessayez ou vérifiez Supabase Auth." });
+      }
+      existingUser = (pageData.users || []).find((u: any) => String(u.email || "").trim().toLowerCase() === email) || null;
+      if (existingUser || !pageData.users || pageData.users.length < 100) break;
+    }
+    if (!existingUser) {
+      return respond(409, { error: "Supabase signale un compte existant, mais il n'a pas été retrouvé par e-mail. Vérifiez l'adresse et les utilisateurs dans Supabase Auth." });
+    }
+
+    const { data: priorMembership, error: priorMembershipError } = await adminClient
+      .from("organization_memberships")
+      .select("user_id, role, active")
+      .eq("organization_id", ORG_ID)
+      .eq("user_id", existingUser.id)
+      .maybeSingle();
+    if (priorMembershipError) {
+      console.error("Vérification du rattachement existant impossible:", priorMembershipError.message);
+      return respond(500, { error: "Le compte existe, mais son appartenance SIB n'a pas pu être vérifiée." });
+    }
+    if (priorMembership) {
+      return respond(409, { error: priorMembership.active === true
+        ? "Ce compte est déjà rattaché à SIB Gestion. Il apparaît peut-être sous une autre adresse ou un autre filtre dans la liste des utilisateurs."
+        : "Ce compte est déjà rattaché à SIB Gestion, mais son accès est désactivé. Utilisez l'action Réactiver dans la gestion des utilisateurs." });
+    }
+
+    // Nettoyer tout ancien marqueur d'invitation avant de créer une appartenance active.
+    const existingAppMetadata = { ...(existingUser.app_metadata || {}), organization_id: ORG_ID };
+    delete existingAppMetadata.sib_invitation_pending;
+    const { error: metadataError } = await adminClient.auth.admin.updateUserById(existingUser.id, {
+      app_metadata: existingAppMetadata,
+    });
+    if (metadataError) {
+      console.error("Mise à jour des métadonnées du compte existant impossible:", metadataError.message);
+      return respond(500, { error: "Le compte existe, mais sa préparation pour SIB a échoué. Aucun rattachement n'a été créé." });
+    }
+
+    const { error: attachError } = await adminClient
+      .from("organization_memberships")
+      .insert({ organization_id: ORG_ID, user_id: existingUser.id, role, active: true });
+    if (attachError) {
+      console.error("Rattachement du compte Auth existant impossible:", attachError.message);
+      return respond(500, { error: "Le compte Supabase est conservé, mais le rattachement SIB a échoué. Vérifiez l'appartenance dans Supabase avant de réessayer." });
+    }
+
+    return respond(200, {
+      ok: true,
+      attachedExistingAccount: true,
+      message: "Compte Supabase existant rattaché à SIB Gestion. Aucun nouvel e-mail d'invitation n'est nécessaire : l'utilisateur peut se connecter avec ses identifiants existants.",
+      email,
+      role,
+    });
   }
 
   // Authorization markers belong in app_metadata, which the user cannot edit.
