@@ -361,6 +361,24 @@
     return data;
   }
 
+  async function setUserActive(userId, active) {
+    await requireSession();
+    if (!client) throw new Error("Supabase n'est pas configuré.");
+    const action = active ? "reactivate" : "deactivate";
+    const { data, error } = await client.functions.invoke("sib-invite-user", {
+      body: { action, user_id: userId }
+    });
+    if (error) {
+      let detail = data?.error || "";
+      if (!detail && error.context && typeof error.context.clone === "function") {
+        try { const body = await error.context.clone().json(); detail = body?.error || body?.message || ""; } catch (_) {}
+      }
+      throw new Error(detail || error.message || (active ? "Impossible de réactiver l'utilisateur." : "Impossible de désactiver l'utilisateur."));
+    }
+    if (!data?.ok) throw new Error(data?.error || "Le changement d'accès n'a pas été confirmé.");
+    return data;
+  }
+
   async function signUpFirstAdmin(email, password, fullName) {
     if (!client) throw new Error("Supabase n'est pas configuré.");
     const { data, error } = await client.auth.signUp({
@@ -402,6 +420,7 @@
     inviteUser,
     listUsers,
     deactivateUser,
+    setUserActive,
     signOut,
     currentUser,
     getMembership,
