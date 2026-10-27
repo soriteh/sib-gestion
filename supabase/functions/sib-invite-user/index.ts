@@ -69,6 +69,15 @@ Deno.serve(async (req: Request) => {
       return respond(500, { error: "Impossible de vérifier l'invitation." });
     }
     if (!pendingMembership) return respond(403, { error: "Aucune invitation SIB n'est associée à ce compte." });
+    // Consommer le marqueur serveur AVANT toute activation. Si cette écriture échoue,
+    // l'appartenance reste inactive et ne peut pas être réactivée par une nouvelle tentative.
+    const nextAppMetadata = { ...(actor.app_metadata || {}) };
+    delete nextAppMetadata.sib_invitation_pending;
+    const { error: metadataError } = await adminClient.auth.admin.updateUserById(actor.id, { app_metadata: nextAppMetadata });
+    if (metadataError) {
+      console.error("Impossible de consommer le marqueur d'invitation SIB:", metadataError.message);
+      return respond(500, { error: "Invitation vérifiée, mais son statut sécurisé n'a pas pu être consommé. L'accès reste inchangé; contactez l'administrateur." });
+    }
     if (pendingMembership.active === true) return respond(200, { ok: true, alreadyActive: true });
     const { data: updatedMembership, error: activateError } = await adminClient
       .from("organization_memberships")
@@ -80,16 +89,7 @@ Deno.serve(async (req: Request) => {
       .maybeSingle();
     if (activateError || !updatedMembership) {
       console.error("Échec de l'activation de l'appartenance SIB:", activateError?.message || "aucune ligne mise à jour");
-      return respond(500, { error: "Mot de passe enregistré, mais l'activation SIB a échoué. Réessayez ou contactez l'administrateur." });
-    }
-    // Retirer le marqueur d'invitation après activation : il ne doit jamais
-    // autoriser une réactivation ultérieure après une désactivation administrative.
-    const nextAppMetadata = { ...(actor.app_metadata || {}) };
-    delete nextAppMetadata.sib_invitation_pending;
-    const { error: metadataError } = await adminClient.auth.admin.updateUserById(actor.id, { app_metadata: nextAppMetadata });
-    if (metadataError) {
-      console.error("Compte activé mais nettoyage du marqueur d'invitation impossible:", metadataError.message);
-      return respond(500, { error: "Compte activé, mais le nettoyage du statut d'invitation a échoué. Contactez l'administrateur avant toute nouvelle tentative." });
+      return respond(500, { error: "Statut d'invitation consommé, mais l'activation SIB a échoué. Le compte est conservé; contactez l'administrateur pour terminer l'activation." });
     }
     return respond(200, { ok: true, message: "Compte SIB activé." });
   }
@@ -127,6 +127,15 @@ Deno.serve(async (req: Request) => {
       .maybeSingle();
     if (targetError) return respond(500, { error: "Impossible de vérifier l'utilisateur ciblé." });
     if (!target) return respond(404, { error: "Aucune appartenance SIB trouvée pour cet utilisateur." });
+    // Une ancienne invitation ne doit jamais permettre une réactivation après désactivation.
+    const { data: targetAuth, error: targetAuthError } = await adminClient.auth.admin.getUserById(targetUserId);
+    if (targetAuthError) return respond(500, { error: "Impossible de vérifier les métadonnées sécurisées de l'utilisateur." });
+    if (targetAuth.user?.app_metadata?.sib_invitation_pending === true) {
+      const safeMetadata = { ...(targetAuth.user.app_metadata || {}) };
+      delete safeMetadata.sib_invitation_pending;
+      const { error: clearPendingError } = await adminClient.auth.admin.updateUserById(targetUserId, { app_metadata: safeMetadata });
+      if (clearPendingError) return respond(500, { error: "Impossible de sécuriser le statut d'invitation. La désactivation n'a pas été poursuivie." });
+    }
     if (target.active !== true) return respond(200, { ok: true, alreadyInactive: true, message: "L'utilisateur est déjà désactivé." });
 
     if (target.role === "Administrateur") {
