@@ -108,6 +108,30 @@ Deno.serve(async (req: Request) => {
     return respond(403, { error: "Seul un administrateur SIB actif peut gérer les utilisateurs." });
   }
 
+  // Reset sécurisé : seul un administrateur SIB actif peut changer le mot de passe Auth d'un membre.
+  if (payload.action === "reset_password") {
+    const targetUserId = typeof payload.user_id === "string" ? payload.user_id.trim() : "";
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(targetUserId)) return respond(400, { error: "Identifiant utilisateur invalide." });
+    if (targetUserId === actor.id) return respond(400, { error: "Pour votre propre compte, utilisez la fonction de changement de mot de passe." });
+    const { data: target, error: targetError } = await adminClient.from("organization_memberships").select("user_id, active").eq("organization_id", ORG_ID).eq("user_id", targetUserId).maybeSingle();
+    if (targetError) return respond(500, { error: "Impossible de vérifier l'appartenance SIB de l'utilisateur." });
+    if (!target) return respond(404, { error: "Aucune appartenance SIB trouvée pour cet utilisateur." });
+    if (target.active !== true) return respond(409, { error: "Cet utilisateur est désactivé. Réactivez son accès avant de réinitialiser son mot de passe." });
+    const { data: targetAuth, error: targetAuthError } = await adminClient.auth.admin.getUserById(targetUserId);
+    if (targetAuthError || !targetAuth.user) return respond(404, { error: "Le compte Auth Supabase de cet utilisateur est introuvable." });
+    const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ", lower = "abcdefghijkmnpqrstuvwxyz", digits = "23456789", symbols = "!@#$%*-_", all = upper + lower + digits + symbols;
+    const randomChars = (pool: string, count: number) => Array.from(crypto.getRandomValues(new Uint8Array(count)), b => pool[b % pool.length]).join("");
+    const chars = [randomChars(upper, 3), randomChars(lower, 5), randomChars(digits, 4), randomChars(symbols, 2), randomChars(all, 6)].join("").split("");
+    const keys = crypto.getRandomValues(new Uint32Array(chars.length));
+    const temporaryPassword = chars.map((ch, i) => ({ ch, key: keys[i] })).sort((a, b) => a.key - b.key).map(x => x.ch).join("");
+    const { error: passwordError } = await adminClient.auth.admin.updateUserById(targetUserId, { password: temporaryPassword });
+    if (passwordError) {
+      console.error("Réinitialisation Auth du mot de passe impossible:", passwordError.message);
+      return respond(500, { error: "Supabase n'a pas pu enregistrer le nouveau mot de passe. Aucun mot de passe temporaire n'a été communiqué." });
+    }
+    return respond(200, { ok: true, user_id: targetUserId, temporaryPassword, message: "Le mot de passe a été enregistré dans Supabase Auth." });
+  }
+
   // Désactivation réversible : conserver le compte Auth et ses données.
   // La suppression définitive d'un compte n'est jamais déclenchée par cette action.
   if (payload.action === "deactivate") {
