@@ -52,8 +52,11 @@ Deno.serve(async (req: Request) => {
   // Invitation acceptance: only the invited account can activate its own
   // pending membership, and only after the invitation link established a session.
   if (payload.action === "activate") {
-    if (String(actor.user_metadata?.organization_id || "") !== ORG_ID) {
-      return respond(403, { error: "Ce compte ne possède pas d'invitation SIB à activer." });
+    // Seuls les comptes explicitement marqués comme invitation en attente
+    // peuvent activer leur appartenance eux-mêmes. Un membre désactivé ne
+    // peut pas contourner la décision de l'administrateur avec cette action.
+    if (String(actor.user_metadata?.organization_id || "") !== ORG_ID || actor.user_metadata?.sib_invitation_pending !== true) {
+      return respond(403, { error: "Aucune invitation SIB en attente n'est associée à ce compte. Contactez un administrateur pour rétablir l'accès." });
     }
     const { data: pendingMembership, error: pendingError } = await adminClient
       .from("organization_memberships")
@@ -78,6 +81,15 @@ Deno.serve(async (req: Request) => {
     if (activateError || !updatedMembership) {
       console.error("Échec de l'activation de l'appartenance SIB:", activateError?.message || "aucune ligne mise à jour");
       return respond(500, { error: "Mot de passe enregistré, mais l'activation SIB a échoué. Réessayez ou contactez l'administrateur." });
+    }
+    // Retirer le marqueur d'invitation après activation : il ne doit jamais
+    // autoriser une réactivation ultérieure après une désactivation administrative.
+    const nextMetadata = { ...(actor.user_metadata || {}) };
+    delete nextMetadata.sib_invitation_pending;
+    const { error: metadataError } = await adminClient.auth.admin.updateUserById(actor.id, { user_metadata: nextMetadata });
+    if (metadataError) {
+      console.error("Compte activé mais nettoyage du marqueur d'invitation impossible:", metadataError.message);
+      return respond(500, { error: "Compte activé, mais le nettoyage du statut d'invitation a échoué. Contactez l'administrateur avant toute nouvelle tentative." });
     }
     return respond(200, { ok: true, message: "Compte SIB activé." });
   }
@@ -206,7 +218,7 @@ Deno.serve(async (req: Request) => {
 
   const redirectTo = Deno.env.get("SIB_AUTH_REDIRECT_URL");
   const { data: invited, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(email, {
-    data: { full_name: fullName, organization_id: ORG_ID, organization_name: organization.name },
+    data: { full_name: fullName, organization_id: ORG_ID, organization_name: organization.name, sib_invitation_pending: true },
     ...(redirectTo ? { redirectTo } : {}),
   });
   if (inviteError || !invited.user) {
