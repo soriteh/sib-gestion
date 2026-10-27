@@ -142,10 +142,13 @@ Deno.serve(async (req: Request) => {
     .from("organization_memberships")
     .insert({ organization_id: ORG_ID, user_id: invited.user.id, role, active: false });
   if (addMembershipError) {
-    console.error("Échec du rattachement après invitation:", addMembershipError.message);
-    const { error: rollbackError } = await adminClient.auth.admin.deleteUser(invited.user.id);
-    if (rollbackError) console.error("Échec du nettoyage du compte invité:", rollbackError.message);
-    return respond(500, { error: "Invitation créée mais rattachement SIB impossible. Le système a tenté d'annuler le compte; vérifiez les utilisateurs Supabase avant de recommencer." });
+    // Ne jamais supprimer automatiquement un compte Auth déjà créé :
+    // la conservation du compte est indépendante de l'échec du rattachement.
+    // Un administrateur peut corriger l'appartenance sans perdre le compte invité.
+    console.error("Échec du rattachement après invitation; compte Auth conservé:", addMembershipError.message);
+    return respond(500, {
+      error: "Invitation créée, mais rattachement SIB impossible. Le compte Supabase est conservé. Corrigez l'appartenance dans Supabase avant de relancer l'invitation."
+    });
   }
 
   return respond(200, {
