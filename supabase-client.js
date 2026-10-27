@@ -344,6 +344,23 @@
     return data.users;
   }
 
+  async function deactivateUser(userId) {
+    await requireSession();
+    if (!client) throw new Error("Supabase n'est pas configuré.");
+    const { data, error } = await client.functions.invoke("sib-invite-user", {
+      body: { action: "deactivate", user_id: userId }
+    });
+    if (error) {
+      let detail = data?.error || "";
+      if (!detail && error.context && typeof error.context.clone === "function") {
+        try { const body = await error.context.clone().json(); detail = body?.error || body?.message || ""; } catch (_) {}
+      }
+      throw new Error(detail || error.message || "Impossible de désactiver l'utilisateur.");
+    }
+    if (!data?.ok) throw new Error(data?.error || "La désactivation n'a pas été confirmée.");
+    return data;
+  }
+
   async function signUpFirstAdmin(email, password, fullName) {
     if (!client) throw new Error("Supabase n'est pas configuré.");
     const { data, error } = await client.auth.signUp({
@@ -384,6 +401,7 @@
     signUpFirstAdmin,
     inviteUser,
     listUsers,
+    deactivateUser,
     signOut,
     currentUser,
     getMembership,
