@@ -55,7 +55,7 @@ Deno.serve(async (req: Request) => {
     // Seuls les comptes explicitement marqués comme invitation en attente
     // peuvent activer leur appartenance eux-mêmes. Un membre désactivé ne
     // peut pas contourner la décision de l'administrateur avec cette action.
-    if (String(actor.user_metadata?.organization_id || "") !== ORG_ID || actor.user_metadata?.sib_invitation_pending !== true) {
+    if (String(actor.app_metadata?.organization_id || "") !== ORG_ID || actor.app_metadata?.sib_invitation_pending !== true) {
       return respond(403, { error: "Aucune invitation SIB en attente n'est associée à ce compte. Contactez un administrateur pour rétablir l'accès." });
     }
     const { data: pendingMembership, error: pendingError } = await adminClient
@@ -84,9 +84,9 @@ Deno.serve(async (req: Request) => {
     }
     // Retirer le marqueur d'invitation après activation : il ne doit jamais
     // autoriser une réactivation ultérieure après une désactivation administrative.
-    const nextMetadata = { ...(actor.user_metadata || {}) };
-    delete nextMetadata.sib_invitation_pending;
-    const { error: metadataError } = await adminClient.auth.admin.updateUserById(actor.id, { user_metadata: nextMetadata });
+    const nextAppMetadata = { ...(actor.app_metadata || {}) };
+    delete nextAppMetadata.sib_invitation_pending;
+    const { error: metadataError } = await adminClient.auth.admin.updateUserById(actor.id, { app_metadata: nextAppMetadata });
     if (metadataError) {
       console.error("Compte activé mais nettoyage du marqueur d'invitation impossible:", metadataError.message);
       return respond(500, { error: "Compte activé, mais le nettoyage du statut d'invitation a échoué. Contactez l'administrateur avant toute nouvelle tentative." });
@@ -227,6 +227,16 @@ Deno.serve(async (req: Request) => {
     return respond(400, { error: msg.includes("already") || msg.includes("registered")
       ? "Cette adresse possède déjà un compte Supabase. Utilisez le parcours de rattachement d'un compte existant."
       : ("Invitation refusée par Supabase Auth : " + msg.slice(0, 240)) });
+  }
+
+  // Authorization markers belong in app_metadata, which the user cannot edit.
+  // user_metadata is user-editable and must never authorize invitation activation.
+  const { error: invitationMetadataError } = await adminClient.auth.admin.updateUserById(invited.user.id, {
+    app_metadata: { ...(invited.user.app_metadata || {}), organization_id: ORG_ID, sib_invitation_pending: true },
+  });
+  if (invitationMetadataError) {
+    console.error("Compte invité conservé, mais marqueur d’invitation sécurisé impossible à enregistrer:", invitationMetadataError.message);
+    return respond(500, { error: "Invitation envoyée et compte conservé, mais son statut sécurisé n’a pas pu être initialisé. Corrigez le compte dans Supabase avant de poursuivre." });
   }
 
   const { error: addMembershipError } = await adminClient
