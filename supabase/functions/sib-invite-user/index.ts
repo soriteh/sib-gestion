@@ -46,6 +46,42 @@ Deno.serve(async (req: Request) => {
   if (userError || !userResult.user) return respond(401, { error: "Session invalide ou expirée." });
   const actor = userResult.user;
 
+  let payload: Record<string, unknown>;
+  try { payload = await req.json(); } catch { return respond(400, { error: "Corps JSON invalide." }); }
+
+  // Invitation acceptance: only the invited account can activate its own
+  // pending membership, and only after the invitation link established a session.
+  if (payload.action === "activate") {
+    if (String(actor.user_metadata?.organization_id || "") !== ORG_ID) {
+      return respond(403, { error: "Ce compte ne possède pas d'invitation SIB à activer." });
+    }
+    const { data: pendingMembership, error: pendingError } = await adminClient
+      .from("organization_memberships")
+      .select("role, active")
+      .eq("organization_id", ORG_ID)
+      .eq("user_id", actor.id)
+      .maybeSingle();
+    if (pendingError) {
+      console.error("Impossible de vérifier l'invitation SIB:", pendingError.message);
+      return respond(500, { error: "Impossible de vérifier l'invitation." });
+    }
+    if (!pendingMembership) return respond(403, { error: "Aucune invitation SIB n'est associée à ce compte." });
+    if (pendingMembership.active === true) return respond(200, { ok: true, alreadyActive: true });
+    const { data: updatedMembership, error: activateError } = await adminClient
+      .from("organization_memberships")
+      .update({ active: true })
+      .eq("organization_id", ORG_ID)
+      .eq("user_id", actor.id)
+      .eq("active", false)
+      .select("user_id")
+      .maybeSingle();
+    if (activateError || !updatedMembership) {
+      console.error("Échec de l'activation de l'appartenance SIB:", activateError?.message || "aucune ligne mise à jour");
+      return respond(500, { error: "Mot de passe enregistré, mais l'activation SIB a échoué. Réessayez ou contactez l'administrateur." });
+    }
+    return respond(200, { ok: true, message: "Compte SIB activé." });
+  }
+
   const { data: membership, error: membershipError } = await adminClient
     .from("organization_memberships")
     .select("role, active")
@@ -57,11 +93,9 @@ Deno.serve(async (req: Request) => {
     return respond(500, { error: "Impossible de vérifier les autorisations." });
   }
   if (!membership || membership.active !== true || membership.role !== "Administrateur") {
-    return respond(403, { error: "Seul un administrateur SIB actif peut inviter un utilisateur." });
+    return respond(403, { error: "Seul un administrateur SIB actif peut gérer les utilisateurs." });
   }
 
-  let payload: Record<string, unknown>;
-  try { payload = await req.json(); } catch { return respond(400, { error: "Corps JSON invalide." }); }
   if (payload.action === "list") {
     const { data: memberships, error: listError } = await adminClient.from("organization_memberships").select("user_id, role, active, created_at").eq("organization_id", ORG_ID).order("created_at", { ascending: true });
     if (listError) return respond(500, { error: "Impossible de charger les adhésions utilisateurs." });
@@ -75,7 +109,7 @@ Deno.serve(async (req: Request) => {
     const users = (memberships || []).map((m: any) => {
       const u = authUsers[m.user_id]; const meta = u?.user_metadata || {}; const email = String(u?.email || "").toLowerCase();
       const fullName = String(meta.full_name || meta.name || "").trim(); const parts = fullName.split(/\s+/).filter(Boolean);
-      return { id: m.user_id, pn: meta.first_name || parts[0] || email.split("@")[0] || "Utilisateur", nm: meta.last_name || parts.slice(1).join(" "), nom: fullName || email.split("@")[0] || "Utilisateur", mail: email, login: email, role: m.role, actif: m.active === true, mc: false, cloudAuth: true, last: u?.last_sign_in_at || null, cr: m.created_at || u?.created_at || null };
+      return { id: m.user_id, pn: meta.first_name || parts[0] || email.split("@")[0] || "Utilisateur", nm: meta.last_name || parts.slice(1).join(" "), nom: fullName || email.split("@")[0] || "Utilisateur", mail: email, login: email, role: m.role, actif: m.active === true, invitationPending: m.active !== true && !!u?.invited_at && !u?.last_sign_in_at, mc: false, cloudAuth: true, last: u?.last_sign_in_at || null, cr: m.created_at || u?.created_at || null };
     });
     return respond(200, { ok: true, users });
   }
@@ -106,7 +140,7 @@ Deno.serve(async (req: Request) => {
 
   const { error: addMembershipError } = await adminClient
     .from("organization_memberships")
-    .insert({ organization_id: ORG_ID, user_id: invited.user.id, role, active: true });
+    .insert({ organization_id: ORG_ID, user_id: invited.user.id, role, active: false });
   if (addMembershipError) {
     console.error("Échec du rattachement après invitation:", addMembershipError.message);
     const { error: rollbackError } = await adminClient.auth.admin.deleteUser(invited.user.id);
