@@ -96,6 +96,55 @@ Deno.serve(async (req: Request) => {
     return respond(403, { error: "Seul un administrateur SIB actif peut gérer les utilisateurs." });
   }
 
+  // Désactivation réversible : conserver le compte Auth et ses données.
+  // La suppression définitive d'un compte n'est jamais déclenchée par cette action.
+  if (payload.action === "deactivate") {
+    const targetUserId = typeof payload.user_id === "string" ? payload.user_id.trim() : "";
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(targetUserId)) {
+      return respond(400, { error: "Identifiant utilisateur invalide." });
+    }
+    if (targetUserId === actor.id) {
+      return respond(400, { error: "Vous ne pouvez pas désactiver votre propre compte administrateur." });
+    }
+
+    const { data: target, error: targetError } = await adminClient
+      .from("organization_memberships")
+      .select("user_id, role, active")
+      .eq("organization_id", ORG_ID)
+      .eq("user_id", targetUserId)
+      .maybeSingle();
+    if (targetError) return respond(500, { error: "Impossible de vérifier l'utilisateur ciblé." });
+    if (!target) return respond(404, { error: "Aucune appartenance SIB trouvée pour cet utilisateur." });
+    if (target.active !== true) return respond(200, { ok: true, alreadyInactive: true, message: "L'utilisateur est déjà désactivé." });
+
+    if (target.role === "Administrateur") {
+      const { data: admins, error: adminsError } = await adminClient
+        .from("organization_memberships")
+        .select("user_id")
+        .eq("organization_id", ORG_ID)
+        .eq("role", "Administrateur")
+        .eq("active", true);
+      if (adminsError) return respond(500, { error: "Impossible de vérifier les administrateurs actifs." });
+      if ((admins || []).filter((item: any) => item.user_id !== targetUserId).length === 0) {
+        return respond(409, { error: "Impossible de désactiver le dernier administrateur actif de SIB." });
+      }
+    }
+
+    const { data: changed, error: deactivateError } = await adminClient
+      .from("organization_memberships")
+      .update({ active: false })
+      .eq("organization_id", ORG_ID)
+      .eq("user_id", targetUserId)
+      .eq("active", true)
+      .select("user_id")
+      .maybeSingle();
+    if (deactivateError || !changed) {
+      console.error("Échec de la désactivation d'une appartenance SIB:", deactivateError?.message || "aucune ligne mise à jour");
+      return respond(500, { error: "Désactivation impossible. Le compte Auth et les données n'ont pas été supprimés." });
+    }
+    return respond(200, { ok: true, message: "Accès SIB désactivé. Le compte Auth et ses données sont conservés." });
+  }
+
   if (payload.action === "list") {
     const { data: memberships, error: listError } = await adminClient.from("organization_memberships").select("user_id, role, active, created_at").eq("organization_id", ORG_ID).order("created_at", { ascending: true });
     if (listError) return respond(500, { error: "Impossible de charger les adhésions utilisateurs." });
