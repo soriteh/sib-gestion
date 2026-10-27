@@ -344,6 +344,23 @@
     return data.users;
   }
 
+  async function resetUserPassword(userId) {
+    await requireSession();
+    if (!client) throw new Error("Supabase n'est pas configuré.");
+    const { data, error } = await client.functions.invoke("sib-invite-user", { body: { action: "reset_password", user_id: userId } });
+    if (error) {
+      let detail = data?.error || "";
+      if (!detail && error.context && typeof error.context.clone === "function") {
+        try { const body = await error.context.clone().json(); detail = body?.error || body?.message || ""; } catch (_) {}
+      }
+      throw new Error(detail || error.message || "Impossible de réinitialiser le mot de passe dans Supabase.");
+    }
+    if (!data?.ok || typeof data.temporaryPassword !== "string" || !data.temporaryPassword) {
+      throw new Error(data?.error || "Supabase n'a pas confirmé l'enregistrement du nouveau mot de passe.");
+    }
+    return data;
+  }
+
   async function deactivateUser(userId) {
     await requireSession();
     if (!client) throw new Error("Supabase n'est pas configuré.");
@@ -419,6 +436,7 @@
     signUpFirstAdmin,
     inviteUser,
     listUsers,
+    resetUserPassword,
     deactivateUser,
     setUserActive,
     signOut,
