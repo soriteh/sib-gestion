@@ -2728,6 +2728,31 @@ $("lgc").addEventListener("keydown",e=>{if(e.key=="Enter")doGo()});
 
 if(window.SIBCloud?.ready){try{const authClient=window.SIBCloud.client();authClient?.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT"&&CU?.cloud&&!CU?.offline){out(true,true);}});}catch(authWatchError){console.warn("SIB Auth state listener:",authWatchError);}}
 
+ // Révoquer rapidement l’interface si un administrateur désactive l’appartenance.
+ // Les erreurs réseau transitoires ne déconnectent pas l’utilisateur : le mode hors ligne reste possible.
+ if(window.SIBCloud?.ready){
+  let sibMembershipCheckRunning=false;
+  const checkSibMembership=async()=>{
+   if(sibMembershipCheckRunning||!CU?.cloud||CU?.offline||!cloudSessionReady||SIBInvitationPending||!navigator.onLine)return;
+   const userId=CU.id;const orgId=window.SIB_SUPABASE_CONFIG?.organizationId;
+   if(!userId||!orgId)return;
+   sibMembershipCheckRunning=true;
+   try{
+    const c=window.SIBCloud.client();
+    const {data,error}=await c.from("organization_memberships").select("active").eq("organization_id",orgId).eq("user_id",userId).maybeSingle();
+    if(error){console.warn("Vérification périodique de l’appartenance SIB reportée:",error.message);return;}
+    if(!data||data.active!==true){
+     out(true,false);
+     toast("Votre accès à SIB Gestion a été désactivé par un administrateur. Le compte et les données sont conservés.", "wa",{sticky:true});
+    }
+   }catch(membershipCheckError){console.warn("Vérification périodique de l’appartenance SIB reportée:",membershipCheckError);}
+   finally{sibMembershipCheckRunning=false;}
+  };
+  window.setInterval(checkSibMembership,45000);
+  window.addEventListener("focus",checkSibMembership);
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkSibMembership();});
+ }
+
 drawCart();boot().catch(err=>{console.error("SIB startup error:",err);const d=document.getElementById("dash");if(d){d.classList.remove("hide");d.innerHTML='<div class="box"><h2>Erreur au démarrage</h2><pre style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></div>';d.querySelector("pre").textContent=err&&(err.stack||err.message)||String(err)}}).finally(()=>{const splash=document.getElementById("sib-startup");if(splash){splash.classList.add("done");setTimeout(()=>splash.remove(),350)}});
 </script><script id="sib-internal-communication">
 (function(){
