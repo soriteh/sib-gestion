@@ -145,6 +145,36 @@ Deno.serve(async (req: Request) => {
     return respond(200, { ok: true, message: "Accès SIB désactivé. Le compte Auth et ses données sont conservés." });
   }
 
+  // Réactivation réservée à un administrateur SIB actif. Le compte Auth existant est réutilisé.
+  if (payload.action === "reactivate") {
+    const targetUserId = typeof payload.user_id === "string" ? payload.user_id.trim() : "";
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(targetUserId)) {
+      return respond(400, { error: "Identifiant utilisateur invalide." });
+    }
+    const { data: target, error: targetError } = await adminClient
+      .from("organization_memberships")
+      .select("user_id, active")
+      .eq("organization_id", ORG_ID)
+      .eq("user_id", targetUserId)
+      .maybeSingle();
+    if (targetError) return respond(500, { error: "Impossible de vérifier l'utilisateur ciblé." });
+    if (!target) return respond(404, { error: "Aucune appartenance SIB trouvée pour cet utilisateur." });
+    if (target.active === true) return respond(200, { ok: true, alreadyActive: true, message: "L'utilisateur est déjà actif." });
+    const { data: changed, error: reactivateError } = await adminClient
+      .from("organization_memberships")
+      .update({ active: true })
+      .eq("organization_id", ORG_ID)
+      .eq("user_id", targetUserId)
+      .eq("active", false)
+      .select("user_id")
+      .maybeSingle();
+    if (reactivateError || !changed) {
+      console.error("Échec de la réactivation d'une appartenance SIB:", reactivateError?.message || "aucune ligne mise à jour");
+      return respond(500, { error: "Réactivation impossible. Le compte Auth et ses données sont conservés." });
+    }
+    return respond(200, { ok: true, message: "Accès SIB réactivé. Le compte Auth et ses données sont conservés." });
+  }
+
   if (payload.action === "list") {
     const { data: memberships, error: listError } = await adminClient.from("organization_memberships").select("user_id, role, active, created_at").eq("organization_id", ORG_ID).order("created_at", { ascending: true });
     if (listError) return respond(500, { error: "Impossible de charger les adhésions utilisateurs." });
