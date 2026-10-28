@@ -188,7 +188,7 @@ Deno.serve(async (req: Request) => {
         .from("organization_memberships")
         .select("user_id")
         .eq("organization_id", ORG_ID)
-        .eq("role", "Administrateur")
+        .in("role", ["Administrateur", "Super Administrateur"])
         .eq("active", true);
       if (adminsError) return respond(500, { error: "Impossible de vérifier les administrateurs actifs." });
       if ((admins || []).filter((item: any) => item.user_id !== targetUserId).length === 0) {
