@@ -2674,7 +2674,7 @@ Object.assign(ACT,{
 document.addEventListener("change",e=>{if(e.target.id!="p_ph")return;const f=e.target.files[0];if(!f)return;
  if(!/^image\/(png|jpeg|webp)$/.test(f.type)){e.target.value="";return pmsg("er","Format non pris en charge (PNG, JPG ou WebP).")}if(f.size>256000){e.target.value="";return pmsg("er","Photo trop lourde (250 Ko maximum).")}
  const rd=new FileReader();rd.onload=()=>{PP=rd.result;$("pv_ph").innerHTML=`<img src="${rd.result}" alt="Aperçu de la photo">`;$("pn_ph").textContent="Nouvelle photo prête : cliquez sur « Enregistrer les modifications ».";pmsg("ok","Aperçu mis à jour, non encore enregistré.");updDirty()};rd.readAsDataURL(f)});
-const can=p=>(PM[RO]||P.map(x=>x[0])).includes(p),canCreateEmployee=()=>["Administrateur","Direction","RH"].includes(RO)&&can("rh"),td0=()=>L(new Date()),pad=(n,l)=>String(n).padStart(l,"0");
+const can=p=>(PM[RO]||P.map(x=>x[0])).includes(p),canCreateEmployee=()=>["Super Administrateur","Administrateur","Direction","RH"].includes(RO)&&can("rh"),td0=()=>L(new Date()),pad=(n,l)=>String(n).padStart(l,"0");
 const fld=(id,l,v="",t="text",x="")=>`<div><label for="${id}">${l}</label><input id="${id}" type="${t}" value="${esc(v)}" ${x}></div>`;
 const sel=(id,l,o,v)=>`<div><label for="${id}">${l}</label><select id="${id}">${o.map(x=>`<option${x==v?" selected":""}>${esc(x)}</option>`).join("")}</select></div>`;
 const bdg=(t,c)=>`<span class="bd ${c}">${esc(t)}</span>`,mois=m=>new Date(m+"-01T12:00").toLocaleDateString("fr-FR",{month:"long",year:"numeric"}),fdt=d=>d?d.slice(8)+"/"+d.slice(5,7)+"/"+d.slice(0,4):"—";
