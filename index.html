@@ -15,7 +15,7 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"></noscript>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./supabase-config.js"></script>
-<script src="./supabase-client.js?v=20261028-super-admin-2"></script>
+<script src="./supabase-client.js?v=20261028-super-admin-3"></script>
 <script>
 /* SIB startup guard: keep a JavaScript parse/runtime failure from trapping the user behind the splash screen. */
 (function () {
@@ -2226,7 +2226,7 @@ const L=x=>new Date(x).toLocaleDateString("sv-SE"),DELAI=30,sum=a=>a.reduce((s,x
 let PF="mois",AL=8,fDay=L(new Date()),fMon=fDay.slice(0,7),fYr=new Date().getFullYear();
 const RK={Comptable:"encj vtj encm ben esp bq cre depj",Caissier:"encj vtj esp depj",Commercial:"vtj cre"};
 const RB={Comptable:"ch1 ch2 ch3 ch4",Caissier:"ch1 ch3 ch4",Commercial:"ch2 ch4"};
-const isA=()=>RO=="Administrateur"||RO=="Direction",hk=k=>isA()||(RK[RO]||"").split(" ").includes(k),hb=k=>isA()||(RB[RO]||"").split(" ").includes(k);
+const isA=()=>RO=="Super Administrateur"||RO=="Administrateur"||RO=="Direction",hk=k=>isA()||(RK[RO]||"").split(" ").includes(k),hb=k=>isA()||(RB[RO]||"").split(" ").includes(k);
 function per(p=0){const y=new Date().getFullYear();
  if(PF=="jour"){const b=new Date(fDay+"T12:00");b.setDate(b.getDate()-p);const t=L(b);return[t,t]}
  if(PF=="mois"){const[yy,mm]=fMon.split("-").map(Number);return[L(new Date(yy,mm-1-p,1,12)),L(new Date(yy,mm-p,0,12))]}
