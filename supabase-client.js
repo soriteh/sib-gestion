@@ -66,7 +66,7 @@
   }
 
   function isAdminRole(role) {
-    return ["admin", "administrateur", "super_admin", "super admin"]
+    return ["admin", "administrateur", "super_admin", "super admin", "super administrateur"]
       .includes(String(role || "").trim().toLocaleLowerCase("fr"));
   }
 
