@@ -1572,14 +1572,13 @@ button[data-id]:hover{
 </style>
 <script>
 (function(){
-  const cancelPattern=/^annuler(?:\\b|\\s|$)/i;
   function markCancelButtons(root){
     const nodes=[];
     if(root instanceof Element&&root.matches("button"))nodes.push(root);
     if(root&&root.querySelectorAll)nodes.push(...root.querySelectorAll("button"));
     for(const button of nodes){
-      const label=(button.innerText||button.textContent||button.getAttribute("aria-label")||button.getAttribute("title")||"").replace(/\\s+/g," ").trim();
-      if(cancelPattern.test(label)||/^cancel(?:\\b|\\s|$)/i.test(label))button.classList.add("sib-cancel-yellow");
+      const label=(button.innerText||button.textContent||button.getAttribute("aria-label")||button.getAttribute("title")||"").trim().toLowerCase();
+      if(label.startsWith("annuler")||label.startsWith("cancel"))button.classList.add("sib-cancel-yellow");
     }
   }
   function start(){
@@ -1590,8 +1589,7 @@ button[data-id]:hover{
     }
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start,{once:true});else start();
-})();
-</script>
+})();</script>
 <style>
 button.sib-cancel-yellow{
   background:#FACC15!important;
