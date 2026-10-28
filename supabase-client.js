@@ -344,6 +344,19 @@
     return data.users;
   }
 
+  async function updateUserRole(userId, role) {
+    await requireSession();
+    if (!client) throw new Error("Supabase n'est pas configuré.");
+    const { data, error } = await client.functions.invoke("sib-invite-user", { body: { action: "update_role", user_id: userId, role } });
+    if (error) {
+      let detail = data?.error || "";
+      if (!detail && error.context && typeof error.context.clone === "function") { try { const body = await error.context.clone().json(); detail = body?.error || body?.message || ""; } catch (_) {} }
+      throw new Error(detail || error.message || "Impossible de modifier le rôle de l'utilisateur.");
+    }
+    if (!data?.ok) throw new Error(data?.error || "La modification du rôle n'a pas été confirmée.");
+    return data;
+  }
+
   async function resetUserPassword(userId) {
     await requireSession();
     if (!client) throw new Error("Supabase n'est pas configuré.");
@@ -436,6 +449,7 @@
     signUpFirstAdmin,
     inviteUser,
     listUsers,
+    updateUserRole,
     resetUserPassword,
     deactivateUser,
     setUserActive,
