@@ -15,7 +15,7 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"></noscript>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./supabase-config.js"></script>
-<script src="./supabase-client.js?v=20261028-super-admin-6"></script>
+<script src="./supabase-client.js?v=20261028-super-admin-7"></script>
 <script>
 /* SIB startup guard: keep a JavaScript parse/runtime failure from trapping the user behind the splash screen. */
 (function () {
@@ -2464,13 +2464,22 @@ async function boot(){applyLogo();
     sibPendingConflict=false;
     if(pendingCloud?.state){
      try{
-      localStorage.setItem("sib-conflict-backup-v1-"+String(pendingCloud.savedAt||Date.now()),JSON.stringify({savedAt:pendingCloud.savedAt||Date.now(),archivedAt:Date.now(),reason:"Copie locale conservée séparément; les données centrales sont prioritaires en ligne.",state:pendingCloud.state}));
-      localStorage.removeItem(SIB_PENDING_KEY);
-      console.warn("SIB: état central prioritaire; ancienne sauvegarde locale conservée séparément dans sib-conflict-backup-v1.");
-      setTimeout(()=>{if(typeof toast==="function")toast("Données centrales chargées. La sauvegarde locale différente a été conservée séparément et ne sera pas synchronisée automatiquement.","in",{ms:10000});},500);
+      const sameAsCentral=JSON.stringify(pendingCloud.state)===JSON.stringify(remote.state);
+      if(sameAsCentral){
+       // The exact pending snapshot is already central: it is safe to clear the queue.
+       localStorage.removeItem(SIB_PENDING_KEY);
+      }else{
+       // A pending snapshot may contain the most recent edit whose request was
+       // interrupted by refresh. Archive a recovery copy, but NEVER discard the
+       // pending record or silently treat the central snapshot as a full resolution.
+       localStorage.setItem("sib-conflict-backup-v1-"+String(pendingCloud.savedAt||Date.now()),JSON.stringify({savedAt:pendingCloud.savedAt||Date.now(),archivedAt:Date.now(),reason:"État local en attente différent de l’état central. Copie conservée; aucune synchronisation automatique.",state:pendingCloud.state}));
+       sibPendingConflict=true;
+       console.warn("SIB: état central chargé, mais une sauvegarde locale différente reste en attente; aucune donnée locale n’est supprimée.");
+       setTimeout(()=>{if(typeof toast==="function")toast("Données centrales chargées. Une sauvegarde locale différente est conservée : téléchargez-la et rapprochez les données avant de continuer les modifications.","wa",{sticky:true,act:{label:"Télécharger la sauvegarde",fn:downloadPendingCloudBackup}});},500);
+      }
      }catch(archiveError){
       sibPendingConflict=true;
-      console.error("SIB: impossible d’archiver la sauvegarde locale; blocage conservé pour protéger les données.",archiveError);
+      console.error("SIB: impossible de vérifier ou d’archiver la sauvegarde locale; blocage conservé pour protéger les données.",archiveError);
      }
     }
     S={...D0(),...remote.state};S.set={...D0().set,...S.set};S.set.pre={...D0().set.pre,...S.set.pre};S.set.rh={...D0().set.rh,...S.set.rh};
