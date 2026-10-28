@@ -35,12 +35,14 @@ assert.match(boot, /Connexion hors ligne bloquée pour protéger les données/);
 assert.doesNotMatch(boot, /CU=\{id:cachedUser\.id[\s\S]{0,500}enter\(true\)/,
   "Cached profile alone must never authorize offline entry");
 assert.match(boot, /Les données locales en attente sont conservées/);
-assert.match(boot, /if\(remote\?\.state\)[\s\S]*sibPendingConflict=false[\s\S]*sib-conflict-backup-v1-/,
-  "When central state is available, it must win and the local pending snapshot must be archived separately");
-assert.match(boot, /localStorage\.removeItem\(SIB_PENDING_KEY\)/,
-  "A stale local snapshot must be removed from the automatic retry queue after successful archival");
-assert.match(boot, /Données centrales chargées\. La sauvegarde locale différente a été conservée séparément/,
-  "The user must be informed that central data won without silently deleting the local copy");
+assert.match(boot, /if\(remote\?\.state\)[\s\S]*const sameAsCentral=JSON\.stringify\(pendingCloud\.state\)===JSON\.stringify\(remote\.state\)/,
+  "When central state is available, the app must compare it with the pending local snapshot");
+assert.match(boot, /if\(sameAsCentral\)[\s\S]*localStorage\.removeItem\(SIB_PENDING_KEY\)/,
+  "A pending snapshot may only be removed automatically when it exactly matches central state");
+assert.match(boot, /A pending snapshot may contain the most recent edit[\s\S]*NEVER discard the pending record/,
+  "A differing pending snapshot must be retained because it may contain an interrupted recent edit");
+assert.match(boot, /sibPendingConflict=true[\s\S]*Données centrales chargées\. Une sauvegarde locale différente est conservée/,
+  "A differing local snapshot must block writes and notify the user while central state remains displayed");
 
 
 const retryStart = html.indexOf("async function retryPendingCloudSave()");
