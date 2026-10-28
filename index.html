@@ -2457,12 +2457,27 @@ async function boot(){applyLogo();
     sibPendingConflict=false;
     S=D0();
    }else{
-   sibPendingConflict=!!(pendingCloud?.state&&remote?.state);
-   if(sibPendingConflict){
-    console.warn("SIB: sauvegarde locale en conflit avec l’état central; aucune écriture automatique ne sera faite.");
+   // Online-first policy: when central state is reachable, it is the source of truth.
+   // Preserve a conflicting local snapshot as a separate recovery export, then remove it
+   // from the automatic sync queue so stale offline data cannot overwrite the cloud.
+   if(remote?.state){
+    sibPendingConflict=false;
+    if(pendingCloud?.state){
+     try{
+      localStorage.setItem("sib-conflict-backup-v1",JSON.stringify({savedAt:pendingCloud.savedAt||Date.now(),archivedAt:Date.now(),reason:"Copie locale conservée séparément; les données centrales sont prioritaires en ligne.",state:pendingCloud.state}));
+      localStorage.removeItem(SIB_PENDING_KEY);
+      console.warn("SIB: état central prioritaire; ancienne sauvegarde locale conservée séparément dans sib-conflict-backup-v1.");
+      setTimeout(()=>{if(typeof toast==="function")toast("Données centrales chargées. La sauvegarde locale différente a été conservée séparément et ne sera pas synchronisée automatiquement.","in",{ms:10000});},500);
+     }catch(archiveError){
+      sibPendingConflict=true;
+      console.error("SIB: impossible d’archiver la sauvegarde locale; blocage conservé pour protéger les données.",archiveError);
+     }
+    }
     S={...D0(),...remote.state};S.set={...D0().set,...S.set};S.set.pre={...D0().set.pre,...S.set.pre};S.set.rh={...D0().set.rh,...S.set.rh};
-   }else if(pendingCloud?.state){S={...D0(),...pendingCloud.state};S.set={...D0().set,...S.set};S.set.pre={...D0().set.pre,...S.set.pre};S.set.rh={...D0().set.rh,...S.set.rh};}
-   else if(remote){S={...D0(),...remote.state};S.set={...D0().set,...S.set};S.set.pre={...D0().set.pre,...S.set.pre};S.set.rh={...D0().set.rh,...S.set.rh};}else{S=D0();}
+   }else if(pendingCloud?.state){
+    // No central snapshot is available: keep local data, but do not claim cloud priority.
+    S={...D0(),...pendingCloud.state};S.set={...D0().set,...S.set};S.set.pre={...D0().set.pre,...S.set.pre};S.set.rh={...D0().set.rh,...S.set.rh};
+   }else{S=D0();}
    }
    const email=current.user.email||"",parts=(email.split("@")[0]||"Administrateur").split(/[._-]+/).filter(Boolean);
    const profile=(S.profile&&typeof S.profile==="object")?S.profile:{};
