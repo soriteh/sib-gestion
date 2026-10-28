@@ -15,7 +15,7 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"></noscript>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./supabase-config.js"></script>
-<script src="./supabase-client.js?v=20261028-super-admin-4"></script>
+<script src="./supabase-client.js?v=20261028-super-admin-5"></script>
 <script>
 /* SIB startup guard: keep a JavaScript parse/runtime failure from trapping the user behind the splash screen. */
 (function () {
@@ -1544,6 +1544,32 @@ tbody tr:nth-child(2){animation-delay:15ms}tbody tr:nth-child(3){animation-delay
 
 </style>
 
+<style>
+/* Uniformiser en jaune toutes les actions d'annulation */
+button[data-u="no"],
+button[data-a="svccancel"],
+button[data-a="fcan"][data-i],
+button[data-a="cgcan"][data-i],
+button[data-a="setcancel"],
+button[data-a="profcancel"],
+button[data-id]{
+  background:#FACC15!important;
+  color:#332500!important;
+  border:1px solid #EAB308!important;
+  box-shadow:none!important;
+}
+button[data-u="no"]:hover,
+button[data-a="svccancel"]:hover,
+button[data-a="fcan"][data-i]:hover,
+button[data-a="cgcan"][data-i]:hover,
+button[data-a="setcancel"]:hover,
+button[data-a="profcancel"]:hover,
+button[data-id]:hover{
+  background:#EAB308!important;
+  color:#332500!important;
+  border-color:#CA8A04!important;
+}
+</style>
 </head><body>
 <div id="sib-startup" role="status" aria-live="polite"><div class="sib-startup-inner"><div class="sib-startup-logo" aria-hidden="true">SIB</div><div class="sib-startup-name">SIB Gestion</div><div class="sib-startup-label">Chargement de votre espace…</div><div class="sib-startup-track" aria-hidden="true"></div></div></div>
 <div class="app">
