@@ -15,7 +15,7 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"></noscript>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./supabase-config.js"></script>
-<script src="./supabase-client.js?v=20261028-super-admin-7"></script>
+<script src="./supabase-client.js?v=20261028-super-admin-8"></script>
 <script>
 /* SIB startup guard: keep a JavaScript parse/runtime failure from trapping the user behind the splash screen. */
 (function () {
@@ -1565,6 +1565,41 @@ button[data-a="cgcan"][data-i]:hover,
 button[data-a="setcancel"]:hover,
 button[data-a="profcancel"]:hover,
 button[data-id]:hover{
+  background:#EAB308!important;
+  color:#332500!important;
+  border-color:#CA8A04!important;
+}
+</style>
+<script>
+(function(){
+  const cancelPattern=/^annuler(?:\\b|\\s|$)/i;
+  function markCancelButtons(root){
+    const nodes=[];
+    if(root instanceof Element&&root.matches("button"))nodes.push(root);
+    if(root&&root.querySelectorAll)nodes.push(...root.querySelectorAll("button"));
+    for(const button of nodes){
+      const label=(button.innerText||button.textContent||button.getAttribute("aria-label")||button.getAttribute("title")||"").replace(/\\s+/g," ").trim();
+      if(cancelPattern.test(label)||/^cancel(?:\\b|\\s|$)/i.test(label))button.classList.add("sib-cancel-yellow");
+    }
+  }
+  function start(){
+    markCancelButtons(document);
+    if(document.documentElement&&window.MutationObserver){
+      new MutationObserver(records=>{for(const record of records){for(const node of record.addedNodes)if(node.nodeType===1)markCancelButtons(node);if(record.type==="characterData"&&record.target.parentElement)markCancelButtons(record.target.parentElement);}})
+        .observe(document.documentElement,{childList:true,subtree:true,characterData:true});
+    }
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start,{once:true});else start();
+})();
+</script>
+<style>
+button.sib-cancel-yellow{
+  background:#FACC15!important;
+  color:#332500!important;
+  border:1px solid #EAB308!important;
+  box-shadow:none!important;
+}
+button.sib-cancel-yellow:hover{
   background:#EAB308!important;
   color:#332500!important;
   border-color:#CA8A04!important;
