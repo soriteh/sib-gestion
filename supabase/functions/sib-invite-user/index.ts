@@ -13,6 +13,7 @@ const ALLOWED_ROLES = new Set([
   "Administrateur", "Direction", "Comptable", "RH", "Caissier",
   "Commercial", "Technicien", "Formateur", "Magasinier",
 ]);
+const isAdminRole = (role: unknown) => role === "Administrateur" || role === "Super Administrateur";
 
 function respond(status: number, body: Record<string, unknown>) {
   return new Response(JSON.stringify(body), { status, headers: corsHeaders });
@@ -104,8 +105,26 @@ Deno.serve(async (req: Request) => {
     console.error("Impossible de vérifier le rôle de l'administrateur:", membershipError.message);
     return respond(500, { error: "Impossible de vérifier les autorisations." });
   }
-  if (!membership || membership.active !== true || membership.role !== "Administrateur") {
+  if (!membership || membership.active !== true || !isAdminRole(membership.role)) {
     return respond(403, { error: "Seul un administrateur SIB actif peut gérer les utilisateurs." });
+  }
+  const actorIsSuperAdmin = membership.role === "Super Administrateur";
+
+  // Le rôle Super Administrateur est réservé au compte principal et ne peut pas être attribué ici.
+  if (payload.action === "update_role") {
+    const targetUserId = typeof payload.user_id === "string" ? payload.user_id.trim() : "";
+    const nextRole = typeof payload.role === "string" ? payload.role : "";
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(targetUserId)) return respond(400, { error: "Identifiant utilisateur invalide." });
+    if (targetUserId === actor.id) return respond(400, { error: "Vous ne pouvez pas modifier votre propre rôle." });
+    if (!ALLOWED_ROLES.has(nextRole)) return respond(400, { error: "Ce rôle n'est pas attribuable depuis la gestion courante." });
+    const { data: target, error: targetError } = await adminClient.from("organization_memberships").select("user_id, role, active").eq("organization_id", ORG_ID).eq("user_id", targetUserId).maybeSingle();
+    if (targetError) return respond(500, { error: "Impossible de vérifier l'utilisateur ciblé." });
+    if (!target) return respond(404, { error: "Aucune appartenance SIB trouvée pour cet utilisateur." });
+    if (target.role === "Super Administrateur") return respond(403, { error: "Le compte Super Administrateur principal est protégé." });
+    if (!target.active) return respond(409, { error: "Réactivez le compte avant de modifier son rôle." });
+    const { data: changed, error: updateError } = await adminClient.from("organization_memberships").update({ role: nextRole }).eq("organization_id", ORG_ID).eq("user_id", targetUserId).eq("role", target.role).select("user_id").maybeSingle();
+    if (updateError || !changed) return respond(500, { error: "La modification du rôle n'a pas pu être enregistrée." });
+    return respond(200, { ok: true, user_id: targetUserId, role: nextRole, message: "Rôle mis à jour." });
   }
 
   // Reset sécurisé : seul un administrateur SIB actif peut changer le mot de passe Auth d'un membre.
@@ -117,6 +136,7 @@ Deno.serve(async (req: Request) => {
     if (targetError) return respond(500, { error: "Impossible de vérifier l'appartenance SIB de l'utilisateur." });
     if (!target) return respond(404, { error: "Aucune appartenance SIB trouvée pour cet utilisateur." });
     if (target.active !== true) return respond(409, { error: "Cet utilisateur est désactivé. Réactivez son accès avant de réinitialiser son mot de passe." });
+    if (target.role === "Super Administrateur" && !actorIsSuperAdmin) return respond(403, { error: "Seul le Super Administrateur peut gérer ce compte." });
     const { data: targetAuth, error: targetAuthError } = await adminClient.auth.admin.getUserById(targetUserId);
     if (targetAuthError || !targetAuth.user) return respond(404, { error: "Le compte Auth Supabase de cet utilisateur est introuvable." });
     const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ", lower = "abcdefghijkmnpqrstuvwxyz", digits = "23456789", symbols = "!@#$%*-_", all = upper + lower + digits + symbols;
@@ -151,6 +171,7 @@ Deno.serve(async (req: Request) => {
       .maybeSingle();
     if (targetError) return respond(500, { error: "Impossible de vérifier l'utilisateur ciblé." });
     if (!target) return respond(404, { error: "Aucune appartenance SIB trouvée pour cet utilisateur." });
+    if (target.role === "Super Administrateur" && !actorIsSuperAdmin) return respond(403, { error: "Seul le Super Administrateur peut gérer ce compte." });
     // Une ancienne invitation ne doit jamais permettre une réactivation après désactivation.
     const { data: targetAuth, error: targetAuthError } = await adminClient.auth.admin.getUserById(targetUserId);
     if (targetAuthError) return respond(500, { error: "Impossible de vérifier les métadonnées sécurisées de l'utilisateur." });
@@ -204,6 +225,7 @@ Deno.serve(async (req: Request) => {
       .maybeSingle();
     if (targetError) return respond(500, { error: "Impossible de vérifier l'utilisateur ciblé." });
     if (!target) return respond(404, { error: "Aucune appartenance SIB trouvée pour cet utilisateur." });
+    if (target.role === "Super Administrateur" && !actorIsSuperAdmin) return respond(403, { error: "Seul le Super Administrateur peut gérer ce compte." });
     if (target.active === true) return respond(200, { ok: true, alreadyActive: true, message: "L'utilisateur est déjà actif." });
     const { data: changed, error: reactivateError } = await adminClient
       .from("organization_memberships")
