@@ -35,6 +35,12 @@ assert.match(boot, /Connexion hors ligne bloquée pour protéger les données/);
 assert.doesNotMatch(boot, /CU=\{id:cachedUser\.id[\s\S]{0,500}enter\(true\)/,
   "Cached profile alone must never authorize offline entry");
 assert.match(boot, /Les données locales en attente sont conservées/);
+assert.match(boot, /if\(remote\?\.state\)[\s\S]*sibPendingConflict=false[\s\S]*sib-conflict-backup-v1-/,
+  "When central state is available, it must win and the local pending snapshot must be archived separately");
+assert.match(boot, /localStorage\.removeItem\(SIB_PENDING_KEY\)/,
+  "A stale local snapshot must be removed from the automatic retry queue after successful archival");
+assert.match(boot, /Données centrales chargées\. La sauvegarde locale différente a été conservée séparément/,
+  "The user must be informed that central data won without silently deleting the local copy");
 
 
 const retryStart = html.indexOf("async function retryPendingCloudSave()");
