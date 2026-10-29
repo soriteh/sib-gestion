@@ -1801,16 +1801,53 @@ document.addEventListener("focusout",()=>{
 });
 const SIB_PENDING_KEY="sib-pending-cloud-save-v1";
 let sibPendingRetryTimer=null,sibPendingRetryDelay=10000,sibPendingRetryBusy=false,sibPendingConflict=false;
+let sibConflictBackupDownloaded=false;
 function downloadPendingCloudBackup(){
  let pending;try{pending=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null")}catch(_){pending=null}
  if(!pending?.state){toast("Aucune sauvegarde locale en attente n’a été trouvée. Le conflit reste bloqué jusqu’à résolution.","wa");return}
  try{
   const blob=new Blob([JSON.stringify({app:"SIB Gestion",exportedAt:new Date().toISOString(),warning:"Sauvegarde locale en conflit avec les données centrales. Fichier potentiellement sensible.",state:pending.state},null,2)],{type:"application/json;charset=utf-8"});
   const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="SIB-Gestion-sauvegarde-locale-"+new Date().toISOString().replace(/[:.]/g,"-")+".json";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
-  // Downloading a backup is not a conflict resolution. Keep the pending snapshot
-  // and the conflict lock so a reload or later reconnect cannot overwrite cloud data.
-  toast("Sauvegarde locale téléchargée. Le conflit reste bloqué : conservez ce fichier et résolvez les données avant de reprendre la synchronisation.","ok",{ms:9000});
+  sibConflictBackupDownloaded=true;
+  toast("Sauvegarde locale téléchargée. Choisissez maintenant quelle version conserver. Restaurer la version locale remplacera l’état central complet et peut écraser les changements faits sur les autres appareils.","wa",{sticky:true,act:{label:"Résoudre le conflit",fn:resolveCloudConflict}});
  }catch(err){console.error("SIB backup export failed:",err);toast("Téléchargement impossible. La sauvegarde locale est conservée sur cet appareil.","er",{sticky:true})}
+}
+async function resolveCloudConflict(){
+ if(!sibPendingConflict)return;
+ if(!sibConflictBackupDownloaded){toast("Téléchargez d’abord la sauvegarde locale avant de résoudre le conflit.","wa",{sticky:true,act:{label:"Télécharger la sauvegarde",fn:downloadPendingCloudBackup}});return}
+ if(!window.SIBCloud?.ready||!cloudSessionReady||!window.SIBCloud.isAdminRole(RO)){toast("Seul un administrateur connecté peut résoudre ce conflit.","er",{sticky:true});return}
+ let pending;try{pending=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null")}catch(_){}
+ if(!pending?.state){toast("La sauvegarde locale en attente est introuvable. Aucun changement n’a été appliqué.","er",{sticky:true});return}
+ const choice=window.prompt("RÉSOLUTION DU CONFLIT SIB GESTION\n\nTapez CLOUD pour conserver les données centrales et abandonner la copie locale en attente.\n\nTapez LOCAL pour restaurer la copie locale téléchargée vers le cloud. Cette opération remplace l’état central complet et peut écraser les changements d’autres appareils.\n\nAucune modification ne sera faite si vous annulez.");
+ if(choice===null)return;
+ const mode=String(choice).trim().toUpperCase();
+ if(mode!=="CLOUD"&&mode!=="LOCAL"){toast("Choix invalide. Tapez CLOUD ou LOCAL ; le conflit reste bloqué.","wa",{sticky:true,act:{label:"Résoudre le conflit",fn:resolveCloudConflict}});return}
+ if(mode==="LOCAL"&&!window.confirm("CONFIRMATION FINALE\nVous allez remplacer l’état central complet par la sauvegarde locale. Vérifiez que le fichier téléchargé est conservé et que cette version contient bien les données à garder. Continuer ?"))return;
+ try{
+  const latest=await window.SIBCloud.loadAppState();
+  if(!latest?.state)throw new Error("Impossible de lire l’état central actuel.");
+  if(mode==="LOCAL"){
+   await window.SIBCloud.saveAppState(pending.state);
+   S=repairState(pending.state);
+   const currentUser=CU;const currentUsers=Array.isArray(S?.us)?S.us:[];
+   S.us=currentUsers.length?currentUsers:(currentUser?[currentUser]:[]);
+   S.set={...D0().set,...S.set};S.set.pre={...D0().set.pre,...S.set.pre};S.set.rh={...D0().set.rh,...S.set.rh};
+  }else{
+   S=repairState(latest.state);
+   const currentUser=CU;const currentUsers=Array.isArray(S?.us)?S.us:[];
+   S.us=currentUsers.length?currentUsers:(currentUser?[currentUser]:[]);
+   S.set={...D0().set,...S.set};S.set.pre={...D0().set.pre,...S.set.pre};S.set.rh={...D0().set.rh,...S.set.rh};
+  }
+  localStorage.removeItem(SIB_PENDING_KEY);
+  sibPendingConflict=false;sibConflictBackupDownloaded=false;cloudQueuedSnapshot=null;cloudRealtimeRefreshQueued=false;
+  applyLogo();
+  if(typeof nav==="function"&&CUR)nav(CUR);else if(typeof draw==="function")draw();
+  toast(mode==="LOCAL"?"Conflit résolu : la sauvegarde locale a été restaurée dans Supabase.":"Conflit résolu : les données centrales ont été conservées. La copie locale en attente a été retirée après téléchargement.","ok",{ms:8000});
+  if(mode==="CLOUD")activateCloudRealtime();
+ }catch(err){
+  console.error("SIB conflict resolution failed:",err);
+  toast("Résolution échouée : "+String(err?.message||err)+". La sauvegarde locale reste conservée et le conflit demeure bloqué.","er",{sticky:true,act:{label:"Télécharger la sauvegarde",fn:downloadPendingCloudBackup}});
+ }
 }
 function isCloudVersionConflict(error){
  const code=String(error?.code||error?.status||"");
