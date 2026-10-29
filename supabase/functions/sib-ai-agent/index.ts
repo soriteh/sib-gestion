@@ -28,6 +28,46 @@ serve(async (req) => {
     if (!check.ok) return fail(401, "Session invalide. Reconnectez-vous.");
 
     const body = await req.json();
+    if (body?.action === "transcribe_audio") {
+      const audioBase64 = body?.audioBase64;
+      const mimeType = body?.mimeType;
+      const allowedMimeTypes = ["audio/webm", "audio/ogg", "audio/mp4", "audio/wav", "audio/mpeg"];
+      if (typeof audioBase64 !== "string" || !audioBase64.length || audioBase64.length > 2800000) {
+        return fail(400, "Enregistrement vide ou trop volumineux (maximum 2 Mo).");
+      }
+      if (typeof mimeType !== "string" || !allowedMimeTypes.includes(mimeType)) {
+        return fail(400, "Format audio non pris en charge. Réessayez avec un navigateur récent.");
+      }
+      const audioGeminiKey = Deno.env.get("GEMINI_API_KEY");
+      if (!audioGeminiKey) return fail(503, "La transcription vocale nécessite GEMINI_API_KEY dans les secrets Supabase.");
+      try {
+        const model = Deno.env.get("GEMINI_MODEL") || "gemini-2.5-flash";
+        const out = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-goog-api-key": audioGeminiKey },
+          body: JSON.stringify({
+            contents: [{ role: "user", parts: [
+              { text: "Transcris fidèlement en français les paroles audibles dans cet enregistrement. Retourne uniquement les mots prononcés, sans commentaire, sans guillemets et sans inventer de mots." },
+              { inline_data: { mime_type: mimeType, data: audioBase64 } }
+            ] }],
+            generationConfig: { temperature: 0, maxOutputTokens: 300 }
+          })
+        });
+        const data = await out.json().catch(() => ({}));
+        const transcript = data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text || "").join("").trim();
+        if (!out.ok) {
+          console.error("Gemini audio transcription failed", out.status);
+          return fail(out.status === 429 ? 429 : 502, out.status === 429
+            ? "Limite de transcription atteinte. Réessayez plus tard."
+            : "Le service de transcription n’a pas pu traiter l’audio. Réessayez.");
+        }
+        if (typeof transcript !== "string" || !transcript) return fail(422, "Aucune parole reconnue. Parlez plus près du micro et réessayez.");
+        return new Response(JSON.stringify({ ok: true, transcript }), { status: 200, headers });
+      } catch (error) {
+        console.error("Gemini audio transcription error", (error as Error)?.message || error);
+        return fail(502, "Connexion au service de transcription impossible.");
+      }
+    }
     const message = body?.message;
     if (typeof message !== "string" || !message.trim() || message.length > 2000) {
       return fail(400, "Message vide ou trop long (maximum 2 000 caractères).");
