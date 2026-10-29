@@ -30,11 +30,12 @@ const bootStart = html.indexOf("async function boot(){");
 const bootEnd = html.indexOf("const info=", bootStart);
 assert.ok(bootStart >= 0 && bootEnd > bootStart, "Boot flow must exist");
 const boot = html.slice(bootStart, bootEnd);
-assert.match(boot, /A cached profile is not an authentication factor/);
-assert.match(boot, /Connexion hors ligne bloquée pour protéger les données/);
-assert.doesNotMatch(boot, /CU=\{id:cachedUser\.id[\s\S]{0,500}enter\(true\)/,
-  "Cached profile alone must never authorize offline entry");
-assert.match(boot, /Les données locales en attente sont conservées/);
+assert.match(boot, /Connexion Internet requise : SIB Gestion ne fonctionne pas hors ligne/);
+assert.match(boot, /Les modifications locales antérieures en attente sont conservées/);
+assert.doesNotMatch(boot, /sib-offline-profile-v1/,
+  "Cached profile must not be used as an offline identity");
+assert.doesNotMatch(boot, /sib-offline-state-v1/,
+  "Cached application state must not be used for offline access");
 assert.match(boot, /if\(remote\?\.state\)[\s\S]*const sameAsCentral=JSON\.stringify\(pendingCloud\.state\)===JSON\.stringify\(remote\.state\)/,
   "When central state is available, the app must compare it with the pending local snapshot");
 assert.match(boot, /if\(sameAsCentral\)[\s\S]*localStorage\.removeItem\(SIB_PENDING_KEY\)/,
