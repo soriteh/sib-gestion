@@ -2534,7 +2534,7 @@ async function boot(){applyLogo();
    }
    const savedProfile=(S.profile&&typeof S.profile==="object")?S.profile:profile;
    CU={id:current.user.id,pn:savedProfile.pn||parts[0]||"Administrateur",nm:savedProfile.nm||parts.slice(1).join(" "),nom:savedProfile.nom||[savedProfile.pn||parts[0]||"Administrateur",savedProfile.nm||parts.slice(1).join(" ")].filter(Boolean).join(" "),mail:email,login:email,role:current.membership.role,actif:true,cloud:true,last:null,tel:savedProfile.tel||"",ph:savedProfile.ph||""};
-   S.us=[CU];RO=CU.role;cloudSessionReady=true;// Aucune donnée métier ni aucun profil ne sont mis en cache pour un accès hors ligne.applyLogo();activateCloudRealtime();enter(true);if(!remote)await cloudSaveChain;return;
+   S.us=[CU];RO=CU.role;cloudSessionReady=true;applyLogo();activateCloudRealtime();enter(true);if(!remote)await cloudSaveChain;return;
   }catch(err){
   console.warn("SIB cloud session unavailable:",err);
   const offlineNetworkFailure = navigator.onLine === false || /Délai de connexion dépassé|PGRST002|PGRST003|schema cache|Timed out acquiring connection|HTTP 5\d\d|status.?5\d\d|Failed to fetch|NetworkError|fetch failed|Load failed|Network request failed|CORS|cross-origin/i.test(String(err && err.message || err || ""));
