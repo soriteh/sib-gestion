@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<link rel="manifest" href="./manifest.webmanifest">
+<!-- SIB Gestion fonctionne en ligne uniquement : manifeste PWA désactivé. -->
 <script>window.SIB_AUTH_INVITATION_LINK=/(?:^|[&#])type=invite(?:&|$)/i.test(window.location.hash||"")||/(?:^|[?&])type=invite(?:&|$)/i.test(window.location.search||"");</script>
 <meta name="theme-color" content="#0057b9">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1859,15 +1859,12 @@ function save(){
  }
  const snapshot=cloudSnapshot();
  if(!navigator.onLine){
-  const stored=storePendingCloudSnapshot(snapshot);
-  try{localStorage.setItem("sib-offline-state-v1",JSON.stringify({savedAt:Date.now(),state:snapshot}));}catch(cacheErr){console.error("SIB offline state cache failed:",cacheErr)}
-  if(!stored&&typeof toast==="function")toast("Stockage local insuffisant : exportez une sauvegarde avant de poursuivre.","er",{sticky:true});
-  else if(typeof toast==="function")toast("Mode hors ligne : modifications enregistrées sur cet appareil, synchronisation à la reconnexion.","wa");
+  if(typeof toast==="function")toast("Connexion Internet requise : aucune modification hors ligne n’est enregistrée. Reconnectez-vous puis recommencez.","er",{sticky:true});
   return;
  }
- // Keep the latest state locally and coalesce rapid edits into one serialized cloud write.
+ // Le cliché temporaire sert uniquement à protéger une sauvegarde cloud en cours,
+ // pas à autoriser la modification ou la consultation hors ligne.
  storePendingCloudSnapshot(snapshot);
- try{localStorage.setItem("sib-offline-state-v1",JSON.stringify({savedAt:Date.now(),state:snapshot}));}catch(cacheErr){console.warn("SIB local snapshot failed:",cacheErr)}
  cloudQueuedSnapshot=snapshot;
  if(!cloudWriteRunning&&!sibPendingRetryBusy)cloudSaveChain=drainCloudWrites();
 }
@@ -2648,9 +2645,8 @@ async function saveProfileAndConfirm(){
   await window.SIBCloud.saveUserProfile(snapshot.profile||{pn:CU.pn,nm:CU.nm,nom:CU.nom,tel:CU.tel,ph:CU.ph});
   return "cloud";
  }
+ if(!navigator.onLine)throw new Error("Connexion Internet requise : la modification du profil n’a pas été enregistrée.");
  const pendingStored=storePendingCloudSnapshot(snapshot);
- try{localStorage.setItem("sib-offline-state-v1",JSON.stringify({savedAt:Date.now(),state:snapshot}));}catch(_){}
- if(!navigator.onLine){if(!pendingStored)throw new Error("Stockage local indisponible : impossible de mettre la modification en attente.");return "offline";}
  const previousChain=cloudSaveChain;if(previousChain)await previousChain;
  if(sibPendingConflict)throw new Error("Un conflit de synchronisation bloque l’enregistrement.");
  if(cloudWriteRunning||sibPendingRetryBusy)throw new Error("Une autre sauvegarde est en cours. Réessayez dans quelques secondes.");
