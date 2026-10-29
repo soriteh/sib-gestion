@@ -1966,29 +1966,7 @@ function printSibDocument(source,kind){
  const isPayroll=kind==="payroll";const pageCss=isPayroll?'@page{size:A4 portrait;margin:10mm}.paper{width:190mm;max-width:100%;margin:0 auto}.paper>.print-doc{width:100%;position:relative;isolation:isolate;overflow:hidden;min-height:255mm;padding:0}.paper .payroll-watermark{position:absolute;z-index:0;left:50%;top:50%;transform:translate(-50%,-50%);width:118mm;height:118mm;object-fit:contain;opacity:.09;pointer-events:none;print-color-adjust:exact;-webkit-print-color-adjust:exact}.paper .payroll-content{position:relative;z-index:1}.paper table{width:100%;font-size:11px}.paper td,.paper th{padding:7px 8px}.paper .payroll-amount-words{margin-top:10px;padding:9px 11px;border:1px solid #cbd5e1;border-radius:5px;font-size:11px;position:relative;background:rgba(255,255,255,.72)}.paper .tot{font-size:15px}':(isReceipt||isThermal)?'@page{size:80mm auto;margin:3mm}.paper{width:74mm;max-width:74mm;margin:0}.paper>.print-doc{width:100%;min-height:0;display:block}.paper .row{display:block!important}.paper .row>div{display:block;width:100%;margin-bottom:5px}.paper table{width:100%;table-layout:fixed;font-size:9px;margin:6px 0}.paper th,.paper td{padding:3px 1px;overflow-wrap:anywhere}.paper .print-doc th:nth-child(1),.paper .print-doc td:nth-child(1){width:8%}.paper .print-doc th:nth-child(2),.paper .print-doc td:nth-child(2){width:38%}.paper .print-doc th:nth-child(3),.paper .print-doc td:nth-child(3){width:10%}.paper .print-doc th:nth-child(4),.paper .print-doc td:nth-child(4){width:21%}.paper .print-doc th:nth-child(5),.paper .print-doc td:nth-child(5){width:23%}body{padding:0;font-size:10px}.sib-doc-head img{max-height:14mm;max-width:25mm}.sib-doc-head{gap:3mm;padding-bottom:3mm;margin-bottom:3mm}h2{font-size:14px}.tot{font-size:12px}.doc-footer{margin-top:6px;padding-top:4px;font-size:8px}.signature-block{display:none!important}':'@page{size:A5 portrait;margin:8mm}.paper{display:block;width:132mm;max-width:100%;min-height:0;margin:0 auto}.paper>.print-doc{display:block;width:100%;min-height:0;max-width:100%;overflow:visible}.paper .row{display:flex;flex-direction:row;align-items:flex-start;gap:12px;width:100%}.paper .row>div{flex:1 1 0;min-width:0;overflow-wrap:anywhere}.paper table{width:100%;table-layout:auto}.signature-block{margin-top:18px!important}.doc-footer{margin-top:14px;padding-top:5mm;border-top:1px solid #cbd5e1;text-align:center;font-size:9px;line-height:1.5;color:#475569}.doc-footer strong{font-size:10px;color:#172033}.doc-footer span{font-style:italic}';
  w.document.open();
  w.document.write('<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>'+ (isReceipt?'Reçu de caisse SIB':'Document SIB')+'</title><style>'+css+pageCss+'</style></head><body><div class="paper">'+content+'</div><script>window.addEventListener("load",function(){setTimeout(function(){window.focus();window.print()},300)});window.addEventListener("afterprint",function(){setTimeout(function(){window.close()},300)});<\/script>
-<script>
-/* SIB — effet de déplacement du curseur, uniquement souris/stylet sur écran compatible */
-(function(){
-  "use strict";
-  if(!window.matchMedia || !window.matchMedia("(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference)").matches)return;
-  var halo=document.createElement("div");
-  halo.className="sib-cursor-halo";
-  halo.setAttribute("aria-hidden","true");
-  document.addEventListener("DOMContentLoaded",function(){
-    if(!document.body)return;
-    document.body.appendChild(halo);
-    var raf=0,x=0,y=0;
-    document.addEventListener("pointermove",function(e){
-      if(e.pointerType==="touch")return;
-      x=e.clientX;y=e.clientY;
-      if(!raf)raf=requestAnimationFrame(function(){halo.style.left=x+"px";halo.style.top=y+"px";halo.classList.add("is-visible");raf=0;});
-    },{passive:true});
-    document.addEventListener("pointerleave",function(){halo.classList.remove("is-visible");});
-    document.addEventListener("pointerdown",function(){halo.style.width="190px";halo.style.height="190px";});
-    document.addEventListener("pointerup",function(){halo.style.width="230px";halo.style.height="230px";});
-  },{once:true});
-})();
-</script>
+
 </body></html>');
  w.document.close();
 }
@@ -3157,6 +3135,30 @@ window.addEventListener("sib:internal-refresh",()=>refresh());
  }
  document.addEventListener("click",e=>{const b=e.target.closest('#nv button[data-v="pr"]');if(b)setTimeout(renderAttendance,0);});
  window.sibRenderAttendance=renderAttendance;
+})();
+</script>
+
+<script>
+/* SIB — effet de déplacement du curseur, uniquement souris/stylet sur écran compatible */
+(function(){
+  "use strict";
+  if(!window.matchMedia || !window.matchMedia("(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference)").matches)return;
+  document.addEventListener("DOMContentLoaded",function(){
+    if(!document.body)return;
+    var halo=document.createElement("div");
+    halo.className="sib-cursor-halo";
+    halo.setAttribute("aria-hidden","true");
+    document.body.appendChild(halo);
+    var raf=0,x=0,y=0;
+    document.addEventListener("pointermove",function(e){
+      if(e.pointerType==="touch")return;
+      x=e.clientX;y=e.clientY;
+      if(!raf)raf=requestAnimationFrame(function(){halo.style.left=x+"px";halo.style.top=y+"px";halo.classList.add("is-visible");raf=0;});
+    },{passive:true});
+    document.addEventListener("pointerleave",function(){halo.classList.remove("is-visible");});
+    document.addEventListener("pointerdown",function(){halo.style.width="190px";halo.style.height="190px";});
+    document.addEventListener("pointerup",function(){halo.style.width="230px";halo.style.height="230px";});
+  },{once:true});
 })();
 </script>
 </body></html>
