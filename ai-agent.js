@@ -55,29 +55,65 @@
   const messages = panel.querySelector("#sib-ai-messages"), input = panel.querySelector("#sib-ai-input"), send = panel.querySelector("#sib-ai-send");
   const mic = panel.querySelector("#sib-ai-mic"), voiceOutput = panel.querySelector("#sib-ai-voice-output"), voiceStatus = panel.querySelector("#sib-ai-voice-status");
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  let recognition = null, voiceEnabled = false, voiceListening = false;
+  const mediaRecordingSupported = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
+  let recognition = null, recorder = null, audioStream = null, audioChunks = [], voiceEnabled = false, voiceListening = false;
   const history = [];
   function setVoiceStatus(text){if(voiceStatus)voiceStatus.textContent=text;}
   function speak(text){if(!voiceEnabled||!window.speechSynthesis||!text)return;try{window.speechSynthesis.cancel();const utterance=new SpeechSynthesisUtterance(String(text).slice(0,4000));utterance.lang="fr-FR";utterance.rate=1;utterance.pitch=1;window.speechSynthesis.speak(utterance);}catch(err){setVoiceStatus("Lecture vocale indisponible dans ce navigateur.");}}
-  function stopListening(){if(recognition){try{recognition.stop();}catch(_ignored){}}}
-  if(!SpeechRecognition){mic.disabled=true;mic.title="La reconnaissance vocale n’est pas prise en charge par ce navigateur.";setVoiceStatus("Micro non pris en charge ici. Essayez un navigateur compatible et autorisez le microphone.");}
+  function stopListening(){if(recognition){try{recognition.stop();}catch(_ignored){}}if(recorder&&recorder.state==="recording"){try{recorder.stop();}catch(_ignored){}}}
+  if(!SpeechRecognition&&!mediaRecordingSupported){mic.disabled=true;mic.title="Enregistrement vocal non pris en charge par ce navigateur.";setVoiceStatus("Micro indisponible. Utilisez un navigateur récent et autorisez le microphone sur HTTPS.");}
   if(!window.speechSynthesis){voiceOutput.disabled=true;voiceOutput.title="La lecture vocale n’est pas prise en charge par ce navigateur.";}
   function add(role,text){const el=document.createElement("div");el.className="sib-ai-msg "+(role==="user"?"user":"bot");el.textContent=text;messages.appendChild(el);messages.scrollTop=messages.scrollHeight;}
   function open(){panel.classList.add("open");if(!messages.childElementCount)add("bot","Bonjour ! Je suis Maya, l’assistant IA de SIB Gestion, connecté au service IA SIB. Comment puis-je vous aider ?");input.focus();}
   launch.addEventListener("click",()=>panel.classList.contains("open")?panel.classList.remove("open"):open());
-  panel.querySelector("#sib-ai-close").addEventListener("click",()=>{panel.classList.remove("open");stopListening();if(window.speechSynthesis)window.speechSynthesis.cancel();});
+  panel.querySelector("#sib-ai-close").addEventListener("click",()=>{panel.classList.remove("open");stopListening();if(audioStream)audioStream.getTracks().forEach(track=>track.stop());if(window.speechSynthesis)window.speechSynthesis.cancel();});
   voiceOutput.addEventListener("click",()=>{voiceEnabled=!voiceEnabled;voiceOutput.classList.toggle("active",voiceEnabled);voiceOutput.setAttribute("aria-pressed",String(voiceEnabled));voiceOutput.title=voiceEnabled?"Désactiver la lecture vocale des réponses":"Activer la lecture vocale des réponses";setVoiceStatus(voiceEnabled?"Voix de Maya activée.":"Voix de Maya désactivée.");if(!voiceEnabled&&window.speechSynthesis)window.speechSynthesis.cancel();});
-  mic.addEventListener("click",()=>{
-    if(!SpeechRecognition){setVoiceStatus("La reconnaissance vocale nécessite un navigateur compatible, généralement Chrome ou Edge, et une connexion sécurisée HTTPS.");return;}
-    if(voiceListening){stopListening();return;}
+  async function transcribeRecordedAudio(blob){
+    if(!blob||!blob.size){setVoiceStatus("Aucun son enregistré. Réessayez en parlant après le signal.");return;}
+    if(blob.size>2*1024*1024){setVoiceStatus("Enregistrement trop long. Parlez pendant 10 à 15 secondes maximum puis réessayez.");return;}
+    setVoiceStatus("Transcription de votre commande…");
     try{
-      recognition=new SpeechRecognition();recognition.lang="fr-FR";recognition.continuous=false;recognition.interimResults=true;recognition.maxAlternatives=1;
-      let finalTranscript="";recognition.onstart=()=>{voiceListening=true;mic.classList.add("listening");mic.setAttribute("aria-label","Arrêter l’écoute vocale");setVoiceStatus("Maya vous écoute… parlez maintenant.");};
-      recognition.onresult=(event)=>{let interim="";for(let i=event.resultIndex;i<event.results.length;i++){const phrase=event.results[i][0].transcript;if(event.results[i].isFinal)finalTranscript+=phrase;else interim+=phrase;}setVoiceStatus(finalTranscript?"Commande reconnue : "+finalTranscript:"Écoute : "+interim);};
-      recognition.onerror=(event)=>{setVoiceStatus(event.error==="not-allowed"?"Accès au microphone refusé. Autorisez-le dans les paramètres du navigateur.":"Erreur vocale : "+event.error+". Vous pouvez saisir votre demande au clavier.");};
-      recognition.onend=()=>{voiceListening=false;mic.classList.remove("listening");mic.setAttribute("aria-label","Dicter une commande vocale à Maya");if(finalTranscript.trim()){input.value=finalTranscript.trim();input.focus();setVoiceStatus("Commande transcrite. Maya prépare votre réponse…");if(panel.querySelector("#sib-ai-form").requestSubmit)panel.querySelector("#sib-ai-form").requestSubmit();else send.click();}else if(voiceStatus&&voiceStatus.textContent==="Maya vous écoute… parlez maintenant.")setVoiceStatus("Aucune commande reconnue. Appuyez sur le micro et réessayez.");};
-      recognition.start();
-    }catch(err){voiceListening=false;mic.classList.remove("listening");setVoiceStatus("Impossible de démarrer le microphone. Vérifiez les autorisations du navigateur.");}
+      const cloud=window.SIBCloud,client=cloud&&cloud.client&&cloud.client();
+      if(!cloud||!cloud.ready||!client)throw new Error("Le service Supabase n’est pas configuré.");
+      const {data:sessionData,error:sessionError}=await client.auth.getSession();
+      if(sessionError)throw sessionError;if(!sessionData.session)throw new Error("Connectez-vous à SIB Gestion pour utiliser Maya.");
+      const dataUrl=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||""));reader.onerror=()=>reject(new Error("Lecture de l’enregistrement impossible."));reader.readAsDataURL(blob);});
+      const audioBase64=String(dataUrl).split(",")[1]||"";
+      const mimeType=(blob.type||"audio/webm").split(";")[0];
+      const {data,error}=await client.functions.invoke("sib-ai-agent",{body:{action:"transcribe_audio",audioBase64,mimeType}});
+      if(error){let detail=(data&&data.error)||error.message||"Transcription indisponible.";try{const response=error.context;if(response&&typeof response.json==="function"){const payload=await response.clone().json();if(payload&&payload.error)detail=payload.error;}}catch(_ignored){}throw new Error(detail);}
+      if(!data||!data.transcript||!String(data.transcript).trim())throw new Error("Aucune parole reconnue. Rapprochez-vous du micro et réessayez.");
+      input.value=String(data.transcript).trim();input.focus();setVoiceStatus("Commande reconnue. Maya prépare sa réponse…");
+      const form=panel.querySelector("#sib-ai-form");if(form.requestSubmit)form.requestSubmit();else send.click();
+    }catch(err){setVoiceStatus(String(err&&err.message||"Transcription impossible. Réessayez."));}
+  }
+  mic.addEventListener("click",async()=>{
+    if(SpeechRecognition){
+      if(voiceListening){stopListening();return;}
+      try{
+        recognition=new SpeechRecognition();recognition.lang="fr-FR";recognition.continuous=false;recognition.interimResults=true;recognition.maxAlternatives=1;
+        let finalTranscript="";
+        recognition.onstart=()=>{voiceListening=true;mic.classList.add("listening");mic.setAttribute("aria-label","Arrêter l’écoute vocale");setVoiceStatus("Maya vous écoute… parlez maintenant.");};
+        recognition.onresult=(event)=>{let interim="";for(let i=event.resultIndex;i<event.results.length;i++){const phrase=event.results[i][0].transcript;if(event.results[i].isFinal)finalTranscript+=phrase;else interim+=phrase;}setVoiceStatus(finalTranscript?"Commande reconnue : "+finalTranscript:"Écoute : "+interim);};
+        recognition.onerror=(event)=>{setVoiceStatus(event.error==="not-allowed"?"Accès au microphone refusé. Autorisez-le dans les paramètres du navigateur.":"Erreur vocale : "+event.error+". Vous pouvez saisir votre demande au clavier.");};
+        recognition.onend=()=>{voiceListening=false;mic.classList.remove("listening");mic.setAttribute("aria-label","Dicter une commande vocale à Maya");if(finalTranscript.trim()){input.value=finalTranscript.trim();input.focus();setVoiceStatus("Commande transcrite. Maya prépare votre réponse…");const form=panel.querySelector("#sib-ai-form");if(form.requestSubmit)form.requestSubmit();else send.click();}else if(voiceStatus&&voiceStatus.textContent==="Maya vous écoute… parlez maintenant.")setVoiceStatus("Aucune commande reconnue. Appuyez sur le micro et réessayez.");};
+        recognition.start();
+      }catch(err){voiceListening=false;mic.classList.remove("listening");setVoiceStatus("Impossible de démarrer le microphone. Vérifiez les autorisations du navigateur.");}
+      return;
+    }
+    if(!mediaRecordingSupported){setVoiceStatus("Ce navigateur ne permet pas l’enregistrement vocal. Essayez un navigateur récent sur HTTPS.");return;}
+    if(recorder&&recorder.state==="recording"){recorder.stop();return;}
+    try{
+      audioStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
+      const mimeCandidates=["audio/ogg;codecs=opus","audio/ogg","audio/webm;codecs=opus","audio/webm"];
+      const mimeType=mimeCandidates.find(type=>MediaRecorder.isTypeSupported(type));
+      recorder=new MediaRecorder(audioStream,mimeType?{mimeType}:undefined);audioChunks=[];
+      recorder.ondataavailable=event=>{if(event.data&&event.data.size)audioChunks.push(event.data);};
+      recorder.onerror=()=>setVoiceStatus("Erreur pendant l’enregistrement. Vérifiez le micro et réessayez.");
+      recorder.onstart=()=>{voiceListening=true;mic.classList.add("listening");mic.setAttribute("aria-label","Arrêter l’enregistrement vocal");setVoiceStatus("Maya vous écoute… cliquez de nouveau pour terminer.");};
+      recorder.onstop=()=>{voiceListening=false;mic.classList.remove("listening");mic.setAttribute("aria-label","Dicter une commande vocale à Maya");if(audioStream){audioStream.getTracks().forEach(track=>track.stop());audioStream=null;}const blob=new Blob(audioChunks,{type:recorder.mimeType||"audio/webm"});audioChunks=[];transcribeRecordedAudio(blob);};
+      recorder.start();setVoiceStatus("Maya vous écoute… parlez, puis cliquez de nouveau sur le micro.");
+    }catch(err){if(audioStream){audioStream.getTracks().forEach(track=>track.stop());audioStream=null;}voiceListening=false;mic.classList.remove("listening");setVoiceStatus(err&&err.name==="NotAllowedError"?"Accès au microphone refusé. Autorisez le micro dans les paramètres du site.":"Impossible de démarrer le micro. Vérifiez les autorisations et la connexion HTTPS.");}
   });
   panel.querySelector("#sib-ai-form").addEventListener("submit",async function(e){
     e.preventDefault();const message=input.value.trim();if(!message||send.disabled)return;
