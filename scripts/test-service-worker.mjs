@@ -3,27 +3,21 @@ import { readFileSync } from "node:fs";
 
 const source = readFileSync("service-worker.js", "utf8");
 const htmlSource = readFileSync("index.html", "utf8");
-const mayaSource = readFileSync("ai-agent.js", "utf8");
+const registerSource = readFileSync("offline-register.js", "utf8");
 
-// Guard the specific regression found during the offline audit: relative
-// cache keys must be resolved against the deployed GitHub Pages subpath.
-assert.match(source, /const urlFor = path => new URL\(path, SCOPE_URL\)\.href/);
-assert.match(source, /const indexUrl = urlFor\("\.\/index\.html"\)/);
-assert.match(source, /cache\.put\(indexUrl, response\.clone\(\)\)/);
-assert.match(source, /cache\.match\(indexUrl\)/);
+// SIB Gestion is online-only. The worker must remove the previous offline
+// caches and must not intercept fetches or cache application resources.
+assert.match(source, /self\.addEventListener\("activate"/);
+assert.match(source, /name\.startsWith\("sib-gestion-offline-"\)/);
+assert.match(source, /caches\.delete\(name\)/);
+assert.doesNotMatch(source, /self\.addEventListener\("fetch"/);
+assert.doesNotMatch(source, /caches\.open\(/);
+assert.match(source, /self\.addEventListener\("push"/, "Web Push notifications must remain available");
+assert.match(source, /self\.addEventListener\("notificationclick"/, "Notification clicks must remain functional");
+assert.match(registerSource, /serviceWorker\.register/);
+assert.match(registerSource, /uniquement pour les notifications push/);
+assert.doesNotMatch(htmlSource, /<link rel="manifest" href="\.\/manifest\.webmanifest">/);
+assert.match(htmlSource, /Connexion Internet requise : aucune modification hors ligne n’est enregistrée/);
+assert.doesNotMatch(htmlSource, /localStorage\.setItem\("sib-offline-state-v1"/);
 
-// Local shell resources must be required; the CDN bundle remains optional so
-// an external network issue cannot prevent installation of the offline shell.
-const required = source.match(/const REQUIRED_SHELL = \[([\s\S]*?)\]/)?.[1] || "";
-for (const asset of ["./index.html", "./ai-agent.js?v=20261026-maya-voice-3", "./assets/maya-ai.svg?v=20261026-maya-ai-1", "./supabase-config.js", "./supabase-client.js", "./manifest.webmanifest"]) {
-  assert.ok(required.includes(JSON.stringify(asset)), `Required offline asset missing: ${asset}`);
-}
-assert.match(source, /const OPTIONAL_SHELL = \[/);
-assert.match(source, /await self\.skipWaiting\(\)/);
-assert.match(source, /await self\.clients\.claim\(\)/);
-assert.match(source, /const VERSION = "sib-gestion-offline-v6"/, "cache version must change when offline shell assets change");
-assert.ok(htmlSource.includes('<script src="./ai-agent.js?v=20261026-maya-voice-3" defer></script>'), "HTML must request the cache-busted Maya assistant");
-assert.ok(mayaSource.includes("assets/maya-ai.svg?v=20261026-maya-ai-1"), "Maya UI must use the versioned AI logo");
-assert.match(source, /sib-gestion-offline-/);
-
-console.log("Service worker offline cache regression tests passed.");
+console.log("Online-only mode and push-only service worker tests passed.");
