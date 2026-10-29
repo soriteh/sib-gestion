@@ -1750,7 +1750,7 @@ async function refreshCloudStateFromRealtime(remoteVersion){
  try{
   const knownVersion=Number(window.SIBCloud.appStateVersion||0);
   const latest=await window.SIBCloud.loadAppState();
-  if(!latest?.state||Number(latest.version||0)<=knownVersion)return;
+  if(!latest?.state||Number(latest.version||0)<=knownVersion){cloudRealtimeRefreshQueued=false;return;}
   let afterLoad=null;
   try{afterLoad=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null")}catch(_){}
   if(cloudWriteRunning||sibPendingRetryBusy||cloudQueuedSnapshot||sibPendingConflict||afterLoad?.state){
