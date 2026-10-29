@@ -1717,22 +1717,87 @@ function montantEnLettresAvecDevise(value){
 }
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let cloudSessionReady=false,cloudSaveChain=Promise.resolve(),cloudSaveErrorAt=0,cloudQueuedSnapshot=null,cloudWriteRunning=false;
-let cloudChannel=null,cloudRemoteNoticeAt=0;
+let cloudChannel=null,cloudRealtimeRefreshBusy=false,cloudRealtimeRefreshQueued=false;
+function cloudHasActiveEdit(){
+ const active=document.activeElement;
+ if(active&&active!==document.body&&active!==document.documentElement&&
+    (active.matches?.("input,textarea,select,[contenteditable=true]")||active.closest?.("form")))return true;
+ const modal=document.getElementById("mdl");
+ return !!(modal&&!modal.classList.contains("hide"));
+}
+async function refreshCloudStateFromRealtime(remoteVersion){
+ if(!cloudSessionReady||!window.SIBCloud?.ready||!window.SIBCloud.isAdminRole(RO))return;
+ if(Number(remoteVersion||0)<=Number(window.SIBCloud.appStateVersion||0))return;
+ if(cloudRealtimeRefreshBusy){cloudRealtimeRefreshQueued=true;return;}
+ // Do not replace local edits while a save is running or a recovery snapshot exists.
+ if(cloudWriteRunning||sibPendingRetryBusy||cloudQueuedSnapshot||sibPendingConflict){
+  cloudRealtimeRefreshQueued=true;
+  return;
+ }
+ let pending=null;
+ try{pending=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null")}catch(_){}
+ if(pending?.state){
+  // A pending snapshot is not necessarily identical to the central state.
+  // Keep it intact rather than silently overwriting a potentially newer edit.
+  cloudRealtimeRefreshQueued=false;
+  return;
+ }
+ if(cloudHasActiveEdit()){
+  cloudRealtimeRefreshQueued=true;
+  return;
+ }
+ cloudRealtimeRefreshBusy=true;
+ try{
+  const latest=await window.SIBCloud.loadAppState();
+  if(!latest?.state||Number(latest.version||0)<=Number(window.SIBCloud.appStateVersion||0))return;
+  let afterLoad=null;
+  try{afterLoad=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null")}catch(_){}
+  if(cloudWriteRunning||sibPendingRetryBusy||cloudQueuedSnapshot||sibPendingConflict||afterLoad?.state){
+   cloudRealtimeRefreshQueued=true;
+   return;
+  }
+  const currentUser=CU;
+  const currentUsers=Array.isArray(S?.us)?S.us:[];
+  S=repairState(latest.state);
+  // Keep this browser's authenticated session; user profiles are loaded separately.
+  S.us=currentUsers.length?currentUsers:(currentUser?[currentUser]:[]);
+  if(currentUser&&S.profile&&typeof S.profile==="object"){
+   S.profile={...S.profile,pn:currentUser.pn||S.profile.pn||"",nm:currentUser.nm||S.profile.nm||"",nom:currentUser.nom||S.profile.nom||"",tel:currentUser.tel||S.profile.tel||"",ph:currentUser.ph||S.profile.ph||""};
+  }
+  S.set={...D0().set,...S.set};S.set.pre={...D0().set.pre,...S.set.pre};S.set.rh={...D0().set.rh,...S.set.rh};
+  cloudRealtimeRefreshQueued=false;
+  applyLogo();
+  // Re-render the current module without reloading the page or asking the user to click.
+  if(typeof nav==="function"&&CUR)nav(CUR);
+  else if(typeof draw==="function")draw();
+ }catch(err){
+  console.warn("SIB automatic realtime refresh failed:",err);
+ }finally{
+  cloudRealtimeRefreshBusy=false;
+  if(cloudRealtimeRefreshQueued&&!cloudHasActiveEdit()&&!sibPendingConflict&&!cloudWriteRunning&&!sibPendingRetryBusy&&!cloudQueuedSnapshot){
+   cloudRealtimeRefreshQueued=false;
+   window.setTimeout(()=>refreshCloudStateFromRealtime(Number(window.SIBCloud?.appStateVersion||0)+1),700);
+  }
+ }
+}
 function activateCloudRealtime(){
  if(!window.SIBCloud?.ready||!cloudSessionReady)return;
  try{
   if(cloudChannel)window.SIBCloud.client()?.removeChannel(cloudChannel);
   cloudChannel=window.SIBCloud.subscribeAppState(payload=>{
    const remoteVersion=Number(payload?.new?.version||0);
-   setTimeout(()=>{
-    if(!cloudSessionReady||remoteVersion<=Number(window.SIBCloud.appStateVersion||0))return;
-    if(Date.now()-cloudRemoteNoticeAt<5000)return;
-    cloudRemoteNoticeAt=Date.now();
-    if(typeof toast==="function")toast("Une mise à jour a été enregistrée sur un autre appareil. Rechargez pour afficher les données actualisées; terminez d'abord toute saisie en cours.","in",{sticky:true,act:{label:"Recharger",fn:()=>window.location.reload()}});
-   },1800);
+   if(remoteVersion<=Number(window.SIBCloud.appStateVersion||0))return;
+   window.setTimeout(()=>refreshCloudStateFromRealtime(remoteVersion),250);
   });
  }catch(err){console.warn("SIB Realtime unavailable:",err)}
 }
+document.addEventListener("focusout",()=>{
+ if(cloudRealtimeRefreshQueued&&!cloudHasActiveEdit()&&!sibPendingConflict){
+  window.setTimeout(()=>{
+   if(cloudRealtimeRefreshQueued&&!cloudHasActiveEdit())refreshCloudStateFromRealtime(Number(window.SIBCloud?.appStateVersion||0)+1);
+  },250);
+ }
+});
 const SIB_PENDING_KEY="sib-pending-cloud-save-v1";
 let sibPendingRetryTimer=null,sibPendingRetryDelay=10000,sibPendingRetryBusy=false,sibPendingConflict=false;
 function downloadPendingCloudBackup(){
