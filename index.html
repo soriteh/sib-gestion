@@ -3147,8 +3147,8 @@ window.addEventListener("sib:internal-refresh",()=>refresh());
       if(!raf)raf=requestAnimationFrame(function(){halo.style.left=x+"px";halo.style.top=y+"px";halo.classList.add("is-visible");raf=0;});
     },{passive:true});
     document.addEventListener("pointerleave",function(){halo.classList.remove("is-visible");});
-    document.addEventListener("pointerdown",function(){halo.style.width="190px";halo.style.height="190px";});
-    document.addEventListener("pointerup",function(){halo.style.width="230px";halo.style.height="230px";});
+    document.addEventListener("pointerdown",function(){halo.style.width="10px";halo.style.height="10px";});
+    document.addEventListener("pointerup",function(){halo.style.width="14px";halo.style.height="14px";});
   },{once:true});
 })();
 </script>
@@ -3156,8 +3156,8 @@ window.addEventListener("sib:internal-refresh",()=>refresh());
 <style>
 /* SIB — halo de curseur discret, désactivé sur tactile et si mouvement réduit */
 @media (hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){
-  .sib-cursor-halo{position:fixed;left:0;top:0;width:230px;height:230px;border-radius:50%;pointer-events:none;z-index:9990;opacity:0;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(0,87,185,.12) 0%,rgba(255,120,0,.055) 32%,transparent 72%);mix-blend-mode:multiply;transition:opacity .22s ease;will-change:left,top}
-  :root[data-theme="dark"] .sib-cursor-halo{mix-blend-mode:screen;background:radial-gradient(circle,rgba(46,108,214,.16) 0%,rgba(255,120,0,.07) 32%,transparent 72%)}
+  .sib-cursor-halo{position:fixed;left:0;top:0;width:14px;height:14px;border-radius:50%;pointer-events:none;z-index:9990;opacity:0;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(0,87,185,.82) 0%,rgba(0,87,185,.48) 48%,rgba(255,120,0,.22) 75%,transparent 100%);mix-blend-mode:multiply;transition:opacity .16s ease,width .12s ease,height .12s ease;will-change:left,top}
+  :root[data-theme="dark"] .sib-cursor-halo{mix-blend-mode:screen;background:radial-gradient(circle,rgba(46,108,214,.95) 0%,rgba(46,108,214,.58) 48%,rgba(255,120,0,.35) 75%,transparent 100%)}
   .sib-cursor-halo.is-visible{opacity:1}
 }
 @media (prefers-reduced-motion:reduce){.sib-cursor-halo{display:none!important}}
