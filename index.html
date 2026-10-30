@@ -2137,7 +2137,58 @@ function printSibDocument(source,kind){
  const css='*{box-sizing:border-box}body{margin:0;padding:18px;background:#fff;color:#111;font:12px/1.45 Arial,sans-serif}.paper{max-width:190mm;margin:0 auto}.sib-doc-head{display:flex;gap:12px;align-items:center;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #d8deea}.sib-doc-head img{display:block;max-height:52px;max-width:125px;object-fit:contain}.sib-doc-head b{font-size:14px}.sib-doc-head small{font-size:10px;color:#333}.box{display:block;width:100%;margin:0;padding:0;border:0;border-radius:0;box-shadow:none;background:#fff;color:#111;overflow:visible}.tw{display:block;overflow:visible}table{width:100%;border-collapse:collapse;font-size:11px;margin:10px 0}thead{display:table-header-group}tr{break-inside:avoid}td,th{padding:7px 5px;border-bottom:1px solid #ddd;text-align:left;color:#111}th{font-weight:bold;background:#f4f6f8}.r{text-align:right}.tot{margin-top:12px;padding-top:8px;border-top:2px solid #111;text-align:right;font-size:14px;font-weight:bold;color:#111}.noprint,button{display:none!important}h2{font-size:17px;color:#111;margin:0 0 12px}p{margin:8px 0;color:#111}';
  const isPayroll=kind==="payroll";const pageCss=isPayroll?'@page{size:A4 portrait;margin:10mm}.paper{width:190mm;max-width:100%;margin:0 auto}.paper>.print-doc{width:100%;position:relative;isolation:isolate;overflow:hidden;min-height:255mm;padding:0}.paper .payroll-watermark{position:absolute;z-index:0;left:50%;top:50%;transform:translate(-50%,-50%);width:118mm;height:118mm;object-fit:contain;opacity:.09;pointer-events:none;print-color-adjust:exact;-webkit-print-color-adjust:exact}.paper .payroll-content{position:relative;z-index:1}.paper table{width:100%;font-size:11px}.paper td,.paper th{padding:7px 8px}.paper .payroll-amount-words{margin-top:10px;padding:9px 11px;border:1px solid #cbd5e1;border-radius:5px;font-size:11px;position:relative;background:rgba(255,255,255,.72)}.paper .tot{font-size:15px}':(isReceipt||isThermal)?'@page{size:80mm auto;margin:3mm}.paper{width:74mm;max-width:74mm;margin:0}.paper>.print-doc{width:100%;min-height:0;display:block}.paper .row{display:block!important}.paper .row>div{display:block;width:100%;margin-bottom:5px}.paper table{width:100%;table-layout:fixed;font-size:9px;margin:6px 0}.paper th,.paper td{padding:3px 1px;overflow-wrap:anywhere}.paper .print-doc th:nth-child(1),.paper .print-doc td:nth-child(1){width:8%}.paper .print-doc th:nth-child(2),.paper .print-doc td:nth-child(2){width:38%}.paper .print-doc th:nth-child(3),.paper .print-doc td:nth-child(3){width:10%}.paper .print-doc th:nth-child(4),.paper .print-doc td:nth-child(4){width:21%}.paper .print-doc th:nth-child(5),.paper .print-doc td:nth-child(5){width:23%}body{padding:0;font-size:10px}.sib-doc-head img{max-height:14mm;max-width:25mm}.sib-doc-head{gap:3mm;padding-bottom:3mm;margin-bottom:3mm}h2{font-size:14px}.tot{font-size:12px}.doc-footer{margin-top:6px;padding-top:4px;font-size:8px}.signature-block{display:none!important}':'@page{size:A5 portrait;margin:8mm}.paper{display:block;width:132mm;max-width:100%;min-height:0;margin:0 auto}.paper>.print-doc{display:block;width:100%;min-height:0;max-width:100%;overflow:visible}.paper .row{display:flex;flex-direction:row;align-items:flex-start;gap:12px;width:100%}.paper .row>div{flex:1 1 0;min-width:0;overflow-wrap:anywhere}.paper table{width:100%;table-layout:auto}.signature-block{margin-top:18px!important}.doc-footer{margin-top:14px;padding-top:5mm;border-top:1px solid #cbd5e1;text-align:center;font-size:9px;line-height:1.5;color:#475569}.doc-footer strong{font-size:10px;color:#172033}.doc-footer span{font-style:italic}';
  w.document.open();
- w.document.write('<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>'+ (isReceipt?'Reçu de caisse SIB':'Document SIB')+'</title><style>'+css+pageCss+'</style></head><body><div class="paper">'+content+'</div><script>window.addEventListener("load",function(){setTimeout(function(){window.focus();window.print()},300)});window.addEventListener("afterprint",function(){setTimeout(function(){window.close()},300)});<\/script>\n\n</body></html>');
+ w.document.write('<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>'+ (isReceipt?'Reçu de caisse SIB':'Document SIB')+'</title><style>'+css+pageCss+'</style></head><body><div class="paper">'+content+'</div><script>window.addEventListener("load",function(){setTimeout(function(){window.focus();window.print()},300)});window.addEventListener("afterprint",function(){setTimeout(function(){window.close()},300)});<\/script>\n\n
+<style id="sib-login-elements-enlarge-v2">
+/* Agrandissement harmonieux des éléments visibles sur l’écran de connexion */
+#lgn .lgb{width:min(590px,100%)!important;max-width:590px!important}
+#lgn .lgb .mk{
+ width:clamp(104px,12vw,132px)!important;
+ height:clamp(104px,12vw,132px)!important;
+ min-width:0!important;min-height:0!important;
+ font-size:30px!important;margin:0 auto 14px!important;
+ border-radius:24px!important;
+}
+#lgn .sib-login-wordmark{
+ display:block!important;width:min(250px,72%)!important;
+ max-height:112px!important;margin:0 auto 12px!important;
+ object-fit:contain;
+}
+#lgn .lgb h2{
+ font-size:clamp(25px,2.7vw,32px)!important;
+ line-height:1.2!important;margin:7px 0 7px!important;
+}
+#lgn .lgb>p{
+ font-size:clamp(14px,1.5vw,17px)!important;
+ line-height:1.5!important;margin:0 auto 25px!important;
+}
+#lgn .lgb ul{
+ width:min(420px,100%)!important;gap:18px!important;
+ margin:0 auto!important;padding-left:0!important;
+}
+#lgn .lgb li{
+ font-size:clamp(15px,1.45vw,18px)!important;
+ line-height:1.5!important;min-height:36px!important;
+ gap:14px!important;margin:0!important;
+}
+#lgn .lgb li::before{width:11px!important;height:11px!important;flex:0 0 11px!important}
+@media(max-width:900px){
+ #lgn .lgb .mk{width:100px!important;height:100px!important;margin-bottom:12px!important}
+ #lgn .sib-login-wordmark{width:min(220px,68%)!important;max-height:96px!important}
+ #lgn .lgb h2{font-size:clamp(22px,3vw,27px)!important}
+ #lgn .lgb li{font-size:15px!important}
+}
+@media(max-width:720px){
+ #lgn .lgl{min-height:0!important;padding:22px 16px 16px!important}
+ #lgn .lgb .mk{width:82px!important;height:82px!important;margin-bottom:9px!important}
+ #lgn .sib-login-wordmark{width:min(190px,62%)!important;max-height:78px!important;margin-bottom:7px!important}
+ #lgn .lgb h2{font-size:21px!important}
+ #lgn .lgb>p{font-size:12px!important;margin-bottom:14px!important}
+ #lgn .lgb ul{display:grid!important;gap:9px!important}
+ #lgn .lgb li{font-size:13px!important;min-height:27px!important}
+}
+</style>
+
+</body></html>');
  w.document.close();
 }
 function printFinancialList(sectionId,title){
