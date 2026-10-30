@@ -3568,4 +3568,43 @@ window.addEventListener("sib:internal-refresh",()=>refresh());
  #lgn .lgb li{font-size:13px!important;min-height:27px!important}
 }
 </style>
+
+
+<style id="sib-login-logo-text-size-v3">
+/* Agrandir uniquement le logo et les textes de la colonne de présentation */
+#lgn .lgl .lgb{width:min(620px,100%)!important;max-width:620px!important}
+#lgn .lgl .lgb .mk{
+ width:clamp(140px,15vw,168px)!important;
+ height:clamp(140px,15vw,168px)!important;
+ min-width:0!important;min-height:0!important;
+ font-size:38px!important;margin:0 auto 20px!important;
+ border-radius:30px!important;
+}
+#lgn .lgl .lgb .mk img{padding:8px!important}
+#lgn .lgl .lgb h2{
+ font-size:clamp(29px,3vw,38px)!important;
+ line-height:1.18!important;margin:10px 0 9px!important
+}
+#lgn .lgl .lgb>p{
+ font-size:clamp(17px,1.8vw,21px)!important;
+ line-height:1.45!important;margin:0 auto 26px!important
+}
+#lgn .lgl .lgb ul{width:min(470px,100%)!important;gap:16px!important}
+#lgn .lgl .lgb li{font-size:clamp(17px,1.65vw,20px)!important;min-height:40px!important;gap:15px!important}
+#lgn .lgl .lgb li::before{width:12px!important;height:12px!important;flex-basis:12px!important}
+@media(max-width:900px){
+ #lgn .lgl .lgb .mk{width:124px!important;height:124px!important;margin-bottom:15px!important}
+ #lgn .lgl .lgb h2{font-size:clamp(25px,4vw,32px)!important}
+ #lgn .lgl .lgb>p{font-size:16px!important}
+ #lgn .lgl .lgb li{font-size:16px!important}
+}
+@media(max-width:720px){
+ #lgn .lgl .lgb .mk{width:104px!important;height:104px!important;margin-bottom:12px!important}
+ #lgn .lgl .lgb h2{font-size:25px!important}
+ #lgn .lgl .lgb>p{font-size:14px!important;margin-bottom:17px!important}
+ #lgn .lgl .lgb ul{display:grid!important;gap:8px!important}
+ #lgn .lgl .lgb li{font-size:14px!important;min-height:30px!important}
+}
+</style>
+
 </body></html>
