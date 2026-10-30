@@ -2138,26 +2138,6 @@ function printSibDocument(source,kind){
  const isPayroll=kind==="payroll";const pageCss=isPayroll?'@page{size:A4 portrait;margin:10mm}.paper{width:190mm;max-width:100%;margin:0 auto}.paper>.print-doc{width:100%;position:relative;isolation:isolate;overflow:hidden;min-height:255mm;padding:0}.paper .payroll-watermark{position:absolute;z-index:0;left:50%;top:50%;transform:translate(-50%,-50%);width:118mm;height:118mm;object-fit:contain;opacity:.09;pointer-events:none;print-color-adjust:exact;-webkit-print-color-adjust:exact}.paper .payroll-content{position:relative;z-index:1}.paper table{width:100%;font-size:11px}.paper td,.paper th{padding:7px 8px}.paper .payroll-amount-words{margin-top:10px;padding:9px 11px;border:1px solid #cbd5e1;border-radius:5px;font-size:11px;position:relative;background:rgba(255,255,255,.72)}.paper .tot{font-size:15px}':(isReceipt||isThermal)?'@page{size:80mm auto;margin:3mm}.paper{width:74mm;max-width:74mm;margin:0}.paper>.print-doc{width:100%;min-height:0;display:block}.paper .row{display:block!important}.paper .row>div{display:block;width:100%;margin-bottom:5px}.paper table{width:100%;table-layout:fixed;font-size:9px;margin:6px 0}.paper th,.paper td{padding:3px 1px;overflow-wrap:anywhere}.paper .print-doc th:nth-child(1),.paper .print-doc td:nth-child(1){width:8%}.paper .print-doc th:nth-child(2),.paper .print-doc td:nth-child(2){width:38%}.paper .print-doc th:nth-child(3),.paper .print-doc td:nth-child(3){width:10%}.paper .print-doc th:nth-child(4),.paper .print-doc td:nth-child(4){width:21%}.paper .print-doc th:nth-child(5),.paper .print-doc td:nth-child(5){width:23%}body{padding:0;font-size:10px}.sib-doc-head img{max-height:14mm;max-width:25mm}.sib-doc-head{gap:3mm;padding-bottom:3mm;margin-bottom:3mm}h2{font-size:14px}.tot{font-size:12px}.doc-footer{margin-top:6px;padding-top:4px;font-size:8px}.signature-block{display:none!important}':'@page{size:A5 portrait;margin:8mm}.paper{display:block;width:132mm;max-width:100%;min-height:0;margin:0 auto}.paper>.print-doc{display:block;width:100%;min-height:0;max-width:100%;overflow:visible}.paper .row{display:flex;flex-direction:row;align-items:flex-start;gap:12px;width:100%}.paper .row>div{flex:1 1 0;min-width:0;overflow-wrap:anywhere}.paper table{width:100%;table-layout:auto}.signature-block{margin-top:18px!important}.doc-footer{margin-top:14px;padding-top:5mm;border-top:1px solid #cbd5e1;text-align:center;font-size:9px;line-height:1.5;color:#475569}.doc-footer strong{font-size:10px;color:#172033}.doc-footer span{font-style:italic}';
  w.document.open();
  w.document.write('<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>'+ (isReceipt?'Reçu de caisse SIB':'Document SIB')+'</title><style>'+css+pageCss+'</style></head><body><div class="paper">'+content+'</div><script>window.addEventListener("load",function(){setTimeout(function(){window.focus();window.print()},300)});window.addEventListener("afterprint",function(){setTimeout(function(){window.close()},300)});<\/script>
-<style>
-/* SIB — logo de connexion compact et signature Guinée révélée lettre par lettre */
-#lgn .lgb .mk{width:clamp(82px,10vw,112px)!important;height:clamp(82px,10vw,112px)!important;font-size:29px!important;margin:0 auto 18px!important;border-radius:22px!important}
-#lgn .lgb .mk img{padding:6px}
-#lgn .sib-login-wordmark{display:block;width:min(340px,82%);height:auto;max-height:150px;object-fit:contain;margin:0 auto 22px;filter:drop-shadow(0 5px 12px rgba(0,0,0,.14));clip-path:inset(0 100% 0 0);animation:sibWriteGuinee 2.4s steps(6,end) .35s forwards}
-@keyframes sibWriteGuinee{to{clip-path:inset(0 0 0 0)}}
-@media(max-width:720px){
- #lgn{grid-template-columns:1fr!important;grid-template-rows:auto 1fr}
- #lgn .lgl{min-height:42vh;padding:28px 20px 22px}
- #lgn .lgb .mk{width:76px!important;height:76px!important;margin-bottom:12px!important}
- #lgn .sib-login-wordmark{width:min(270px,78%);max-height:112px;margin-bottom:14px}
- #lgn .lgb h2{font-size:clamp(20px,5.4vw,26px)}
- #lgn .lgb ul{display:none}
- #lgn .lgr{padding:22px 18px}
-}
-@media(prefers-reduced-motion:reduce){
- #lgn .sib-login-wordmark{animation:none!important;clip-path:none!important}
-}
-</style>
-
 <style id="sib-startup-mandatory-refresh">
 /* L’écran SIB doit être visible à chaque nouveau chargement de document. */
 #sib-startup{display:grid!important;opacity:1;visibility:visible;pointer-events:auto}
@@ -2511,7 +2491,7 @@ function ld(){
   overlay.id="sib-refresh-overlay";
   overlay.setAttribute("role","status");
   overlay.setAttribute("aria-live","polite");
-  overlay.innerHTML='<div class="sib-refresh-card"><span class="sib-refresh-spinner" aria-hidden="true"></span><strong>Actualisation en cours</strong><span class="sib-refresh-subtitle">Mise à jour de votre espace…</span><span class="sib-refresh-track"><i></i></span></div>';
+  overlay.innerHTML='<div class="sib-refresh-card sib-refresh-logo-only"><div class="sib-refresh-logo" aria-label="SIB">SIB</div></div>';
   document.body.appendChild(overlay);
  }
  overlay.classList.remove("sib-refresh-out");
@@ -2634,16 +2614,7 @@ async function refreshHeaderNotifications(){
 $("rfb").onclick=()=>{
  const refreshButton=$("rfb");
  refreshButton.classList.remove("spin");void refreshButton.offsetWidth;refreshButton.classList.add("spin");
- const splash=document.getElementById("sib-startup");
- if(splash){
-  splash.classList.remove("done");
-  splash.style.display="grid";
-  splash.style.opacity="1";
-  splash.style.visibility="visible";
-  splash.style.pointerEvents="auto";
- }
- document.documentElement.setAttribute("aria-busy","true");
- window.setTimeout(()=>window.location.reload(),120);
+ ld();
 };
 $("blb").onclick=async()=>{$("amm").classList.add("hide");$("npp").classList.toggle("hide");if(!$("npp").classList.contains("hide"))await refreshHeaderNotifications()};$("avb").onclick=()=>{$("npp").classList.add("hide");$("amm").classList.toggle("hide")};
 $("cbt").onclick=()=>{document.body.classList.toggle("col2");try{localStorage.setItem("sib-col",document.body.classList.contains("col2")?"1":"")}catch(_){}};
@@ -3379,5 +3350,17 @@ window.addEventListener("sib:internal-refresh",()=>refresh());
   .sib-cursor-halo.is-visible{opacity:1}
 }
 @media (prefers-reduced-motion:reduce){.sib-cursor-halo{display:none!important}}
+</style>
+
+<style id="sib-login-wordmark-and-refresh-logo">
+#lgn .lgb .mk{width:clamp(82px,10vw,112px)!important;height:clamp(82px,10vw,112px)!important;font-size:29px!important;margin:0 auto 18px!important;border-radius:22px!important}
+#lgn .lgb .mk img{padding:6px}
+#lgn .sib-login-wordmark{display:block;width:min(340px,82%);height:auto;max-height:150px;object-fit:contain;margin:0 auto 22px;filter:drop-shadow(0 5px 12px rgba(0,0,0,.14));clip-path:inset(0 100% 0 0);animation:sibWriteGuinee 2.4s steps(6,end) .35s forwards}
+@keyframes sibWriteGuinee{to{clip-path:inset(0 0 0 0)}}
+.sib-refresh-logo-only{min-width:0!important;padding:20px!important;border:0!important;background:transparent!important;box-shadow:none!important}
+.sib-refresh-logo{width:88px;height:88px;display:grid;place-items:center;border-radius:23px;background:#fff;color:#0057B9;font-size:29px;font-weight:900;letter-spacing:-1.5px;box-shadow:0 12px 36px rgba(0,87,185,.25),0 0 0 1px rgba(255,255,255,.5);animation:sibRefreshLogoPulse 1.25s ease-in-out infinite}
+@keyframes sibRefreshLogoPulse{0%,100%{transform:scale(.96);box-shadow:0 10px 28px rgba(0,87,185,.2)}50%{transform:scale(1.04);box-shadow:0 16px 42px rgba(0,87,185,.34)}}
+@media(max-width:720px){#lgn .lgb .mk{width:76px!important;height:76px!important;margin-bottom:12px!important}#lgn .sib-login-wordmark{width:min(270px,78%);max-height:112px;margin-bottom:14px}#lgn .lgb h2{font-size:clamp(20px,5.4vw,26px)}#lgn .lgb ul{display:none}#lgn .lgr{padding:22px 18px}}
+@media(prefers-reduced-motion:reduce){#lgn .sib-login-wordmark{animation:none!important;clip-path:none!important}.sib-refresh-logo{animation:none!important}}
 </style>
 </body></html>
