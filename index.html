@@ -2285,7 +2285,7 @@ const T=function(h,r){
  return '<div class="tw"><table><thead><tr>'+head+'</tr></thead><tbody id="'+id+'-body"></tbody></table><div id="'+id+'-pager"></div></div>';
 };
 const bx=(t,f,b)=>`<div class="box"><b>${t}</b><div class="row" style="margin-top:8px">${f}<div style="flex:0 0 auto;align-self:end">${b}</div></div></div>`;
-const V=i=>$(i).value,tot=l=>l.reduce((s,x)=>s+x.q*x.p,0),AM=a=>S.c.map(c=>c.n);
+const V=i=>{const el=$(i);return el?el.value:""},tot=l=>l.reduce((s,x)=>s+x.q*x.p,0),AM=a=>S.c.map(c=>c.n);
 const cnm=id=>(S.c.find(x=>x.id==id)||{}).n||"—",cid=n=>(S.c.find(x=>x.n==n)||{}).id;
 const sibLoggedEmployeePoste=()=>{const norm=v=>String(v||"").trim().toLocaleLowerCase("fr");const mail=norm(CU?.mail||CU?.login),full=norm(CU?.nom||[CU?.pn,CU?.nm].filter(Boolean).join(" "));const emp=(S.emp||[]).find(e=>mail&&(norm(e.mail)===mail||norm(e.email)===mail))||(S.emp||[]).find(e=>full&&norm(eN(e))===full);return emp?.poste||CU?.role||RO||"—"};
 const paid=f=>S.e.filter(e=>e&&e.t=="recette"&&e.fac==f.id&&!e.rev&&!gone(e)).reduce((sum,e)=>sum+(Number(e.m)||0),0);
