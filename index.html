@@ -3405,6 +3405,22 @@ window.addEventListener("sib:internal-refresh",()=>refresh());
  #lgn .lgl .lgb .mk,#lgn .lgb .mk{width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important;font-size:14px!important;margin-bottom:5px!important}
 }
 </style>
+
+<style id="sib-guinee-logo-loop">
+/* Le logo Guinée se dessine, reste visible, puis recommence en boucle */
+#lgn .sib-login-wordmark{
+ animation:sibGuineeWriteLoop 5.8s ease-in-out .25s infinite!important;
+}
+@keyframes sibGuineeWriteLoop{
+ 0%{clip-path:inset(0 100% 0 0);opacity:.88}
+ 34%{clip-path:inset(0 0 0 0);opacity:1}
+ 76%{clip-path:inset(0 0 0 0);opacity:1}
+ 100%{clip-path:inset(0 100% 0 0);opacity:.88}
+}
+@media(prefers-reduced-motion:reduce){
+ #lgn .sib-login-wordmark{animation:none!important;clip-path:none!important;opacity:1!important}
+}
+</style>
 <style id="sib-startup-mandatory-refresh">
 /* L’écran initial est visible dès le chargement et se masque après boot(). */
 #sib-startup{display:grid!important}
