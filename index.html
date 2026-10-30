@@ -3421,6 +3421,11 @@ window.addEventListener("sib:internal-refresh",()=>refresh());
  #lgn .sib-login-wordmark{animation:none!important;clip-path:none!important;opacity:1!important}
 }
 </style>
+
+<style id="sib-guinee-svg-stroke-animation">
+/* L’animation de tracé est désormais portée par le SVG lui-même */
+#lgn .sib-login-wordmark{clip-path:none!important;animation:none!important;opacity:1!important}
+</style>
 <style id="sib-startup-mandatory-refresh">
 /* L’écran initial est visible dès le chargement et se masque après boot(). */
 #sib-startup{display:grid!important}
