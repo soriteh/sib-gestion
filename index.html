@@ -2157,6 +2157,12 @@ function printSibDocument(source,kind){
  #lgn .sib-login-wordmark{animation:none!important;clip-path:none!important}
 }
 </style>
+
+<style id="sib-startup-mandatory-refresh">
+/* L’écran SIB doit être visible à chaque nouveau chargement de document. */
+#sib-startup{display:grid!important;opacity:1;visibility:visible;pointer-events:auto}
+#sib-startup.done{pointer-events:none}
+</style>
 </body></html>');
  w.document.close();
 }
@@ -2625,7 +2631,20 @@ async function refreshHeaderNotifications(){
   }));
  }catch(error){console.warn("Actualisation du centre de notifications impossible:",error);}
 }
-$("rfb").onclick=()=>{$("rfb").classList.remove("spin");void $("rfb").offsetWidth;$("rfb").classList.add("spin");ld()};
+$("rfb").onclick=()=>{
+ const refreshButton=$("rfb");
+ refreshButton.classList.remove("spin");void refreshButton.offsetWidth;refreshButton.classList.add("spin");
+ const splash=document.getElementById("sib-startup");
+ if(splash){
+  splash.classList.remove("done");
+  splash.style.display="grid";
+  splash.style.opacity="1";
+  splash.style.visibility="visible";
+  splash.style.pointerEvents="auto";
+ }
+ document.documentElement.setAttribute("aria-busy","true");
+ window.setTimeout(()=>window.location.reload(),120);
+};
 $("blb").onclick=async()=>{$("amm").classList.add("hide");$("npp").classList.toggle("hide");if(!$("npp").classList.contains("hide"))await refreshHeaderNotifications()};$("avb").onclick=()=>{$("npp").classList.add("hide");$("amm").classList.toggle("hide")};
 $("cbt").onclick=()=>{document.body.classList.toggle("col2");try{localStorage.setItem("sib-col",document.body.classList.contains("col2")?"1":"")}catch(_){}};
 try{if(localStorage.getItem("sib-col"))document.body.classList.add("col2")}catch(_){}
