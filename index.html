@@ -2103,7 +2103,7 @@ function renderRelances(){
 }
 function nav(v){if(!CU||(window.SIBCloud?.ready&&!cloudSessionReady)){document.body.classList.add("lo");lgv("login");return;}if(CU?.cloud&&window.SIBCloud?.ready&&!window.SIBCloud.isAdminRole(RO)&&!["prof","com"].includes(v)){toast("Ce module n’est pas encore activé pour votre rôle. Les données métier seront ouvertes après la mise en place de leur stockage et de leurs permissions dédiés.","wa");return;}if(v!==CUR&&gate(()=>nav(v)))return;document.querySelectorAll("main section").forEach(s=>{const on=s.id==v;s.classList.toggle("hide",!on);if(on){s.classList.remove("in2");void s.offsetWidth;s.classList.add("in2");setTimeout(()=>s.classList.remove("in2"),1500)}});document.querySelectorAll("#nv button").forEach(b=>b.classList.toggle("on",b.dataset.v==v));$("pt").textContent=(P.find(p=>p[0]==v)||[])[1]||"";if(v=="dash")for(const k in PV)delete PV[k];document.body.classList.remove("mo");CUR=v;if(v==="cli")renderClients();if(v==="relance")renderRelances();try{draw()}catch(err){console.error("SIB interface draw error:",err);const target=document.getElementById(v);if(target){target.classList.remove("hide");target.innerHTML='<div class="box" style="border:1px solid #e7a5a5"><h2>Erreur de chargement</h2><p>Cette page n’a pas pu être affichée. Rechargez l’application. Si le problème continue, transmettez le message ci-dessous au support.</p><pre style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></div>';const pre=target.querySelector("pre");if(pre)pre.textContent=err&& (err.stack||err.message)||String(err)}if(v==="cli")toast("Erreur pendant le chargement de la page Clients.","wa")}}
 
-refreshServiceSelects();$("sv").onchange=()=>$("pu").value=SV[$("sv").value]?.[1]??"";$("sv").onchange();
+refreshServiceSelects();if($("sv")&&$("pu")){$("sv").onchange=()=>{const p=$("pu"),s=$("sv");if(p&&s)p.value=SV[s.value]?.[1]??""};$("sv").onchange();}
 ["fr","tt2","da"].forEach(i=>$(i).innerHTML=AC.map(a=>`<option>${a}</option>`).join(""));
 let cart=[];
 
@@ -2118,8 +2118,8 @@ new MutationObserver(muts=>{for(const m of muts){if(m.type==="childList")m.added
 function drawCart(){$("cart").innerHTML=cart.map((l,i)=>`<tr><td>${esc(l.s)}</td><td class="r">${l.q}</td><td class="r">${fm(l.p)}</td><td class="r">${fm(l.q*l.p)}</td><td><button class="s dg" data-i="${i}">Retirer</button></td></tr>`).join("")||`<tr><td colspan="5" style="color:var(--mu)">Ajoutez un service pour commencer.</td></tr>`;
  $("tt").textContent=fm(cart.reduce((s,l)=>s+l.q*l.p,0));
  $("cart").querySelectorAll("button").forEach(b=>b.onclick=()=>{ask("Retirer cette ligne du panier ?",()=>{cart.splice(+b.dataset.i,1);drawCart()},{title:"Retirer la ligne",danger:1,ok:"Retirer"})})}
-$("add").onclick=()=>{const q=+$("qt").value,p=+$("pu").value;if(!(q>0)||!(p>=0))return toast("Quantité ou prix invalide");cart.push({s:SV[$("sv").value][0],q,p});drawCart()};
-$("ok").onclick=()=>{if(!cart.length)return toast("Aucun service ajouté");
+if($("add"))$("add").onclick=()=>{const q=+($("qt")?.value||0),p=+($("pu")?.value||0),s=$("sv");if(!(q>0)||!(p>=0)||!s||!SV[s.value])return toast("Vérifiez le service, la quantité et le prix.");cart.push({s:SV[s.value][0],q,p});drawCart()};
+if($("ok"))$("ok").onclick=()=>{if(!cart.length)return toast("Aucun service ajouté");const pm=$("pm"),cl=$("cl");if(!pm||!cl)return toast("Le formulaire d’encaissement est incomplet. Rechargez la page.");const no=num("REC"),m=cart.reduce((s,l)=>s+l.q*l.p,0),a=pm.value,c=cl.value.trim()||"Client comptant";add({t:"recette",no,m,a,lines:cart,c});showReceipt(S.e[S.e.length-1]);cart=[];drawCart();cl.value="";toast("Encaissement enregistré")};
  const no=num("REC"),m=cart.reduce((s,l)=>s+l.q*l.p,0),a=$("pm").value,c=$("cl").value.trim()||"Client comptant";
  add({t:"recette",no,m,a,lines:cart,c});showReceipt(S.e[S.e.length-1]);cart=[];drawCart();$("cl").value="";toast("Encaissement enregistré")};
 function printSibDocument(source,kind){
