@@ -2120,9 +2120,7 @@ function drawCart(){$("cart").innerHTML=cart.map((l,i)=>`<tr><td>${esc(l.s)}</td
  $("cart").querySelectorAll("button").forEach(b=>b.onclick=()=>{ask("Retirer cette ligne du panier ?",()=>{cart.splice(+b.dataset.i,1);drawCart()},{title:"Retirer la ligne",danger:1,ok:"Retirer"})})}
 if($("add"))$("add").onclick=()=>{const q=+($("qt")?.value||0),p=+($("pu")?.value||0),s=$("sv");if(!(q>0)||!(p>=0)||!s||!SV[s.value])return toast("Vérifiez le service, la quantité et le prix.");cart.push({s:SV[s.value][0],q,p});drawCart()};
 if($("ok"))$("ok").onclick=()=>{if(!cart.length)return toast("Aucun service ajouté");const pm=$("pm"),cl=$("cl");if(!pm||!cl)return toast("Le formulaire d’encaissement est incomplet. Rechargez la page.");const no=num("REC"),m=cart.reduce((s,l)=>s+l.q*l.p,0),a=pm.value,c=cl.value.trim()||"Client comptant";add({t:"recette",no,m,a,lines:cart,c});showReceipt(S.e[S.e.length-1]);cart=[];drawCart();cl.value="";toast("Encaissement enregistré")};
- const no=num("REC"),m=cart.reduce((s,l)=>s+l.q*l.p,0),a=$("pm").value,c=$("cl").value.trim()||"Client comptant";
- add({t:"recette",no,m,a,lines:cart,c});showReceipt(S.e[S.e.length-1]);cart=[];drawCart();$("cl").value="";toast("Encaissement enregistré")};
-function printSibDocument(source,kind){
+ function printSibDocument(source,kind){
  const node=typeof source==="string"?$(source):source;
  if(!node)return toast("Aucun contenu à imprimer : ouvrez d’abord la pièce concernée.","er");
  const w=window.open("","_blank","width=900,height=700");
