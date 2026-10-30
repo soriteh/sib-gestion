@@ -3357,6 +3357,39 @@ window.addEventListener("sib:internal-refresh",()=>refresh());
 @media(max-width:720px){#lgn .lgb .mk{width:76px!important;height:76px!important;margin-bottom:12px!important}#lgn .sib-login-wordmark{width:min(270px,78%);max-height:112px;margin-bottom:14px}#lgn .lgb h2{font-size:clamp(20px,5.4vw,26px)}#lgn .lgb ul{display:none}#lgn .lgr{padding:22px 18px}}
 @media(prefers-reduced-motion:reduce){#lgn .sib-login-wordmark{animation:none!important;clip-path:none!important}.sib-refresh-logo{animation:none!important}}
 </style>
+
+<style id="sib-login-compact-branding">
+/* Branding de connexion compact : libère l’espace pour le formulaire et les fonctionnalités */
+#lgn .lgl{padding:24px 22px!important;box-sizing:border-box}
+#lgn .lgb{width:min(470px,100%)!important;max-width:470px!important;margin:0 auto!important}
+#lgn .lgb .mk{width:68px!important;height:68px!important;min-width:68px!important;min-height:68px!important;font-size:21px!important;margin:0 auto 9px!important;border-radius:16px!important}
+#lgn .lgb .mk img{padding:4px!important}
+#lgn .sib-login-wordmark{width:min(220px,68%)!important;max-height:78px!important;margin:0 auto 9px!important}
+#lgn .lgb h2{font-size:clamp(17px,1.7vw,22px)!important;line-height:1.2!important;margin:5px 0 5px!important}
+#lgn .lgb>p{font-size:11px!important;line-height:1.35!important;letter-spacing:.045em!important;margin:0 auto 10px!important}
+#lgn .lgb ul{margin:8px auto 0!important;padding-left:18px!important;max-width:330px!important}
+#lgn .lgb li{font-size:12px!important;line-height:1.45!important;margin:3px 0!important}
+#lgn .lgb::before{inset:-12px -18px!important}
+#lgn .lgb::after{width:110px!important;height:110px!important;right:-42px!important;top:0!important}
+@media(max-width:900px){
+ #lgn .lgl{padding:18px 16px!important}
+ #lgn .lgb .mk{width:60px!important;height:60px!important;min-width:60px!important;min-height:60px!important;margin-bottom:7px!important}
+ #lgn .sib-login-wordmark{width:min(185px,64%)!important;max-height:64px!important;margin-bottom:7px!important}
+ #lgn .lgb h2{font-size:18px!important}
+ #lgn .lgb ul{display:block!important}
+ #lgn .lgb li{font-size:11px!important}
+}
+@media(max-height:700px) and (min-width:721px){
+ #lgn .lgl{padding-top:12px!important;padding-bottom:12px!important}
+ #lgn .lgb .mk{width:52px!important;height:52px!important;min-width:52px!important;min-height:52px!important;margin-bottom:5px!important}
+ #lgn .sib-login-wordmark{width:min(165px,58%)!important;max-height:52px!important;margin-bottom:5px!important}
+ #lgn .lgb h2{font-size:17px!important;margin:3px 0!important}
+ #lgn .lgb>p{font-size:10px!important;margin-bottom:5px!important}
+ #lgn .lgb ul{margin-top:4px!important}
+ #lgn .lgb li{font-size:10px!important;margin:1px 0!important}
+}
+@media(prefers-reduced-motion:reduce){#lgn .sib-login-wordmark{animation:none!important;clip-path:none!important}}
+</style>
 <style id="sib-startup-mandatory-refresh">
 /* L’écran initial est visible dès le chargement et se masque après boot(). */
 #sib-startup{display:grid!important}
