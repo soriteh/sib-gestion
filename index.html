@@ -1716,7 +1716,7 @@ button.sib-cancel-yellow:hover{
 <div style="flex:0 0 auto;align-self:end"><button class="p" id="dok">Enregistrer</button></div></div></div><div class="box"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><h3 style="margin:0">Liste des dépenses</h3><button class="s noprint" onclick="printFinancialList(\'dep\',\'Liste des dépenses\')">Imprimer la liste</button></div><div class="tw"><table><thead><tr><th>N°</th><th>Date</th><th>Catégorie</th><th>Libellé</th><th>Compte</th><th class="r">Montant</th></tr></thead><tbody id="depenses-list"><tr><td colspan="6">Aucune dépense enregistrée.</td></tr></tbody></table></div></div></section>
 <section id="hist" class="hide"><h2>Historique</h2><div class="box tw"><table><thead><tr><th>N°</th><th>Date</th><th>Type</th><th>Détail</th><th>Compte</th><th class="r">Montant</th><th></th></tr></thead><tbody id="hb"></tbody></table></div>
 <div class="row noprint"><button class="s" id="exp">Exporter CSV</button><button class="s" id="backup">Sauvegarder toutes les données (JSON)</button><button class="s dg" id="rst">Réinitialiser les données</button></div></section>
-<section id="svc" class="hide"></section><section id="cli" class="hide"></section><section id="dev" class="hide"></section><section id="fac" class="hide"></section><section id="formation" class="hide"></section><section id="fo" class="hide"></section><section id="st" class="hide"></section><section id="pj" class="hide"></section><section id="rap" class="hide"></section><section id="jr" class="hide"></section><section id="usr" class="hide"></section><section id="set" class="hide"></section><section id="prof" class="hide"></section><section id="rh" class="hide"></section><section id="cg" class="hide"></section><section id="pr" class="hide"></section><section id="pa" class="hide"></section></main></div></div><div id="bk"></div><div id="lgn"><div class="lgl"><div class="blob b1"></div><div class="blob b2"></div><div class="lgb"><div class="mk">SIB</div><h2 id="lgh">Soritech Innov Business</h2><p>INNOVER • DÉVELOPPER • CONNECTER</p><ul><li>Encaissements, caisse et banque</li><li>Devis, factures et clients</li><li>Stock, formations et projets</li></ul></div></div><div class="lgr"><div class="lgcard" id="lgc"></div><small class="cp">© Soritech Innov Business · Conakry, Guinée</small></div></div><div id="mdl" class="md hide"><div class="box"><div id="mdc"></div><button class="p" id="mx">Fermer</button></div></div><div id="tst" aria-live="polite"></div>
+<section id="svc" class="hide"></section><section id="cli" class="hide"></section><section id="dev" class="hide"></section><section id="fac" class="hide"></section><section id="formation" class="hide"></section><section id="fo" class="hide"></section><section id="st" class="hide"></section><section id="pj" class="hide"></section><section id="rap" class="hide"></section><section id="jr" class="hide"></section><section id="usr" class="hide"></section><section id="set" class="hide"></section><section id="prof" class="hide"></section><section id="rh" class="hide"></section><section id="cg" class="hide"></section><section id="pr" class="hide"></section><section id="pa" class="hide"></section></main></div></div><div id="bk"></div><div id="lgn"><div class="lgl"><div class="blob b1"></div><div class="blob b2"></div><div class="lgb"><div class="mk">SIB</div><svg class="sib-guinee-draw" viewBox="0 0 520 112" role="img" aria-label="Guinée" xmlns="http://www.w3.org/2000/svg"><text class="sib-guinee-draw-text" x="260" y="83" text-anchor="middle">Guinée</text></svg><h2 id="lgh">Soritech Innov Business</h2><p>INNOVER • DÉVELOPPER • CONNECTER</p><ul><li>Encaissements, caisse et banque</li><li>Devis, factures et clients</li><li>Stock, formations et projets</li></ul></div></div><div class="lgr"><div class="lgcard" id="lgc"></div><small class="cp">© Soritech Innov Business · Conakry, Guinée</small></div></div><div id="mdl" class="md hide"><div class="box"><div id="mdc"></div><button class="p" id="mx">Fermer</button></div></div><div id="tst" aria-live="polite"></div>
 <script>
 /* Secours de démarrage : reste actif même si le script principal échoue. */
 (function(){
@@ -3604,6 +3604,39 @@ window.addEventListener("sib:internal-refresh",()=>refresh());
  #lgn .lgl .lgb>p{font-size:14px!important;margin-bottom:17px!important}
  #lgn .lgl .lgb ul{display:grid!important;gap:8px!important}
  #lgn .lgl .lgb li{font-size:14px!important;min-height:30px!important}
+}
+</style>
+
+
+
+<style id="sib-guinee-svg-stroke-loop-v2">
+/* Logo Guinée : tracé SVG rouge, révélation du remplissage, effacement doux en boucle */
+#lgn .sib-guinee-draw{
+ display:block!important;width:min(340px,82%)!important;height:auto!important;
+ max-height:100px!important;overflow:visible!important;margin:0 auto 8px!important;
+ filter:drop-shadow(0 3px 5px rgba(170,0,20,.12));
+}
+#lgn .sib-guinee-draw-text{
+ font-family:"Brush Script MT","Segoe Script","URW Chancery L",cursive;
+ font-size:88px;font-style:italic;font-weight:700;
+ fill:transparent;stroke:#ed172b;stroke-width:2.1;
+ stroke-linecap:round;stroke-linejoin:round;
+ stroke-dasharray:1100;stroke-dashoffset:1100;
+ animation:sibGuineeStrokeLoop 6.4s ease-in-out infinite;
+}
+@keyframes sibGuineeStrokeLoop{
+ 0%{stroke-dashoffset:1100;fill:transparent;opacity:.15}
+ 38%{stroke-dashoffset:0;fill:transparent;opacity:1}
+ 48%{stroke-dashoffset:0;fill:#ed172b;opacity:1}
+ 76%{stroke-dashoffset:0;fill:#ed172b;opacity:1}
+ 100%{stroke-dashoffset:-1100;fill:transparent;opacity:0}
+}
+@media(max-width:720px){
+ #lgn .sib-guinee-draw{width:min(270px,76%)!important;max-height:78px!important;margin-bottom:5px!important}
+ #lgn .sib-guinee-draw-text{font-size:88px}
+}
+@media(prefers-reduced-motion:reduce){
+ #lgn .sib-guinee-draw-text{animation:none!important;stroke-dashoffset:0!important;fill:#ed172b!important;opacity:1!important}
 }
 </style>
 
