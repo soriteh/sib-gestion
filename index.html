@@ -3544,6 +3544,10 @@ window.addEventListener("sib:internal-refresh",()=>refresh());
  #lgn .lgb .mk{width:clamp(112px,30vw,160px)!important;height:clamp(112px,30vw,160px)!important;margin-bottom:20px!important}
 }
 </style>
+<style id="sib-payroll-watermark-print-only">
+/* Le logo filigrane est réservé au bulletin imprimé, jamais à la liste de paie affichée dans l’application. */
+#pa .payroll-watermark{display:none!important}
+</style>
 <style id="sib-startup-mandatory-refresh">
 /* L’écran initial est visible dès le chargement et se masque après boot(). */
 #sib-startup{display:grid!important}
