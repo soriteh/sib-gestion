@@ -105,7 +105,48 @@ Deno.serve(async (req: Request) => {
     console.error("Impossible de vérifier le rôle de l'administrateur:", membershipError.message);
     return respond(500, { error: "Impossible de vérifier les autorisations." });
   }
-  if (!membership || membership.active !== true || !isAdminRole(membership.role)) {
+  if (!membership || membership.active !== true) {
+    return respond(403, { error: "Un membre SIB actif doit être connecté." });
+  }
+
+  // Communication interne : tous les membres actifs peuvent consulter
+  // l'annuaire minimal de leur organisation, sans accès aux opérations admin.
+  if (payload.action === "list_active_members") {
+    const { data: activeMemberships, error: activeListError } = await adminClient
+      .from("organization_memberships")
+      .select("user_id, role, created_at")
+      .eq("organization_id", ORG_ID)
+      .eq("active", true)
+      .order("created_at", { ascending: true });
+    if (activeListError) {
+      console.error("Impossible de charger les membres actifs pour la communication:", activeListError.message);
+      return respond(500, { error: "Impossible de charger les membres actifs de l’organisation." });
+    }
+    const authUsers: Record<string, any> = {};
+    for (let page = 1; page <= 20; page++) {
+      const { data, error } = await adminClient.auth.admin.listUsers({ page, perPage: 100 });
+      if (error) {
+        console.error("Impossible de charger les noms des membres actifs:", error.message);
+        return respond(500, { error: "Impossible de charger les profils des membres actifs." });
+      }
+      for (const user of data.users || []) authUsers[user.id] = user;
+      if (!data.users || data.users.length < 100) break;
+    }
+    const members = (activeMemberships || []).map((item: any) => {
+      const authUser = authUsers[item.user_id];
+      const metadata = authUser?.user_metadata || {};
+      const fullName = String(metadata.full_name || metadata.name || "").trim();
+      const emailName = String(authUser?.email || "").split("@")[0];
+      return {
+        user_id: item.user_id,
+        role: item.role,
+        full_name: fullName || [metadata.first_name, metadata.last_name].filter(Boolean).join(" ").trim() || emailName || "Utilisateur"
+      };
+    });
+    return respond(200, { ok: true, members });
+  }
+
+  if (!isAdminRole(membership.role)) {
     return respond(403, { error: "Seul un administrateur SIB actif peut gérer les utilisateurs." });
   }
   const actorIsSuperAdmin = membership.role === "Super Administrateur";
