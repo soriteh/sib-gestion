@@ -1716,7 +1716,7 @@ button.sib-cancel-yellow:hover{
 <div style="flex:0 0 auto;align-self:end"><button class="p" id="dok">Enregistrer</button></div></div></div><div class="box"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><h3 style="margin:0">Liste des dépenses</h3><button class="s noprint" onclick="printFinancialList(\'dep\',\'Liste des dépenses\')">Imprimer la liste</button></div><div class="tw"><table><thead><tr><th>N°</th><th>Date</th><th>Catégorie</th><th>Libellé</th><th>Compte</th><th class="r">Montant</th></tr></thead><tbody id="depenses-list"><tr><td colspan="6">Aucune dépense enregistrée.</td></tr></tbody></table></div></div></section>
 <section id="hist" class="hide"><h2>Historique</h2><div class="box tw"><table><thead><tr><th>N°</th><th>Date</th><th>Type</th><th>Détail</th><th>Compte</th><th class="r">Montant</th><th></th></tr></thead><tbody id="hb"></tbody></table></div>
 <div class="row noprint"><button class="s" id="exp">Exporter CSV</button><button class="s" id="backup">Sauvegarder toutes les données (JSON)</button><button class="s dg" id="rst">Réinitialiser les données</button></div></section>
-<section id="svc" class="hide"></section><section id="cli" class="hide"></section><section id="dev" class="hide"></section><section id="fac" class="hide"></section><section id="formation" class="hide"></section><section id="fo" class="hide"></section><section id="st" class="hide"></section><section id="pj" class="hide"></section><section id="rap" class="hide"></section><section id="jr" class="hide"></section><section id="usr" class="hide"></section><section id="set" class="hide"></section><section id="prof" class="hide"></section><section id="rh" class="hide"></section><section id="cg" class="hide"></section><section id="pr" class="hide"></section><section id="pa" class="hide"></section></main></div></div><div id="bk"></div><div id="lgn"><div class="lgl"><div class="blob b1"></div><div class="blob b2"></div><div class="lgb"><div class="mk" aria-label="Logo SIB">SIB</div><img class="sib-login-wordmark" src="assets/guinee-wordmark.svg" alt="Guinée" decoding="async" fetchpriority="high"><h2 id="lgh">Soritech Innov Business</h2><p>INNOVER • DÉVELOPPER • CONNECTER</p><ul><li>Encaissements, caisse et banque</li><li>Devis, factures et clients</li><li>Stock, formations et projets</li></ul></div></div><div class="lgr"><div class="lgcard" id="lgc"></div><small class="cp">© Soritech Innov Business · Conakry, Guinée</small></div></div><div id="mdl" class="md hide"><div class="box"><div id="mdc"></div><button class="p" id="mx">Fermer</button></div></div><div id="tst" aria-live="polite"></div>
+<section id="svc" class="hide"></section><section id="cli" class="hide"></section><section id="dev" class="hide"></section><section id="fac" class="hide"></section><section id="formation" class="hide"></section><section id="fo" class="hide"></section><section id="st" class="hide"></section><section id="pj" class="hide"></section><section id="rap" class="hide"></section><section id="jr" class="hide"></section><section id="usr" class="hide"></section><section id="set" class="hide"></section><section id="prof" class="hide"></section><section id="rh" class="hide"></section><section id="cg" class="hide"></section><section id="pr" class="hide"></section><section id="pa" class="hide"></section></main></div></div><div id="bk"></div><div id="lgn"><div class="lgl"><div class="blob b1"></div><div class="blob b2"></div><div class="lgb"><div class="mk">SIB</div><h2 id="lgh">Soritech Innov Business</h2><p>INNOVER • DÉVELOPPER • CONNECTER</p><ul><li>Encaissements, caisse et banque</li><li>Devis, factures et clients</li><li>Stock, formations et projets</li></ul></div></div><div class="lgr"><div class="lgcard" id="lgc"></div><small class="cp">© Soritech Innov Business · Conakry, Guinée</small></div></div><div id="mdl" class="md hide"><div class="box"><div id="mdc"></div><button class="p" id="mx">Fermer</button></div></div><div id="tst" aria-live="polite"></div>
 <script>
 /* Secours de démarrage : reste actif même si le script principal échoue. */
 (function(){
@@ -3499,6 +3499,19 @@ window.addEventListener("sib:internal-refresh",()=>refresh());
  #lgn .lgl .lgb h2{font-size:16px!important}
  #lgn .lgl .lgb>p{font-size:10px!important;margin-bottom:0!important}
  #lgn .lgl .lgb ul{display:none!important}
+}
+</style>
+
+<style id="sib-login-pre-guinee-restore">
+/* Retour à la présentation de connexion antérieure à l’ajout du logo Guinée */
+#lgn .sib-login-wordmark{display:none!important}
+#lgn .lgb .mk{
+ width:clamp(150px,20vw,220px)!important;height:clamp(150px,20vw,220px)!important;
+ min-width:0!important;min-height:0!important;font-size:42px!important;
+ margin:0 auto 28px!important;border-radius:28px!important;padding:0!important;
+}
+@media(max-width:820px){
+ #lgn .lgb .mk{width:clamp(112px,30vw,160px)!important;height:clamp(112px,30vw,160px)!important;margin-bottom:20px!important}
 }
 </style>
 <style id="sib-startup-mandatory-refresh">
