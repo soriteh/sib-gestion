@@ -3254,10 +3254,7 @@ function renderMayaDraft(){
  toast("Pour le moment, Maya peut préparer le texte dans son assistant habituel ; l’envoi reste manuel.");
 }
 document.addEventListener("DOMContentLoaded",()=>{section();});
-try{
- if(Array.isArray(P)&&!P.some(p=>p[0]==="com"))P.push(["com","Communication interne"]);
- if(PM){if(Array.isArray(PM.Direction)&&!PM.Direction.includes("com"))PM.Direction.push("com");["Comptable","RH","Caissier","Commercial","Technicien","Magasinier"].forEach(r=>{if(Array.isArray(PM[r])&&!PM[r].includes("com"))PM[r].push("com");});}
-}catch(e){console.warn("SIB communication navigation setup:",e);}
+// La navigation principale P/PM est dans une autre portée : ne pas y accéder depuis ce module.
 const oldNav=window.nav;
 document.addEventListener("click",e=>{if(e.target.closest('[data-v="com"]')){setTimeout(()=>{section();if(!state.user){el("sic-status").textContent="Connexion à Supabase…";init().catch(showError)}},0);}});
 document.addEventListener("click",e=>{const b=e.target.closest('[data-v="com"]');if(b){const t=el("com");if(t){t.classList.remove("hide");setTimeout(()=>{try{if(!state.user)init().catch(showError);else render()}catch(err){showError(err)}},50);}}});
