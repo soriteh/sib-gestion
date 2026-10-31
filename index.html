@@ -15,7 +15,7 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"></noscript>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./supabase-config.js"></script>
-<script src="./supabase-client.js?v=20261028-super-admin-8"></script>
+<script src="./supabase-client.js?v=20261031-realtime-1"></script>
 <script>
 /* SIB startup guard: keep a JavaScript parse/runtime failure from trapping the user behind the splash screen. */
 (function () {
@@ -1875,6 +1875,20 @@ document.addEventListener("focusout",()=>{
   },250);
  }
 });
+
+// Réconciliation automatique lorsqu'un onglet revient au premier plan ou que
+// le navigateur reprend le focus : récupère les changements manqués pendant la veille.
+let sibLastForegroundSync=0;
+function reconcileSibCloudOnForeground(){
+ if(document.visibilityState==="hidden"||!cloudSessionReady||!window.SIBCloud?.ready||!window.SIBCloud.isAdminRole(RO))return;
+ const now=Date.now();
+ if(now-sibLastForegroundSync<1500)return;
+ sibLastForegroundSync=now;
+ refreshCloudStateFromRealtime(Number(window.SIBCloud.appStateVersion||0)+1);
+}
+document.addEventListener("visibilitychange",reconcileSibCloudOnForeground);
+window.addEventListener("focus",reconcileSibCloudOnForeground);
+window.addEventListener("online",reconcileSibCloudOnForeground);
 const SIB_PENDING_KEY="sib-pending-cloud-save-v1";
 let sibPendingRetryTimer=null,sibPendingRetryDelay=10000,sibPendingRetryBusy=false,sibPendingConflict=false;
 let sibConflictBackupDownloaded=false;
