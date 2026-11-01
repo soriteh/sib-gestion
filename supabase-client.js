@@ -332,6 +332,23 @@
     return data;
   }
 
+  async function resendUserInvitation(userId) {
+    await requireSession();
+    if (!client) throw new Error("Supabase n'est pas configuré.");
+    const { data, error } = await client.functions.invoke("sib-invite-user", {
+      body: { action: "resend_invitation", user_id: userId }
+    });
+    if (error) {
+      let detail = data?.error || "";
+      if (!detail && error.context && typeof error.context.clone === "function") {
+        try { const body = await error.context.clone().json(); detail = body?.error || body?.message || ""; } catch (_) {}
+      }
+      throw new Error(detail || error.message || "Impossible de renvoyer l'invitation.");
+    }
+    if (!data?.ok) throw new Error(data?.error || "Le renvoi de l'invitation n'a pas été confirmé.");
+    return data;
+  }
+
   async function listUsers() {
     await requireSession();
     const { data, error } = await client.functions.invoke("sib-invite-user", { body: { action: "list" } });
@@ -448,6 +465,7 @@
     signIn,
     signUpFirstAdmin,
     inviteUser,
+    resendUserInvitation,
     listUsers,
     updateUserRole,
     resetUserPassword,
