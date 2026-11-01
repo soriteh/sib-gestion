@@ -3783,5 +3783,53 @@ window.addEventListener("sib:internal-refresh",()=>refresh());
 }
 </style>
 
+
+<!-- Priorité finale : tout bouton dont le libellé ou les attributs indiquent Annuler/Cancel reste jaune, même s'il porte aussi la classe danger (dg). -->
+<style id="sib-all-cancel-buttons-yellow-final">
+button.sib-cancel-yellow,
+button.sib-cancel-yellow.dg,
+button.sib-cancel-yellow.s,
+button.sib-cancel-yellow.p,
+button.sib-cancel-yellow:hover,
+button.sib-cancel-yellow:focus,
+button.sib-cancel-yellow:active{
+  background:#FACC15!important;
+  background-image:none!important;
+  color:#332500!important;
+  border:1px solid #EAB308!important;
+  border-color:#EAB308!important;
+  box-shadow:none!important;
+}
+button.sib-cancel-yellow:hover,
+button.sib-cancel-yellow:focus-visible{
+  background:#EAB308!important;
+  border-color:#CA8A04!important;
+}
+</style>
+<script id="sib-cancel-yellow-final-detector">
+(function(){
+  const isCancel=b=>{
+    if(!b||b.tagName!=="BUTTON")return false;
+    const values=[b.innerText,b.textContent,b.getAttribute("aria-label"),b.getAttribute("title"),b.getAttribute("data-action"),b.getAttribute("data-a"),b.getAttribute("data-u")]
+      .filter(Boolean).join(" ").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+    return /annuler|cancel/.test(values);
+  };
+  const scan=root=>{
+    if(!root)return;
+    if(root.nodeType===1&&isCancel(root))root.classList.add("sib-cancel-yellow");
+    root.querySelectorAll?.("button").forEach(b=>{if(isCancel(b))b.classList.add("sib-cancel-yellow");});
+  };
+  const start=()=>{
+    scan(document);
+    new MutationObserver(records=>records.forEach(r=>{
+      if(r.type==="childList")r.addedNodes.forEach(scan);
+      if(r.type==="characterData")scan(r.target.parentElement);
+      if(r.type==="attributes")scan(r.target);
+    })).observe(document.documentElement,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:["aria-label","title","data-action","data-a","data-u"]});
+  };
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start,{once:true});else start();
+})();
+</script>
+
 </body>
 </html>
