@@ -1626,26 +1626,15 @@ tbody tr:nth-child(2){animation-delay:15ms}tbody tr:nth-child(3){animation-delay
 </style>
 
 <style>
-/* Uniformiser en jaune toutes les actions d'annulation */
-button[data-u="no"],
-button[data-a="svccancel"],
-button[data-a="fcan"][data-i],
-button[data-a="cgcan"][data-i],
-button[data-a="setcancel"],
-button[data-a="profcancel"],
-button[data-id]{
+/* Le jaune est appliqué uniquement aux boutons identifiés comme Annuler/Cancel. */
+button.sib-cancel-yellow{
   background:#FACC15!important;
   color:#332500!important;
   border:1px solid #EAB308!important;
   box-shadow:none!important;
 }
-button[data-u="no"]:hover,
-button[data-a="svccancel"]:hover,
-button[data-a="fcan"][data-i]:hover,
-button[data-a="cgcan"][data-i]:hover,
-button[data-a="setcancel"]:hover,
-button[data-a="profcancel"]:hover,
-button[data-id]:hover{
+button.sib-cancel-yellow:hover,
+button.sib-cancel-yellow:focus-visible{
   background:#EAB308!important;
   color:#332500!important;
   border-color:#CA8A04!important;
@@ -1658,8 +1647,9 @@ button[data-id]:hover{
     if(root instanceof Element&&root.matches("button"))nodes.push(root);
     if(root&&root.querySelectorAll)nodes.push(...root.querySelectorAll("button"));
     for(const button of nodes){
-      const label=(button.innerText||button.textContent||button.getAttribute("aria-label")||button.getAttribute("title")||"").trim().toLowerCase();
-      if(label.startsWith("annuler")||label.startsWith("cancel"))button.classList.add("sib-cancel-yellow");
+      const labels=[button.innerText,button.textContent,button.getAttribute("aria-label"),button.getAttribute("title")]
+        .filter(Boolean).map(value=>value.trim().toLowerCase());
+      if(labels.some(label=>label.startsWith("annuler")||label.startsWith("cancel")))button.classList.add("sib-cancel-yellow");
     }
   }
   function start(){
