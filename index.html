@@ -15,7 +15,7 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"></noscript>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./supabase-config.js"></script>
-<script src="./supabase-client.js?v=20261101-invitation-resend-1"></script>
+<script src="./supabase-client.js?v=20261102-clients-reload-1"></script>
 <script>
 /* SIB startup guard: keep a JavaScript parse/runtime failure from trapping the user behind the splash screen. */
 (function () {
@@ -2767,7 +2767,7 @@ async function boot(){applyLogo();
  if(window.SIBCloud?.ready){
   cloudSessionReady=false;
   try{
-   const onlineData=await Promise.race([(async()=>{const current=await window.SIBCloud.currentUser();const remote=window.SIBCloud.isAdminRole(current.membership.role)?await window.SIBCloud.loadAppState():null;let dedicatedProfile=null;try{dedicatedProfile=await window.SIBCloud.loadUserProfile()}catch(profileLoadError){console.warn("SIB: profil dédié indisponible au démarrage; utilisation du profil central en cache.",profileLoadError)}return [current,remote,dedicatedProfile]})(),new Promise((_,reject)=>setTimeout(()=>reject(new Error("Délai de connexion dépassé : tentative de démarrage hors ligne.")),7000))]);const current=onlineData[0],remote=onlineData[1],dedicatedProfile=onlineData[2];
+   const onlineData=await Promise.race([(async()=>{const current=await window.SIBCloud.currentUser();const isAdmin=window.SIBCloud.isAdminRole(current.membership.role);const remote=isAdmin?await window.SIBCloud.loadAppState():null;let relationalClients=null;if(isAdmin){try{relationalClients=await window.SIBCloud.loadClients()}catch(clientLoadError){console.warn("SIB: récupération relationnelle des clients indisponible; données centrales conservées.",clientLoadError)}}let dedicatedProfile=null;try{dedicatedProfile=await window.SIBCloud.loadUserProfile()}catch(profileLoadError){console.warn("SIB: profil dédié indisponible au démarrage; utilisation du profil central en cache.",profileLoadError)}return [current,remote,dedicatedProfile,relationalClients]})(),new Promise((_,reject)=>setTimeout(()=>reject(new Error("Délai de connexion dépassé : tentative de démarrage hors ligne.")),12000))]);const current=onlineData[0],remote=onlineData[1],dedicatedProfile=onlineData[2],relationalClients=onlineData[3];
    let pendingCloud=null;try{pendingCloud=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null")}catch(_){}
    const currentIsAdmin=window.SIBCloud.isAdminRole(current.membership.role);
    // Never hydrate a restricted user's session from browser-wide cached JSON:
@@ -2806,6 +2806,12 @@ async function boot(){applyLogo();
     // No central snapshot is available: keep local data, but do not claim cloud priority.
     S={...D0(),...pendingCloud.state};S.set={...D0().set,...S.set};S.set.pre={...D0().set.pre,...S.set.pre};S.set.rh={...D0().set.rh,...S.set.rh};
    }else{S=D0();}
+   }
+   if(currentIsAdmin&&Array.isArray(relationalClients)){
+    const centralClients=Array.isArray(S.c)?S.c:[];
+    const mergedClients=new Map(centralClients.filter(c=>c&&c.id!=null).map(c=>[String(c.id),c]));
+    relationalClients.forEach(c=>mergedClients.set(String(c.id),{...mergedClients.get(String(c.id)),...c}));
+    S.c=Array.from(mergedClients.values());
    }
    const email=current.user.email||"",parts=(email.split("@")[0]||"Administrateur").split(/[._-]+/).filter(Boolean);
    const profile=(S.profile&&typeof S.profile==="object")?S.profile:{};
