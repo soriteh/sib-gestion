@@ -135,8 +135,21 @@
       const {data:sessionData,error:sessionError}=await client.auth.getSession();
       if(sessionError)throw sessionError;if(!sessionData.session)throw new Error("Connectez-vous à SIB Gestion pour utiliser l’assistant.");
       const payrollIntent=/\\b(génère|générer|génération|crée|créer|prépare|préparer|lance|produis|produire)\\b[\\s\\S]{0,90}\\b(bulletins?|paie)\\b|\\b(bulletins?|paie)\\b[\\s\\S]{0,90}\\b(génère|générer|crée|créer|prépare|préparer|lance)\\b/i.test(message);
+      const emailIntent=/\\b(envoie|envoyer|expédie|expédier|transmets|transmettre)\\b[\\s\\S]{0,80}\\b(e-?mail|courriel|message électronique)\\b/i.test(message);
+      const emailAddress=(message.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}/i)||[])[0];
+
       let data,error;
-      if(payrollIntent){
+      if(emailIntent){
+        if(!emailAddress)throw new Error("Indiquez l’adresse e-mail du destinataire. Exemple : « Maya, envoie un e-mail à client@exemple.com pour lui confirmer le rendez-vous de demain. »");
+        const cleaned=message.replace(emailAddress,"").replace(/^\\s*Maya[, :;-]*/i,"").replace(/\\b(envoie|envoyer|expédie|expédier|transmets|transmettre)\\b[\\s\\S]{0,45}\\b(e-?mail|courriel|message électronique)\\b/i,"").replace(/^\\s*(à|au|aux|pour)\\s*/i,"").trim();
+        const subjectMatch=cleaned.match(/\\bobjet\\s*:\\s*([^\\n.]+)/i);
+        const subject=subjectMatch?subjectMatch[1].trim():"Message de Soritech Innov Business";
+        const bodyText=cleaned.replace(/\\bobjet\\s*:\\s*[^\\n.]+/i,"").replace(/^\\s*(pour lui dire|pour informer|pour confirmer|pour rappeler)\\s*/i,"").trim();
+        if(!bodyText||bodyText.length<8)throw new Error("Précisez le contenu de l’e-mail à envoyer.");
+        const result=await client.functions.invoke("sib-email-send",{body:{to:emailAddress,subject,text:bodyText,email_type:"maya",source:"maya"}});
+        data=result.data;error=result.error;
+        if(!error&&data?.ok)data={reply:"E-mail envoyé avec succès à "+emailAddress+".\\nObjet : "+subject};
+      }else if(payrollIntent){
         const periodMatch=message.match(/\\b(20\\d{2})[-/](0?[1-9]|1[0-2])\\b/);
         const monthNames={"janvier":"01","février":"02","fevrier":"02","mars":"03","avril":"04","mai":"05","juin":"06","juillet":"07","août":"08","aout":"08","septembre":"09","octobre":"10","novembre":"11","décembre":"12","decembre":"12"};
         const namedPeriod=message.match(/\\b(janvier|février|fevrier|mars|avril|mai|juin|juillet|août|aout|septembre|octobre|novembre|décembre|decembre)\\s+(20\\d{2})\\b/i);
