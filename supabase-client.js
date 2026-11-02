@@ -385,8 +385,8 @@
       }
       throw new Error(detail || error.message || "Impossible de réinitialiser le mot de passe dans Supabase.");
     }
-    if (!data?.ok || typeof data.temporaryPassword !== "string" || !data.temporaryPassword) {
-      throw new Error(data?.error || "Supabase n'a pas confirmé l'enregistrement du nouveau mot de passe.");
+    if (!data?.ok || data.emailSent !== true) {
+      throw new Error(data?.error || "Supabase n'a pas confirmé l'envoi du mot de passe temporaire par e-mail.");
     }
     return data;
   }
