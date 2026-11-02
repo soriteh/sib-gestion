@@ -1777,6 +1777,18 @@ input,select,textarea,button{max-width:100%}
 #usr .sib-user-icon-btn:focus-visible{outline:2px solid #FF7800!important;outline-offset:2px}
 @media(max-width:720px){#usr .sib-user-icon-btn{width:34px!important;height:34px!important;min-width:34px!important}}
 </style>
+<style id="sib-official-full-logo">
+/* Logo officiel complet : conserver le ratio 3:2, sans cadre ni recadrage */
+#lgn .lgb{width:min(620px,100%)!important;max-width:620px!important}
+#lgn .lgb .mk{display:block!important;width:min(560px,100%)!important;height:auto!important;min-width:0!important;min-height:0!important;aspect-ratio:3/2!important;margin:0 auto 18px!important;padding:0!important;overflow:visible!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;animation:loginFullLogoIn .8s ease-out both!important}
+#lgn .lgb .mk img{display:block!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;object-position:center!important;padding:0!important;margin:0!important;border:0!important;border-radius:0!important;filter:drop-shadow(0 8px 18px rgba(0,0,0,.12))}
+#lgn .lgb .mk::before,#lgn .lgb .mk::after{display:none!important;content:none!important}
+#lgn .sib-guinee-draw,#lgn .lgb h2,#lgn .lgb>p{display:none!important}
+#lgn .lgb ul{margin-top:8px!important}
+@keyframes loginFullLogoIn{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-width:720px){#lgn .lgb .mk{width:min(390px,88vw)!important;margin-bottom:12px!important}}
+@media(prefers-reduced-motion:reduce){#lgn .lgb .mk{animation:none!important}}
+</style>
 </head><body>
 <div id="sib-startup" role="status" aria-live="polite"><div class="sib-startup-inner"><div class="sib-startup-logo" aria-hidden="true">SIB</div><div class="sib-startup-name">SIB Gestion</div><div class="sib-startup-label">Chargement de votre espace…</div><div class="sib-startup-track" aria-hidden="true"></div></div></div>
 <div class="app">
@@ -2884,7 +2896,7 @@ async function cpw(){
 const SY=()=>(S.set&&S.set.sym)||"GNF";
 let PS={};
 function coHead(){const s=S.set||{},l=[s.adr,[s.ville,s.pays].filter(Boolean).join(", "),s.tel,s.mail,s.web].filter(Boolean),legal=[s.rccm?"RCCM : "+s.rccm:"",s.nif?"NIF : "+s.nif:""].filter(Boolean);return`<div class="sib-doc-head" style="display:flex;gap:12px;align-items:center;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #d8deea;color:#172033">${s.logo?`<img src="${s.logo}" alt="Logo ${esc(s.nom||"SIB")}" style="display:block;height:52px;max-width:125px;object-fit:contain">`:""}<div style="min-width:0"><b style="font-size:14px">${esc(s.nom||"Soritech Innov Business")}</b>${l.length?`<br><small>${l.map(esc).join(" · ")}</small>`:""}${legal.length?`<br><small>${legal.map(esc).join(" · ")}</small>`:""}<br><small style="color:#53627a">${esc(s.app||"SIB Gestion")}</small></div></div>`}
-function applyLogo(){const s=S.set||{},n=s.nom||"Soritech Innov Business",app=s.app||"SIB Gestion",fallbackLogo='<img src="./assets/sib-mark.svg" alt="Logo SIB" decoding="async">';
+function applyLogo(){const s=S.set||{},n=s.nom||"Soritech Innov Business",app=s.app||"SIB Gestion",fallbackLogo='<img src="./assets/sib-logo-complet.webp" alt="Logo Soritech Innov Business" decoding="async">';
  const logoMarkup=s.logo?`<img src="${s.logo}" alt="Logo ${esc(n)}" decoding="async">`:fallbackLogo;
  document.querySelectorAll(".mk").forEach(m=>{m.classList.add("has");m.innerHTML=logoMarkup});
  const splashLogo=document.querySelector("#sib-startup .sib-startup-logo"),splashName=document.querySelector("#sib-startup .sib-startup-name");if(splashLogo){splashLogo.innerHTML=logoMarkup;splashLogo.classList.add("has-image")}if(splashName)splashName.textContent=app;
