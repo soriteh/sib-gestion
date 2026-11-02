@@ -5,13 +5,18 @@
   window.__SIB_AI_AGENT_LOADED = true;
   const css = `
   body.lo #sib-ai-launch,body.lo #sib-ai-panel{display:none!important;visibility:hidden!important;pointer-events:none!important}
-  #sib-ai-launch{position:fixed;right:22px;bottom:22px;z-index:9998;width:64px;height:64px;min-width:64px;min-height:64px;aspect-ratio:1/1;box-sizing:border-box;display:grid;place-items:center;border:1px solid rgba(255,255,255,.9);border-radius:12px;background:#fff;padding:3px;overflow:hidden;box-shadow:0 8px 28px #071a3640;cursor:pointer;transition:transform .2s,box-shadow .2s}
-  #sib-ai-launch:hover{transform:translateY(-2px);box-shadow:0 12px 32px #071a3660}#sib-ai-launch img{display:block!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;object-position:center!important;aspect-ratio:1/1!important;border-radius:8px!important;padding:0!important;margin:0!important;flex:none!important;transform:none!important;filter:none!important}
-  #sib-ai-launch.sib-ai-logo-failed{background:#fff}#sib-ai-launch:focus-visible{outline:3px solid #ff7800;outline-offset:3px}
+  #sib-ai-launch{position:fixed;right:22px;bottom:22px;z-index:9998;width:52px;height:52px;min-width:52px;min-height:52px;aspect-ratio:1/1;box-sizing:border-box;display:grid;place-items:center;border:1px solid rgba(255,255,255,.95);border-radius:50%;background:#fff;padding:2px;overflow:visible;box-shadow:0 5px 20px #071a3650;cursor:pointer;isolation:isolate;transition:transform .25s ease,box-shadow .25s ease}
+  #sib-ai-launch::before,#sib-ai-launch::after{content:"";position:absolute;inset:-4px;border:1.5px solid #35baff;border-radius:50%;pointer-events:none;z-index:-1;animation:sibMayaOrbitPulse 2.8s ease-out infinite}
+  #sib-ai-launch::after{border-color:#ff7800;animation-delay:1.4s}
+  #sib-ai-launch:hover{transform:translateY(-3px) scale(1.06);box-shadow:0 9px 26px #071a3670}
+  #sib-ai-launch img{display:block!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;object-position:center!important;aspect-ratio:1/1!important;border-radius:50%!important;padding:0!important;margin:0!important;flex:none!important;filter:none!important;animation:sibMayaFloat 3.6s ease-in-out infinite}
+  #sib-ai-launch.sib-ai-logo-failed{background:#fff}#sib-ai-launch:focus-visible{outline:3px solid #ff7800;outline-offset:4px}
+  @keyframes sibMayaOrbitPulse{0%{opacity:.75;transform:scale(.88)}85%,100%{opacity:0;transform:scale(1.42)}}
+  @keyframes sibMayaFloat{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-2px) rotate(2deg)}}
   #sib-ai-panel{position:fixed;right:22px;bottom:82px;z-index:9999;width:min(380px,calc(100vw - 28px));height:min(540px,calc(100vh - 115px));background:#ffffff!important;color:#071a36!important;opacity:1!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border:1px solid #cbd5e1;border-radius:16px;box-shadow:0 18px 60px #071a3670;display:none;overflow:hidden;font:14px system-ui;isolation:isolate}
   #sib-ai-panel.open{display:flex;flex-direction:column}
   #sib-ai-head{flex:0 0 auto;padding:12px 14px;background:linear-gradient(115deg,#071a36,#0057b9)!important;color:#fff!important;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid #4abaff70}
-  #sib-ai-brand{display:flex;align-items:center;gap:10px;min-width:0}#sib-ai-brand-copy{min-width:0}#sib-ai-avatar{display:block;width:42px;height:42px;flex:none;border-radius:12px;box-shadow:0 0 0 1px #78d9ff80,0 0 18px #149fff55;animation:sibMayaGlow 2.8s ease-in-out infinite}
+  #sib-ai-brand{display:flex;align-items:center;gap:10px;min-width:0}#sib-ai-brand-copy{min-width:0}#sib-ai-avatar{display:block;width:34px;height:34px;flex:none;border-radius:10px;box-shadow:0 0 0 1px #78d9ff80,0 0 14px #149fff55;animation:sibMayaGlow 2.8s ease-in-out infinite,sibMayaFloat 3.6s ease-in-out infinite}
   #sib-ai-head strong{font-size:15px;letter-spacing:.1px} #sib-ai-head small{display:block;opacity:.9;margin-top:3px}
   @keyframes sibMayaGlow{0%,100%{filter:drop-shadow(0 0 2px #35baff55)}50%{filter:drop-shadow(0 0 7px #35baffaa)}}
   .sib-ai-thinking{display:flex;align-items:center;gap:9px;align-self:flex-start;max-width:90%;padding:8px 12px;border-radius:12px;background:#eef4fb;color:#071a36;font-size:12px}
@@ -34,7 +39,7 @@
   #sib-ai-send{border:0;border-radius:10px;background:#ff7800;color:#fff;font-weight:700;padding:0 14px;cursor:pointer}
   #sib-ai-send:disabled{opacity:.65;cursor:wait}
   #sib-ai-note{flex:0 0 auto;font-size:11px;padding:0 12px 10px;background:#fff!important;color:#475569!important;opacity:1}
-  @media(max-width:480px){#sib-ai-panel{right:10px;bottom:76px;width:calc(100vw - 20px);height:min(540px,calc(100vh - 100px))}#sib-ai-launch{right:14px;bottom:14px;width:58px;height:58px;min-width:58px;min-height:58px;border-radius:12px}}
+  @media(max-width:480px){#sib-ai-panel{right:10px;bottom:68px;width:calc(100vw - 20px);height:min(540px,calc(100vh - 90px))}#sib-ai-launch{right:14px;bottom:14px;width:46px;height:46px;min-width:46px;min-height:46px}}\n  @media(prefers-reduced-motion:reduce){#sib-ai-launch::before,#sib-ai-launch::after,#sib-ai-launch img,#sib-ai-avatar{animation:none!important}}
   `;
   const style = document.createElement("style"); style.textContent = css; document.head.appendChild(style);
   const launch = document.createElement("button"); launch.id = "sib-ai-launch"; launch.type = "button";
