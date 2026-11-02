@@ -36,7 +36,7 @@ assert.doesNotMatch(boot, /sib-offline-profile-v1/,
   "Cached profile must not be used as an offline identity");
 assert.doesNotMatch(boot, /sib-offline-state-v1/,
   "Cached application state must not be used for offline access");
-assert.match(boot, /if\(remote\?\.state\)[\s\S]*const sameAsCentral=JSON\.stringify\(pendingCloud\.state\)===JSON\.stringify\(remote\.state\)/,
+assert.match(html, /function sameCloudSnapshot\(localState,remoteState\)[\s\S]*stableCloudValue[\s\S]*delete local\.us;delete remote\.us/,\n  "Snapshot comparison must normalize defaults, ignore key order, and exclude session users");\nassert.match(boot, /const sameAsCentral=sameCloudSnapshot\(pendingCloud\.state,remote\.state\)/,
   "When central state is available, the app must compare it with the pending local snapshot");
 assert.match(boot, /if\(sameAsCentral\)[\s\S]*localStorage\.removeItem\(SIB_PENDING_KEY\)/,
   "A pending snapshot may only be removed automatically when it exactly matches central state");
