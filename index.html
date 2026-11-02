@@ -2115,6 +2115,22 @@ function schedulePendingCloudRetry(delay){
  sibPendingRetryTimer=setTimeout(()=>{sibPendingRetryTimer=null;retryPendingCloudSave()},delay||sibPendingRetryDelay);
 }
 function cloudSnapshot(){const x=JSON.parse(JSON.stringify(S));delete x.us;return x}
+function stableCloudValue(value){
+ if(Array.isArray(value))return value.map(stableCloudValue);
+ if(value&&typeof value==="object"){
+  const out={};
+  Object.keys(value).sort().forEach(key=>{out[key]=stableCloudValue(value[key])});
+  return out;
+ }
+ return value;
+}
+function sameCloudSnapshot(localState,remoteState){
+ try{
+  const local=repairState(localState),remote=repairState(remoteState);
+  delete local.us;delete remote.us;
+  return JSON.stringify(stableCloudValue(local))===JSON.stringify(stableCloudValue(remote));
+ }catch(err){console.warn("SIB snapshot comparison failed:",err);return false}
+}
 function storePendingCloudSnapshot(snapshot){try{localStorage.setItem(SIB_PENDING_KEY,JSON.stringify({savedAt:Date.now(),state:snapshot}));return true}catch(err){console.error("SIB pending backup failed:",err);return false}}
 async function retryPendingCloudSave(){
  if(sibPendingRetryBusy||sibPendingConflict||!navigator.onLine||!window.SIBCloud?.ready||!cloudSessionReady)return;
@@ -2861,7 +2877,7 @@ async function boot(){applyLogo();loadSibPublicBranding();
     sibPendingConflict=false;
     if(pendingCloud?.state){
      try{
-      const sameAsCentral=JSON.stringify(pendingCloud.state)===JSON.stringify(remote.state);
+      const sameAsCentral=sameCloudSnapshot(pendingCloud.state,remote.state);
       if(sameAsCentral){
        // The exact pending snapshot is already central: it is safe to clear the queue.
        localStorage.removeItem(SIB_PENDING_KEY);
