@@ -143,7 +143,7 @@
         const cleaned=message.replace(emailAddress,"").replace(/^\\s*Maya[, :;-]*/i,"").replace(/\\b(envoie|envoyer|expédie|expédier|transmets|transmettre)\\b[\\s\\S]{0,45}\\b(e-?mail|courriel|message électronique)\\b/i,"").replace(/^\\s*(à|au|aux|pour)\\s*/i,"").trim();
         const subjectMatch=cleaned.match(/\\bobjet\\s*:\\s*([^\\n.]+)/i);
         const subject=subjectMatch?subjectMatch[1].trim():"Message de Soritech Innov Business";
-        const bodyText=cleaned.replace(/\\bobjet\\s*:\\s*[^\\n.]+/i,"").replace(/^\\s*(pour lui dire|pour informer|pour confirmer|pour rappeler)\\s*/i,"").trim();
+        const bodyText=cleaned.replace(/\\bobjet\\s*:\\s*[^\\n.]+/i,"").replace(/^\\s*pour lui confirmer\\s*/i,"Nous vous confirmons ").replace(/^\\s*pour lui rappeler\\s*/i,"Nous vous rappelons ").replace(/^\\s*pour lui dire\\s*/i,"Nous vous informons ").replace(/^\\s*(pour informer|pour confirmer|pour rappeler)\\s*/i,"").trim();
         if(!bodyText||bodyText.length<8)throw new Error("Précisez le contenu de l’e-mail à envoyer.");
         const result=await client.functions.invoke("sib-email-send",{body:{to:emailAddress,subject,text:bodyText,email_type:"maya",source:"maya"}});
         data=result.data;error=result.error;
