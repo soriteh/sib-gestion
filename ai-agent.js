@@ -134,7 +134,23 @@
       if(!cloud||!cloud.ready||!client)throw new Error("Le service Supabase n’est pas configuré.");
       const {data:sessionData,error:sessionError}=await client.auth.getSession();
       if(sessionError)throw sessionError;if(!sessionData.session)throw new Error("Connectez-vous à SIB Gestion pour utiliser l’assistant.");
-      const {data,error}=await client.functions.invoke("sib-ai-agent",{body:{message,history:history.slice(-10)}});
+      const payrollIntent=/\\b(génère|générer|génération|crée|créer|prépare|préparer|lance|produis|produire)\\b[\\s\\S]{0,90}\\b(bulletins?|paie)\\b|\\b(bulletins?|paie)\\b[\\s\\S]{0,90}\\b(génère|générer|crée|créer|prépare|préparer|lance)\\b/i.test(message);
+      let data,error;
+      if(payrollIntent){
+        const periodMatch=message.match(/\\b(20\\d{2})[-/](0?[1-9]|1[0-2])\\b/);
+        const monthNames={"janvier":"01","février":"02","fevrier":"02","mars":"03","avril":"04","mai":"05","juin":"06","juillet":"07","août":"08","aout":"08","septembre":"09","octobre":"10","novembre":"11","décembre":"12","decembre":"12"};
+        const namedPeriod=message.match(/\\b(janvier|février|fevrier|mars|avril|mai|juin|juillet|août|aout|septembre|octobre|novembre|décembre|decembre)\\s+(20\\d{2})\\b/i);
+        const period=periodMatch?periodMatch[1]+"-"+periodMatch[2].padStart(2,"0"):namedPeriod?namedPeriod[2]+"-"+monthNames[namedPeriod[1].toLowerCase()]:undefined;
+        const result=await client.functions.invoke("sib-ai-agent",{body:{action:"generate_monthly_payroll",period}});
+        data=result.data;error=result.error;
+        if(!error&&data&&data.ok){
+          const r=data.result||{};
+          data={reply:"Génération des bulletins terminée pour "+(r.period||period||"le mois précédent")+".\\n• Bulletins créés : "+(r.created??0)+"\\n• Déjà existants : "+(r.already_existing??0)+"\\n• Statut : Brouillon.\\nAucun bulletin n’a été validé et aucun paiement n’a été effectué."};
+        }
+      }else{
+        const result=await client.functions.invoke("sib-ai-agent",{body:{message,history:history.slice(-10)}});
+        data=result.data;error=result.error;
+      }
       if(error){
         let detail=(data&&data.error)||error.message||"Service IA indisponible.";
         try{const response=error.context;if(response&&typeof response.json==="function"){const payload=await response.clone().json();if(payload&&payload.error)detail=payload.error;else if(payload&&payload.message)detail=payload.message;}}catch(_ignored){}
