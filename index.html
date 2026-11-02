@@ -526,6 +526,21 @@ table tbody td{border-bottom:1px solid color-mix(in srgb,var(--ln) 72%,transpare
 @media(prefers-reduced-motion:reduce){button,.box,.k,#nv button{transition:none!important}}
 
 
+/* Alignement du tableau des soldes de congés annuels */
+.leave-balance-box{width:100%;min-width:0}
+.leave-balance-box>.tw{width:100%;max-width:100%;overflow-x:auto}
+.leave-balance-box .tw table{width:100%;min-width:760px;table-layout:fixed}
+.leave-balance-box .tw th,.leave-balance-box .tw td{box-sizing:border-box;vertical-align:middle;text-align:center!important;padding:12px 14px;white-space:nowrap}
+.leave-balance-box .tw th:nth-child(1),.leave-balance-box .tw td:nth-child(1){width:8%;text-align:center!important}
+.leave-balance-box .tw th:nth-child(2),.leave-balance-box .tw td:nth-child(2){width:28%;text-align:left!important}
+.leave-balance-box .tw th:nth-child(3),.leave-balance-box .tw td:nth-child(3){width:16%}
+.leave-balance-box .tw th:nth-child(4),.leave-balance-box .tw td:nth-child(4){width:14%}
+.leave-balance-box .tw th:nth-child(5),.leave-balance-box .tw td:nth-child(5){width:19%}
+.leave-balance-box .tw th:nth-child(6),.leave-balance-box .tw td:nth-child(6){width:15%}
+.leave-balance-box .tw td:nth-child(6) b{font-weight:800;color:var(--tx)}
+.leave-balance-box .sd{line-height:1.55}
+@media(max-width:700px){.leave-balance-box .tw table{min-width:700px}.leave-balance-box .tw th,.leave-balance-box .tw td{padding:10px 9px}}
+
 /* Contraste premium : nom de l’entreprise en blanc sur la page de connexion */
 #lgn .lgb h2#lgh{color:#fff!important;text-shadow:0 2px 14px rgba(0,0,0,.18)}
 
@@ -3097,7 +3112,7 @@ function drawCg(){const el=$("cg");if(!el)return;if(!can("cg")){el.innerHTML=noA
  el.innerHTML=`<h2>Congés</h2>${pend.length?nb("wa","",pend.length+" demande(s) de congé en attente de décision."):""}${abs.length?nb("in","","En congé aujourd'hui : "+abs.map(eN).join(", ")+"."):""}${A.length?"":nb("in","","Aucun employé actif : ajoutez d'abord un employé dans « Employés » pour enregistrer des congés.",{go:"rh",label:"Employés"})}
  <div class="box"><b>Nouvelle demande de congé</b><div class="row" style="margin-top:8px"><div><label for="cg_e">Employé</label><select id="cg_e">${A.map(e=>`<option value="${e.id}">${esc(eN(e))} (${e.mat})</option>`).join("")}</select></div>${sel("cg_t","Type",LT,"Congé annuel")}${fld("cg_d1","Du",td,"date")}${fld("cg_d2","Au",td,"date")}${fld("cg_m","Motif (facultatif)","")}<div style="flex:0 0 auto;align-self:end"><button class="p" data-a="cgadd">Enregistrer la demande</button></div></div><div id="cg_info" style="margin-top:10px"></div></div>
  <div class="box"><b>Demandes</b>${T(["Employé","Type","Du","Au","Jours","Statut","Décision",""],rows.map(c=>{const e=eById(c.emp);return`<tr><td>${esc(eN(e))}</td><td>${esc(c.type)}</td><td>${fdt(c.d1)}</td><td>${fdt(c.d2)}</td><td class="r">${c.j}</td><td>${bdg(c.st,LS[c.st])}</td><td>${c.dec?esc(c.dec):"—"}</td><td>${c.st=="En attente"?`<button class="s" data-a="cgok" data-i="${c.id}">Approuver</button> <button class="s" data-a="cgno" data-i="${c.id}">Refuser</button>`:c.st=="Approuvé"&&c.d2>=td?`<button class="s dg" data-a="cgcan" data-i="${c.id}">Annuler</button>`:""}</td></tr>`}))}</div>
- <div class="box"><b>Soldes de congé annuel</b>${T(["Employé","Acquis","Pris","En attente","Solde"],A.map(e=>`<tr><td>${esc(eN(e))}</td><td class="r">${acq(e)} j</td><td class="r">${taken(e)} j</td><td class="r">${sum(S.cg.filter(c=>c.emp==e.id&&c.type=="Congé annuel"&&c.st=="En attente").map(c=>c.j))} j</td><td class="r"><b>${solde(e)} j</b></td></tr>`))}<p class="sd" style="margin:10px 0 0">Acquisition : ${(S.set.rh||{}).cgm} jour(s) par mois de service, ${SAT()?"samedi travaillé":"du lundi au vendredi"}. Modifiable dans Paramètres.</p></div>`;updCg()}
+ <div class="box leave-balance-box"><b>Soldes de congé annuel</b>${T(["Employé","Acquis","Pris","En attente","Solde"],A.map(e=>`<tr><td>${esc(eN(e))}</td><td class="r">${acq(e)} j</td><td class="r">${taken(e)} j</td><td class="r">${sum(S.cg.filter(c=>c.emp==e.id&&c.type=="Congé annuel"&&c.st=="En attente").map(c=>c.j))} j</td><td class="r"><b>${solde(e)} j</b></td></tr>`))}<p class="sd" style="margin:10px 0 0">Acquisition : ${(S.set.rh||{}).cgm} jour(s) par mois de service, ${SAT()?"samedi travaillé":"du lundi au vendredi"}. Modifiable dans Paramètres.</p></div>`;updCg()}
 function updCg(){const i=$("cg_info");if(!i||!$("cg_e"))return;const e=eById($("cg_e").value),d1=$("cg_d1").value,d2=$("cg_d2").value,t=$("cg_t").value;if(!e.id||!d1||!d2){i.innerHTML="";return}
  if(d2<d1){i.innerHTML=nb("er","","La date de fin précède la date de début.");return}const j=wd(d1,d2,SAT()),ov=S.cg.find(c=>c.emp==e.id&&(c.st=="En attente"||c.st=="Approuvé")&&c.d1<=d2&&c.d2>=d1);
  i.innerHTML=ov?nb("er","","Cet employé a déjà une demande du "+fdt(ov.d1)+" au "+fdt(ov.d2)+" ("+ov.st.toLowerCase()+").")+"":j==0?nb("wa","","Cette période ne contient aucun jour ouvré."):t=="Congé annuel"&&j>solde(e)?nb("er","","Solde insuffisant : "+j+" jour(s) demandé(s), "+solde(e)+" jour(s) disponible(s).")+"":nb("in","",j+" jour(s) ouvré(s)"+(t=="Congé annuel"?" · solde actuel : "+solde(e)+" jour(s).":"."))}
