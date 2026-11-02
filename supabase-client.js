@@ -118,6 +118,17 @@
           relationalSyncError = String(syncError?.message || syncError);
           console.error("SIB relational sync on sign-in failed:", syncError);
         }
+        // Rehydrate the client list from the relational table as a recovery
+        // source when the central JSON snapshot is incomplete or stale.
+        try {
+          const relationalClients = await loadClients();
+          const currentClients = Array.isArray(appState.state.c) ? appState.state.c : [];
+          const byId = new Map(currentClients.filter(x => x && x.id != null).map(x => [String(x.id), x]));
+          relationalClients.forEach(client => byId.set(String(client.id), { ...byId.get(String(client.id)), ...client }));
+          appState.state.c = Array.from(byId.values());
+        } catch (clientLoadError) {
+          console.warn("SIB: impossible de recharger les clients relationnels après connexion; état central conservé.", clientLoadError);
+        }
       }
     }
     try {
@@ -246,6 +257,31 @@
     }
     relationalSyncError = "";
     return { clients: clients.length, services: services.length };
+  }
+
+  async function loadClients() {
+    await requireSession();
+    const result = await client.from("sib_clients")
+      .select("legacy_id,client_code,name,client_type,phone,email,address,tax_id,notes,active")
+      .eq("organization_id", config.organizationId)
+      .order("name", { ascending: true });
+    if (result.error) throw result.error;
+    return (Array.isArray(result.data) ? result.data : [])
+      .filter(row => row && row.legacy_id != null && String(row.name || "").trim())
+      .map(row => ({
+        id: String(row.legacy_id),
+        code: row.client_code || "",
+        n: String(row.name || "").trim(),
+        type: row.client_type === "particulier" ? "Particulier" :
+          row.client_type === "etablissement_scolaire" ? "Établissement scolaire" :
+          row.client_type === "autre" ? "Autre" : "Entreprise",
+        t: row.phone || "",
+        mail: row.email || "",
+        a: row.address || "",
+        nif: row.tax_id || "",
+        notes: row.notes || "",
+        active: row.active !== false
+      }));
   }
 
   async function saveUserProfile(profile) {
@@ -482,6 +518,7 @@
     saveUserProfile,
     loadUserProfile,
     syncCoreCollections,
+    loadClients,
     get relationalSyncError() { return relationalSyncError; },
     subscribeAppState,
     get appStateVersion() { return appStateVersion; }
