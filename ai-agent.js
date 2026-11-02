@@ -134,10 +134,9 @@
       if(!cloud||!cloud.ready||!client)throw new Error("Le service Supabase n’est pas configuré.");
       const {data:sessionData,error:sessionError}=await client.auth.getSession();
       if(sessionError)throw sessionError;if(!sessionData.session)throw new Error("Connectez-vous à SIB Gestion pour utiliser l’assistant.");
-      const payrollIntent=/\\b(génère|générer|génération|crée|créer|prépare|préparer|lance|produis|produire)\\b[\\s\\S]{0,90}\\b(bulletins?|paie)\\b|\\b(bulletins?|paie)\\b[\\s\\S]{0,90}\\b(génère|générer|crée|créer|prépare|préparer|lance)\\b/i.test(message);
-      const emailIntent=/\\b(envoie|envoyer|expédie|expédier|transmets|transmettre)\\b[\\s\\S]{0,80}\\b(e-?mail|courriel|message électronique)\\b/i.test(message);
-      const emailAddress=(message.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}/i)||[])[0];
-
+      const payrollIntent=/\b(génère|générer|génération|crée|créer|prépare|préparer|lance|produis|produire)\b[\s\S]{0,90}\b(bulletins?|paie)\b|\b(bulletins?|paie)\b[\s\S]{0,90}\b(génère|générer|crée|créer|prépare|préparer|lance)\b/i.test(message);
+      const emailIntent=/\b(envoie|envoyer|expédie|expédier|transmets|transmettre)\b[\s\S]{0,80}\b(e-?mail|courriel|message électronique)\b/i.test(message);
+      const emailAddress=(message.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)||[])[0];
       let data,error;
       if(emailIntent){
         if(!emailAddress)throw new Error("Indiquez l’adresse e-mail du destinataire. Exemple : « Maya, envoie un e-mail à client@exemple.com pour lui confirmer le rendez-vous de demain. »");
