@@ -159,6 +159,13 @@
 
   let appStateVersion = null;
 
+  async function getPublicBranding() {
+    if (!client) throw new Error("Supabase n'est pas configuré.");
+    const { data, error } = await client.rpc("get_sib_public_branding");
+    if (error) throw error;
+    return data && typeof data === "object" ? data : null;
+  }
+
   async function loadAppState() {
     await requireSession();
     const { data, error } = await client
@@ -478,6 +485,7 @@
     requireSession,
     query,
     loadAppState,
+    getPublicBranding,
     saveAppState,
     saveUserProfile,
     loadUserProfile,
