@@ -7,6 +7,7 @@
  const $=id=>document.getElementById(id);
  const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
  const today=()=>new Date().toISOString().slice(0,10);
+ const docs=()=>{if(typeof S==="undefined")return [];if(!Array.isArray(S.docs))S.docs=[];return S.docs;};
  const fmt=d=>d?new Date(d+"T00:00:00").toLocaleDateString("fr-FR"):"";
  function init(){
   if(typeof S==="undefined")return;
@@ -28,23 +29,23 @@
   if(typeof mk==="function")mk();
   if(!window.__sibDocsNavWrapped){window.__sibDocsNavWrapped=true;const old=nav;window.nav=nav=function(v){old(v);if(v==="docs")list();};}
  }
- function nextRef(){const y=new Date().getFullYear();const n=S.docs.filter(d=>String(d.ref||"").includes("/"+y+"/")).length+1;return "SIB/DOC/"+y+"/"+String(n).padStart(3,"0");}
+ function nextRef(){const y=new Date().getFullYear();const n=docs().filter(d=>String(d.ref||"").includes("/"+y+"/")).length+1;return "SIB/DOC/"+y+"/"+String(n).padStart(3,"0");}
  function editor(d){
   d=d||{};const ed=$("docEditor");ed.classList.remove("hide");
   ed.innerHTML='<div class="doc-editor"><h3>'+(d.id?"Modifier":"Nouveau document")+'</h3><div class="doc-grid"><div><label>Type de document</label><select id="dType">'+TYPES.map(t=>'<option value="'+t[0]+'" '+(d.type===t[0]?"selected":"")+'>'+t[1]+'</option>').join("")+'</select></div><div><label>Référence</label><input id="dRef" value="'+esc(d.ref||nextRef())+'"></div><div><label>Date</label><input id="dDate" type="date" value="'+esc(d.date||today())+'"></div><div><label>Destinataire</label><input id="dTo" value="'+esc(d.to||"")+'" placeholder="Nom, fonction ou organisme"></div><div class="doc-wide"><label>Objet</label><input id="dSubject" value="'+esc(d.subject||"")+'" placeholder="Objet du document"></div><div><label>Personne concernée (facultatif)</label><input id="dPerson" value="'+esc(d.person||"")+'"></div><div><label>Fonction / qualité</label><input id="dRole" value="'+esc(d.role||"")+'"></div><div class="doc-wide"><label>Contenu du document</label><textarea id="dBody" placeholder="Rédigez le texte du document…">'+esc(d.body||"")+'</textarea></div><div><label>Nom du signataire</label><input id="dSigner" value="'+esc(d.signer||"Soriba Camara")+'"></div><div><label>Fonction du signataire</label><input id="dSignerRole" value="'+esc(d.signerRole||"Gérant")+'"></div></div><div class="doc-actions" style="margin-top:16px"><button class="p" id="dSave">Enregistrer</button><button class="s" id="dPreview">Aperçu / Imprimer</button><button class="dg" id="dCancel">Annuler</button></div></div>';
   $("dCancel").onclick=()=>ed.classList.add("hide");
-  $("dSave").onclick=()=>{const x={id:d.id||("doc_"+Date.now()),type:$("dType").value,ref:$("dRef").value.trim(),date:$("dDate").value,to:$("dTo").value.trim(),subject:$("dSubject").value.trim(),person:$("dPerson").value.trim(),role:$("dRole").value.trim(),body:$("dBody").value,signer:$("dSigner").value.trim(),signerRole:$("dSignerRole").value.trim(),updatedAt:new Date().toISOString()};if(!x.ref||!x.subject||!x.body.trim()){toast("Renseignez au minimum la référence, l’objet et le contenu.","wa");return;}const i=S.docs.findIndex(z=>z.id===x.id);if(i>=0)S.docs[i]=x;else S.docs.unshift(x);save();ed.classList.add("hide");list();toast("Document enregistré.","ok");};
+  $("dSave").onclick=()=>{const x={id:d.id||("doc_"+Date.now()),type:$("dType").value,ref:$("dRef").value.trim(),date:$("dDate").value,to:$("dTo").value.trim(),subject:$("dSubject").value.trim(),person:$("dPerson").value.trim(),role:$("dRole").value.trim(),body:$("dBody").value,signer:$("dSigner").value.trim(),signerRole:$("dSignerRole").value.trim(),updatedAt:new Date().toISOString()};if(!x.ref||!x.subject||!x.body.trim()){toast("Renseignez au minimum la référence, l’objet et le contenu.","wa");return;}const i=docs().findIndex(z=>z.id===x.id);if(i>=0)docs()[i]=x;else docs().unshift(x);save();ed.classList.add("hide");list();toast("Document enregistré.","ok");};
   $("dPreview").onclick=()=>{const x=readEditor(d);printDoc(x);};
  }
  function readEditor(d){return {id:d.id||"",type:$("dType").value,ref:$("dRef").value,date:$("dDate").value,to:$("dTo").value,subject:$("dSubject").value,person:$("dPerson").value,role:$("dRole").value,body:$("dBody").value,signer:$("dSigner").value,signerRole:$("dSignerRole").value};}
  function list(){
   if(!$("docList")||typeof S==="undefined")return;
   const q=($("docSearch")?.value||"").toLowerCase(),f=$("docFilter")?.value||"";
-  const rows=S.docs.filter(d=>(!f||d.type===f)&&[d.ref,d.subject,d.to,d.person].some(v=>String(v||"").toLowerCase().includes(q)));
+  const rows=docs().filter(d=>(!f||d.type===f)&&[d.ref,d.subject,d.to,d.person].some(v=>String(v||"").toLowerCase().includes(q)));
   $("docList").innerHTML=rows.length?rows.map(d=>'<article class="doc-card"><div><b>'+esc(d.subject)+'</b><p>'+esc(d.ref)+' · '+esc(TYPES.find(t=>t[0]===d.type)?.[1]||d.type)+' · '+fmt(d.date)+'</p><small>'+esc(d.to||"Sans destinataire")+'</small></div><div class="doc-actions"><button class="s" data-doc-edit="'+esc(d.id)+'">Modifier</button><button class="p" data-doc-print="'+esc(d.id)+'">Imprimer</button><button class="dg" data-doc-del="'+esc(d.id)+'">Supprimer</button></div></article>').join(""):'<div class="doc-empty">Aucun document administratif enregistré.</div>';
-  $("docList").querySelectorAll("[data-doc-edit]").forEach(b=>b.onclick=()=>editor(S.docs.find(d=>d.id===b.dataset.docEdit)));
-  $("docList").querySelectorAll("[data-doc-print]").forEach(b=>b.onclick=()=>printDoc(S.docs.find(d=>d.id===b.dataset.docPrint)));
-  $("docList").querySelectorAll("[data-doc-del]").forEach(b=>b.onclick=()=>{const d=S.docs.find(x=>x.id===b.dataset.docDel);if(!d)return;if(confirm("Supprimer le document « "+d.subject+" » ?")){S.docs=S.docs.filter(x=>x.id!==d.id);save();list();toast("Document supprimé.","ok");}});
+  $("docList").querySelectorAll("[data-doc-edit]").forEach(b=>b.onclick=()=>editor(docs().find(d=>d.id===b.dataset.docEdit)));
+  $("docList").querySelectorAll("[data-doc-print]").forEach(b=>b.onclick=()=>printDoc(docs().find(d=>d.id===b.dataset.docPrint)));
+  $("docList").querySelectorAll("[data-doc-del]").forEach(b=>b.onclick=()=>{const d=docs().find(x=>x.id===b.dataset.docDel);if(!d)return;if(confirm("Supprimer le document « "+d.subject+" » ?")){S.docs=docs().filter(x=>x.id!==d.id);save();list();toast("Document supprimé.","ok");}});
  }
  function printDoc(d){
   if(!d)return;
