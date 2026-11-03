@@ -13,6 +13,65 @@
     !String(config.publishableKey).startsWith("REMPLACER_")
   );
 
+  const SESSION_POLICY_KEY = "sib-session-policy-v1";
+  const SESSION_IDLE_LIMIT_MS = 30 * 60 * 1000;
+  const SESSION_MAX_LIMIT_MS = 12 * 60 * 60 * 1000;
+  let sessionPolicyTimer = null;
+
+  function readSessionPolicy() {
+    try {
+      const value = JSON.parse(localStorage.getItem(SESSION_POLICY_KEY) || "null");
+      return value && Number.isFinite(value.startedAt) && Number.isFinite(value.lastActivityAt)
+        ? value : null;
+    } catch (_) { return null; }
+  }
+
+  function writeSessionPolicy(policy) {
+    try { localStorage.setItem(SESSION_POLICY_KEY, JSON.stringify(policy)); } catch (_) {}
+  }
+
+  function clearSessionPolicy() {
+    try { localStorage.removeItem(SESSION_POLICY_KEY); } catch (_) {}
+    if (sessionPolicyTimer) window.clearTimeout(sessionPolicyTimer);
+    sessionPolicyTimer = null;
+  }
+
+  function sessionPolicyExpired(policy, now) {
+    return !policy || now - policy.startedAt >= SESSION_MAX_LIMIT_MS ||
+      now - policy.lastActivityAt >= SESSION_IDLE_LIMIT_MS;
+  }
+
+  function initializeSessionPolicy(session, freshLogin) {
+    if (!session?.user?.id) return false;
+    const now = Date.now();
+    let policy = readSessionPolicy();
+    if (freshLogin || !policy || policy.userId !== session.user.id) {
+      policy = { userId: session.user.id, startedAt: now, lastActivityAt: now };
+      writeSessionPolicy(policy);
+    }
+    if (sessionPolicyExpired(policy, now)) {
+      clearSessionPolicy();
+      return false;
+    }
+    return true;
+  }
+
+  let lastActivityWrite = 0;
+  function recordSessionActivity() {
+    const now = Date.now();
+    if (now - lastActivityWrite < 15000) return;
+    const policy = readSessionPolicy();
+    if (!policy) return;
+    if (sessionPolicyExpired(policy, now)) return;
+    policy.lastActivityAt = now;
+    lastActivityWrite = now;
+    writeSessionPolicy(policy);
+  }
+
+  ["pointerdown", "keydown", "touchstart", "scroll"].forEach(type => {
+    window.addEventListener(type, recordSessionActivity, { passive: true });
+  });
+
   let client = null;
   if (ready) {
     client = window.supabase.createClient(config.url, config.publishableKey, {
@@ -21,6 +80,21 @@
         autoRefreshToken: true,
         detectSessionInUrl: true,
         storageKey: "sib-supabase-auth"
+      }
+    });
+  }
+
+  if (client) {
+    client.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT") {
+        clearSessionPolicy();
+        return;
+      }
+      if (session && !initializeSessionPolicy(session, false)) {
+        window.setTimeout(() => {
+          client.auth.signOut({ scope: "local" }).catch(() => {});
+          clearSessionPolicy();
+        }, 0);
       }
     });
   }
@@ -38,7 +112,15 @@
     if (!client) throw new Error("Supabase n'est pas configuré. Vérifiez supabase-config.js.");
     const { data, error } = await client.auth.getSession();
     if (error) throw error;
-    if (!data.session) throw new Error("Session absente. Connectez-vous avec votre compte SIB.");
+    if (!data.session) {
+      clearSessionPolicy();
+      throw new Error("Session absente. Connectez-vous avec votre compte SIB.");
+    }
+    if (!initializeSessionPolicy(data.session, false)) {
+      try { await client.auth.signOut({ scope: "local" }); } catch (_) {}
+      clearSessionPolicy();
+      throw new Error("Votre session SIB a expiré (30 minutes d'inactivité ou 12 heures maximum). Veuillez vous reconnecter.");
+    }
     return data.session;
   }
 
@@ -74,6 +156,7 @@
     if (!client) throw new Error("Connexion centrale non configurée. Renseignez l'URL et la clé publique dans supabase-config.js.");
     const { data, error } = await client.auth.signInWithPassword({ email, password });
     if (error) throw error;
+    initializeSessionPolicy(data.session, true);
     // Query the database sequentially to avoid bursting PostgREST immediately
     // after authentication. Preserve the valid Auth session during transient
     // Data API outages (PGRST002/PGRST003/HTTP 503) so a retry can recover.
@@ -141,6 +224,7 @@
 
   async function signOut() {
     if (!client) return;
+    clearSessionPolicy();
     const { error } = await client.auth.signOut();
     if (error) throw error;
   }
