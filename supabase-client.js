@@ -53,7 +53,27 @@
       clearSessionPolicy();
       return false;
     }
+    scheduleSessionExpiry(policy);
     return true;
+  }
+
+  function scheduleSessionExpiry(policy) {
+    if (sessionPolicyTimer) window.clearTimeout(sessionPolicyTimer);
+    const now = Date.now();
+    const remainingIdle = SESSION_IDLE_LIMIT_MS - (now - policy.lastActivityAt);
+    const remainingAbsolute = SESSION_MAX_LIMIT_MS - (now - policy.startedAt);
+    const delay = Math.max(1, Math.min(remainingIdle, remainingAbsolute));
+    sessionPolicyTimer = window.setTimeout(async () => {
+      const current = readSessionPolicy();
+      if (sessionPolicyExpired(current, Date.now())) {
+        clearSessionPolicy();
+        if (client) {
+          try { await client.auth.signOut({ scope: "local" }); } catch (_) {}
+        }
+      } else if (current) {
+        scheduleSessionExpiry(current);
+      }
+    }, delay);
   }
 
   let lastActivityWrite = 0;
@@ -66,6 +86,7 @@
     policy.lastActivityAt = now;
     lastActivityWrite = now;
     writeSessionPolicy(policy);
+    scheduleSessionExpiry(policy);
   }
 
   ["pointerdown", "keydown", "touchstart", "scroll"].forEach(type => {
