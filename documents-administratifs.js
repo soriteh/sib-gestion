@@ -12,7 +12,9 @@
   if(typeof S==="undefined")return;
   if(!Array.isArray(S.docs))S.docs=[];
   if(!P.some(x=>x[0]==="docs"))P.push(["docs","Documents administratifs"]);
-  if(!GR.some(x=>x[1].includes("docs")))GR.push(["Administration",["docs"]]);
+  const adminGroup=GR.find(x=>String(x[0]).toLowerCase()==="administration");
+  if(adminGroup){if(!adminGroup[1].includes("docs"))adminGroup[1].push("docs");}
+  else GR.push(["Administration",["docs"]]);
   if(typeof IC!=="undefined")IC.docs="M7 3h7l5 5v13H7a2 2 0 01-2-2V5a2 2 0 012-2zM14 3v6h6M9 13h6M9 17h6";
   const sec=$("docs");if(!sec)return;
   sec.innerHTML='<div class="docs-head"><div><h2>Documents administratifs</h2><p>Rédigez, archivez et imprimez vos documents officiels au format A4.</p></div><button class="p" id="docNew">＋ Nouveau document</button></div><div class="docs-tools"><input id="docSearch" placeholder="Rechercher par référence, objet ou destinataire…"><select id="docFilter"><option value="">Tous les types</option>'+TYPES.map(t=>'<option value="'+t[0]+'">'+t[1]+'</option>').join("")+'</select></div><div id="docEditor" class="hide"></div><div id="docList"></div>';
