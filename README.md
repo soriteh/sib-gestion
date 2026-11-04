@@ -53,3 +53,7 @@ Le site GitHub Pages se met à jour après publication des changements sur la br
 La fonction Supabase `sib-invite-user` est déployée sur le projet SIB avec la vérification JWT activée. Elle vérifie que l'appelant possède une appartenance active avec le rôle Administrateur, puis utilise Supabase Auth pour envoyer une invitation et rattacher le compte à `organization_memberships`. Le frontend appelle cette fonction via `SIBCloud.inviteUser`; aucun secret `service_role` n'est exposé au navigateur.
 
 La configuration SMTP et les tests d'envoi réel restent à confirmer dans Supabase avant usage opérationnel.
+
+## Module Achats & Fournisseurs
+
+Le module `achats-fournisseurs.js` complète l'ancien écran fournisseurs/achats : répertoire fournisseurs, commandes fournisseurs avec lignes d'articles, réceptions partielles ou complètes, mise à jour du stock, factures fournisseurs, échéances, dettes, règlements partiels et intégration des paiements au journal de trésorerie. Les nouvelles données (`purchaseOrders`, `purchaseReceipts`, `supplierInvoices`, `supplierPayments`) sont conservées dans l'état central JSON `sib_app_state` via `save()` ; elles ne constituent pas encore un miroir relationnel dédié. L'historique des achats de l'ancien module (`S.ac`) et les fournisseurs existants (`S.fo`) sont conservés. Les parcours doivent encore être testés dans un navigateur connecté avant exploitation réelle.
