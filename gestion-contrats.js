@@ -79,7 +79,7 @@
       };
       var i = list().findIndex(function (v) { return String(v.id) === String(data.id); });
       if (i < 0) list().unshift(data); else list()[i] = data;
-      save(); log((x.id ? "Modification" : "Création") + " du contrat " + data.reference + " — " + data.party);
+      log((x.id ? "Modification" : "Création") + " du contrat " + data.reference + " — " + data.party); save();
       render(); say(x.id ? "Contrat mis à jour." : "Contrat enregistré.");
     };
   };
@@ -89,7 +89,7 @@
     if (kind === "print") return print(x);
     if (kind === "close") {
       if (!confirm("Clôturer le contrat " + x.reference + " ?")) return;
-      x.status = "Terminé"; x.updatedAt = new Date().toISOString(); save(); log("Clôture du contrat " + x.reference + " — " + x.party); render(); say("Contrat clôturé.");
+      x.status = "Terminé"; x.updatedAt = new Date().toISOString(); log("Clôture du contrat " + x.reference + " — " + x.party); save(); render(); say("Contrat clôturé.");
     }
   };
   var print = function (x) {
