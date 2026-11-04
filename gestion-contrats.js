@@ -1,0 +1,118 @@
+(function () {
+  "use strict";
+  if (window.__SIB_CONTRACTS_LOADED) return;
+  window.__SIB_CONTRACTS_LOADED = true;
+  var rootId = "contracts";
+  var h = function (v) { return String(v == null ? "" : v).replace(/[&<>"']/g, function (c) { return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); };
+  var today = function () { return new Date().toISOString().slice(0, 10); };
+  var money = function (v) { return Math.round(Number(v) || 0).toLocaleString("fr-FR") + " " + ((S.set && S.set.sym) || "GNF"); };
+  var uid = function () { return "ctr_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8); };
+  var list = function () { if (!Array.isArray(S.contracts)) S.contracts = []; return S.contracts; };
+  var say = function (m, t) { if (typeof toast === "function") toast(m, t || "ok"); else alert(m); };
+  var log = function (m) { try { if (typeof lg === "function") lg(m); } catch (e) { console.warn(e); } };
+  var dateLabel = function (v) { if (!v) return "—"; var d = new Date(v + "T00:00:00"); return Number.isNaN(d.getTime()) ? "—" : d.toLocaleDateString("fr-FR"); };
+  var status = function (x) { return x.status === "Actif" && x.endDate && x.endDate < today() ? "Expiré" : (x.status || "Brouillon"); };
+  var badge = function (v) { return '<span class="bd ' + (v === "Actif" ? "ok" : (v === "Expiré" || v === "Résilié" ? "no" : (v === "Terminé" ? "mu" : "wa"))) + '">' + h(v) + '</span>'; };
+  var reference = function () {
+    var year = new Date().getFullYear(), max = list().reduce(function (n, x) {
+      var m = String(x.reference || "").match(/^CTR-\d{4}-(\d+)$/); return m ? Math.max(n, Number(m[1]) || 0) : n;
+    }, 0);
+    return "CTR-" + year + "-" + String(max + 1).padStart(5, "0");
+  };
+  var partyNames = function () {
+    var a = [];
+    (S.c || []).forEach(function (x) { if (x && (x.n || x.name || x.nom)) a.push(x.n || x.name || x.nom); });
+    (S.fo || []).forEach(function (x) { if (x && (x.n || x.name || x.nom)) a.push(x.n || x.name || x.nom); });
+    (S.us || []).forEach(function (x) { if (x && (x.nom || x.name || x.mail)) a.push(x.nom || x.name || x.mail); });
+    return Array.from(new Set(a)).sort();
+  };
+  var render = function () {
+    var root = document.getElementById(rootId); if (!root) return;
+    var all = list().slice().sort(function (a, b) { return String(b.updatedAt || b.createdAt || "").localeCompare(String(a.updatedAt || a.createdAt || "")); });
+    var q = (root.querySelector("#sc-search") || {}).value || "";
+    var f = (root.querySelector("#sc-filter") || {}).value || "Tous";
+    var active = all.filter(function (x) { return status(x) === "Actif"; });
+    var soon = active.filter(function (x) { if (!x.endDate) return false; var d = Math.ceil((new Date(x.endDate + "T00:00:00") - new Date(today() + "T00:00:00")) / 86400000); return d >= 0 && d <= 30; });
+    var expired = all.filter(function (x) { return status(x) === "Expiré"; });
+    var commitment = active.reduce(function (n, x) { return n + (Number(x.amount) || 0); }, 0);
+    var rows = all.filter(function (x) {
+      return (!q || [x.reference,x.category,x.party,x.title,x.status].join(" ").toLowerCase().indexOf(q.toLowerCase()) >= 0) && (f === "Tous" || status(x) === f);
+    }).map(function (x) {
+      return '<tr><td><b>' + h(x.reference) + '</b></td><td>' + h(x.title) + '<small class="sc-sub">' + h(x.category || "Autre") + '</small></td><td>' + h(x.party) + '</td><td>' + dateLabel(x.startDate) + '</td><td>' + dateLabel(x.endDate) + '</td><td class="r">' + money(x.amount) + '</td><td>' + badge(status(x)) + '</td><td class="sc-actions"><button class="s" data-sc-action="edit" data-id="' + h(x.id) + '">Modifier</button> <button class="s" data-sc-action="print" data-id="' + h(x.id) + '">PDF</button> <button class="s" data-sc-action="close" data-id="' + h(x.id) + '">Clôturer</button></td></tr>';
+    }).join("");
+    root.innerHTML = '<div class="sc-head"><div><h2>Gestion des contrats</h2><p>Suivi des engagements, des dates de validité, des renouvellements et des échéances.</p></div><button class="p" id="sc-new">＋ Nouveau contrat</button></div>' +
+      '<div class="sc-kpis"><div class="k"><span>Contrats enregistrés</span><b>' + all.length + '</b></div><div class="k"><span>Contrats actifs</span><b>' + active.length + '</b></div><div class="k"><span>Échéances sous 30 jours</span><b>' + soon.length + '</b></div><div class="k"><span>Contrats expirés</span><b>' + expired.length + '</b></div><div class="k"><span>Engagements actifs</span><b>' + money(commitment) + '</b></div></div>' +
+      '<div id="sc-editor"></div><div class="box"><div class="sc-toolbar"><input id="sc-search" type="search" placeholder="Rechercher un contrat, une référence, une partie…" value="' + h(q) + '"><select id="sc-filter"><option' + (f === "Tous" ? " selected" : "") + '>Tous</option>' + ["Brouillon","À signer","Actif","Suspendu","Expiré","Terminé","Résilié"].map(function (x) { return '<option' + (f === x ? " selected" : "") + '>' + x + '</option>'; }).join("") + '</select></div><div class="tw"><table><thead><tr><th>Référence</th><th>Objet</th><th>Partie concernée</th><th>Début</th><th>Fin</th><th class="r">Montant</th><th>Statut</th><th>Actions</th></tr></thead><tbody>' + (rows || '<tr><td colspan="8" class="sc-empty">Aucun contrat enregistré.</td></tr>') + '</tbody></table></div></div>';
+    root.querySelector("#sc-new").onclick = function () { editor(null); };
+    root.querySelector("#sc-search").oninput = render;
+    root.querySelector("#sc-filter").onchange = render;
+    root.querySelectorAll("[data-sc-action]").forEach(function (b) { b.onclick = function () { action(b.dataset.scAction, b.dataset.id); }; });
+  };
+  var editor = function (item) {
+    var x = item || {}, root = document.getElementById("sc-editor"), names = partyNames();
+    var options = names.map(function (n) { return '<option value="' + h(n) + '"></option>'; }).join("");
+    var categories = ["Client","Fournisseur","Employé","Partenaire","Prestataire","Autre"];
+    var states = ["Brouillon","À signer","Actif","Suspendu","Terminé","Résilié"];
+    root.innerHTML = '<div class="box sc-form-box"><div class="sc-form-title"><h3>' + (x.id ? "Modifier le contrat" : "Nouveau contrat") + '</h3><span class="bd mu">' + h(x.reference || reference()) + '</span></div><div class="sc-form">' +
+      '<div><label>Type de contrat *</label><select id="sc-category">' + categories.map(function (v) { return '<option' + ((x.category || "Client") === v ? " selected" : "") + '>' + v + '</option>'; }).join("") + '</select></div>' +
+      '<div><label>Client / fournisseur / partie *</label><input id="sc-party" list="sc-parties" value="' + h(x.party || "") + '" placeholder="Nom de la partie"><datalist id="sc-parties">' + options + '</datalist></div>' +
+      '<div class="wide"><label>Objet du contrat *</label><input id="sc-title" value="' + h(x.title || "") + '" placeholder="Ex. Maintenance informatique annuelle"></div>' +
+      '<div><label>Date de signature</label><input id="sc-sign" type="date" value="' + h(x.signDate || "") + '"></div><div><label>Date de début *</label><input id="sc-start" type="date" value="' + h(x.startDate || today()) + '"></div><div><label>Date de fin</label><input id="sc-end" type="date" value="' + h(x.endDate || "") + '"></div>' +
+      '<div><label>Montant (GNF)</label><input id="sc-amount" type="number" min="0" step="1" value="' + h(x.amount == null ? 0 : x.amount) + '"></div><div><label>Statut</label><select id="sc-status">' + states.map(function (v) { return '<option' + ((x.status || "Brouillon") === v ? " selected" : "") + '>' + v + '</option>'; }).join("") + '</select></div><div><label>Préavis (jours)</label><input id="sc-notice" type="number" min="0" value="' + h(x.noticeDays == null ? 30 : x.noticeDays) + '"></div>' +
+      '<div><label>Renouvellement automatique</label><select id="sc-renew"><option value="non"' + (x.autoRenew ? "" : " selected") + '>Non</option><option value="oui"' + (x.autoRenew ? " selected" : "") + '>Oui</option></select></div><div><label>Modalités de paiement</label><input id="sc-payment" value="' + h(x.paymentTerms || "") + '" placeholder="Mensuel, à la livraison…"></div><div class="wide"><label>Lien du document signé (facultatif)</label><input id="sc-url" type="url" value="' + h(x.documentUrl || "") + '" placeholder="https://…"></div>' +
+      '<div class="wide"><label>Description / clauses importantes</label><textarea id="sc-description" rows="4">' + h(x.description || "") + '</textarea></div><div class="wide"><label>Observations internes</label><textarea id="sc-notes" rows="3">' + h(x.notes || "") + '</textarea></div></div><div class="sc-form-actions"><button class="p" id="sc-save">Enregistrer le contrat</button><button class="s" id="sc-cancel">Annuler</button></div></div>';
+    root.scrollIntoView({behavior:"smooth",block:"start"});
+    root.querySelector("#sc-cancel").onclick = function () { root.innerHTML = ""; };
+    root.querySelector("#sc-save").onclick = function () {
+      var party = root.querySelector("#sc-party").value.trim(), title = root.querySelector("#sc-title").value.trim();
+      var start = root.querySelector("#sc-start").value, end = root.querySelector("#sc-end").value, amount = Number(root.querySelector("#sc-amount").value || 0);
+      if (!party || !title || !start) return say("Renseignez la partie concernée, l'objet et la date de début.", "wa");
+      if (end && end < start) return say("La date de fin doit être postérieure ou égale à la date de début.", "wa");
+      if (!Number.isFinite(amount) || amount < 0) return say("Le montant du contrat est invalide.", "wa");
+      var now = new Date().toISOString(), data = {
+        id:x.id || uid(), reference:x.reference || reference(), category:root.querySelector("#sc-category").value, party:party, title:title,
+        signDate:root.querySelector("#sc-sign").value, startDate:start, endDate:end, amount:Math.round(amount), status:root.querySelector("#sc-status").value,
+        noticeDays:Math.max(0, Number(root.querySelector("#sc-notice").value) || 0), autoRenew:root.querySelector("#sc-renew").value === "oui",
+        paymentTerms:root.querySelector("#sc-payment").value.trim(), documentUrl:root.querySelector("#sc-url").value.trim(),
+        description:root.querySelector("#sc-description").value.trim(), notes:root.querySelector("#sc-notes").value.trim(),
+        createdAt:x.createdAt || now, updatedAt:now
+      };
+      var i = list().findIndex(function (v) { return String(v.id) === String(data.id); });
+      if (i < 0) list().unshift(data); else list()[i] = data;
+      save(); log((x.id ? "Modification" : "Création") + " du contrat " + data.reference + " — " + data.party);
+      render(); say(x.id ? "Contrat mis à jour." : "Contrat enregistré.");
+    };
+  };
+  var action = function (kind, id) {
+    var x = list().find(function (v) { return String(v.id) === String(id); }); if (!x) return;
+    if (kind === "edit") return editor(x);
+    if (kind === "print") return print(x);
+    if (kind === "close") {
+      if (!confirm("Clôturer le contrat " + x.reference + " ?")) return;
+      x.status = "Terminé"; x.updatedAt = new Date().toISOString(); save(); log("Clôture du contrat " + x.reference + " — " + x.party); render(); say("Contrat clôturé.");
+    }
+  };
+  var print = function (x) {
+    var p = document.getElementById("sc-print");
+    if (!p) { p = document.createElement("div"); p.id = "sc-print"; document.body.appendChild(p); }
+    p.innerHTML = '<div class="sc-print-head"><b>' + h((S.set && S.set.nom) || "Soritech Innov Business") + '</b><br>INNOVER • DÉVELOPPER • CONNECTER<br><small>Kipé, Ratoma · Conakry, Guinée</small></div><h1>FICHE DE CONTRAT</h1><p><b>Référence :</b> ' + h(x.reference) + '</p><p><b>Type :</b> ' + h(x.category) + '</p><p><b>Partie concernée :</b> ' + h(x.party) + '</p><p><b>Objet :</b> ' + h(x.title) + '</p><table><tbody><tr><th>Signature</th><td>' + dateLabel(x.signDate) + '</td></tr><tr><th>Début</th><td>' + dateLabel(x.startDate) + '</td></tr><tr><th>Fin</th><td>' + dateLabel(x.endDate) + '</td></tr><tr><th>Montant</th><td>' + money(x.amount) + '</td></tr><tr><th>Statut</th><td>' + h(status(x)) + '</td></tr><tr><th>Renouvellement automatique</th><td>' + (x.autoRenew ? "Oui" : "Non") + '</td></tr><tr><th>Préavis</th><td>' + (Number(x.noticeDays) || 0) + ' jours</td></tr><tr><th>Paiement</th><td>' + h(x.paymentTerms || "—") + '</td></tr></tbody></table><h3>Description / clauses</h3><p>' + h(x.description || "—").replace(/\n/g, "<br>") + '</p><h3>Observations</h3><p>' + h(x.notes || "—").replace(/\n/g, "<br>") + '</p>' + (x.documentUrl ? '<p><b>Document associé :</b> ' + h(x.documentUrl) + '</p>' : '') + '<div class="sc-sign"><div>Pour SIB<br><br><br>Nom, signature et cachet</div><div>Partie contractante<br><br><br>Nom, signature et cachet</div></div>';
+    window.print();
+  };
+  var css = document.createElement("style");
+  css.textContent = "#contracts{max-width:1600px;margin:auto}#contracts .sc-head{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}#contracts .sc-head p{color:var(--mu);margin:4px 0 14px}#contracts .sc-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin:14px 0}#contracts .sc-toolbar{display:flex;gap:10px;margin-bottom:14px}#contracts .sc-toolbar input{flex:1;min-width:160px}#contracts .sc-sub{display:block;color:var(--mu);font-size:12px}#contracts .sc-actions{white-space:nowrap}#contracts .sc-empty{padding:24px;text-align:center;color:var(--mu)}#contracts .sc-form-box{margin:14px 0}#contracts .sc-form-title{display:flex;align-items:center;justify-content:space-between;gap:10px}#contracts .sc-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:12px}#contracts .sc-form .wide{grid-column:1/-1}#contracts .sc-form input,#contracts .sc-form select,#contracts .sc-form textarea{width:100%;min-width:0}#contracts .sc-form-actions{display:flex;gap:8px;margin-top:16px}#sc-print{display:none}@media(max-width:900px){#contracts .sc-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#contracts .sc-form{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){#contracts .sc-form{grid-template-columns:1fr}#contracts .sc-form .wide{grid-column:auto}#contracts .sc-toolbar{flex-direction:column}}@media print{@page{size:A4 portrait;margin:14mm}body *{visibility:hidden!important}#sc-print,#sc-print *{visibility:visible!important}#sc-print{display:block!important;position:absolute!important;inset:0;width:100%;padding:8mm;background:#fff!important;color:#111!important;font:10pt/1.55 Arial,sans-serif}#sc-print .sc-print-head{border-bottom:3px solid #0057B9;padding-bottom:12px;margin-bottom:22px}#sc-print .sc-print-head b{font-size:21pt;color:#0057B9}#sc-print h1{text-align:center;margin:24px 0}#sc-print table{width:100%;border-collapse:collapse;margin:18px 0}#sc-print th,#sc-print td{border:1px solid #aaa;padding:8px;text-align:left}#sc-print th{width:38%;background:#f2f5fa}#sc-print .sc-sign{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:55px;text-align:center}#sc-print .sc-sign div{border-top:1px solid #333;padding-top:8px}}";
+  document.head.appendChild(css);
+  var main = document.querySelector("main");
+  if (main && !document.getElementById(rootId)) { var section = document.createElement("section"); section.id = rootId; section.className = "hide"; main.appendChild(section); }
+  if (!Array.isArray(S.contracts)) S.contracts = [];
+  if (typeof P !== "undefined" && !P.some(function (x) { return x[0] === rootId; })) P.push([rootId, "Contrats"]);
+  if (typeof GR !== "undefined" && !GR.some(function (x) { return x[0] === "Juridique"; })) GR.push(["Juridique", [rootId]]);
+  if (typeof IC !== "undefined") IC[rootId] = "M8 3h8l4 4v14H4V3zM8 12h8M8 16h8M14 3v5h6";
+  if (typeof PM !== "undefined") ["Direction","Comptable","Commercial","RH"].forEach(function (role) { if (Array.isArray(PM[role]) && PM[role].indexOf(rootId) < 0) PM[role].push(rootId); });
+  var oldNav = window.nav;
+  if (typeof oldNav === "function" && !window.__sibContractsNavWrapped) {
+    window.__sibContractsNavWrapped = true;
+    window.nav = function (v) { var result = oldNav.apply(this, arguments); if (v === rootId) render(); return result; };
+  }
+  document.addEventListener("click", function (e) { var b = e.target.closest('#nv button[data-v="contracts"]'); if (b) setTimeout(render, 0); });
+  window.sibRenderContracts = render;
+})();
