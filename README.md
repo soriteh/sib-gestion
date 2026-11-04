@@ -57,3 +57,10 @@ La configuration SMTP et les tests d'envoi réel restent à confirmer dans Supab
 ## Module Achats & Fournisseurs
 
 Le module `achats-fournisseurs.js` complète l'ancien écran fournisseurs/achats : répertoire fournisseurs, commandes fournisseurs avec lignes d'articles, réceptions partielles ou complètes, mise à jour du stock, factures fournisseurs, échéances, dettes, règlements partiels et intégration des paiements au journal de trésorerie. Les nouvelles données (`purchaseOrders`, `purchaseReceipts`, `supplierInvoices`, `supplierPayments`) sont conservées dans l'état central JSON `sib_app_state` via `save()` ; elles ne constituent pas encore un miroir relationnel dédié. L'historique des achats de l'ancien module (`S.ac`) et les fournisseurs existants (`S.fo`) sont conservés. Les parcours doivent encore être testés dans un navigateur connecté avant exploitation réelle.
+
+
+## Module Gestion des contrats
+
+Le module `gestion-contrats.js` permet d'enregistrer et de suivre les contrats clients, fournisseurs, employés, partenaires et prestataires. Il comprend les références automatiques `CTR-AAAA-NNNNN`, les dates de signature et de validité, le montant, les statuts, le préavis, le renouvellement automatique, les modalités de paiement, les clauses et observations, un lien vers le document signé, la recherche, les indicateurs d'échéance et l'impression PDF A4.
+
+Les contrats sont conservés dans la propriété `contracts` de l'état applicatif central `sib_app_state`. Aucune table relationnelle dédiée n'a été créée : le module suit donc le mécanisme de sauvegarde central existant et devra être migré vers un stockage relationnel lors de la consolidation des modules métier. Le parcours doit encore être testé dans un navigateur connecté, avec plusieurs rôles et plusieurs appareils, avant exploitation réelle.
