@@ -15,13 +15,13 @@
     });
   };
   var today = function () { return new Date().toISOString().slice(0, 10); };
-  var money = function (v) { return (Number(v) || 0).toLocaleString("fr-FR") + " " + ((window.S && S.set && S.set.sym) || "GNF"); };
+  var money = function (v) { return (Number(v) || 0).toLocaleString("fr-FR") + " " + ((typeof S !== "undefined" && S.set && S.set.sym) || "GNF"); };
   var uid = function (p) { return p + "_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8); };
   var total = function (lines) { return (lines || []).reduce(function (a, x) { return a + (Number(x.qty) || 0) * (Number(x.price) || 0); }, 0); };
   var dateLabel = function (d) { return d ? new Date(d + "T00:00:00").toLocaleDateString("fr-FR") : "—"; };
   var toastMsg = function (m, t) { if (typeof toast === "function") toast(m, t || "ok"); else alert(m); };
   var ensure = function () {
-    if (!window.S || typeof S !== "object") return false;
+    if (typeof S === "undefined" || !S || typeof S !== "object") return false;
     ["fo", "ac", "st", "e", "n", "purchaseOrders", "purchaseReceipts", "supplierInvoices", "supplierPayments"].forEach(function (k) {
       if (!Array.isArray(S[k])) S[k] = [];
     });
