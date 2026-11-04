@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
-<title id="title">Maya — Intelligence artificielle SIB</title>
+<title id="title">SIB — Intelligence artificielle SIB</title>
 <desc id="desc">Emblème lumineux d’intelligence artificielle bleu électrique et orange, avec noyau neural et orbite.</desc>
 <defs>
  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#071A36"/><stop offset="1" stop-color="#0057B9"/></linearGradient>
@@ -20,5 +20,5 @@
 <circle cx="108" cy="62" r="5.5" fill="#FF7800" stroke="#FFE0BD" stroke-width="1.5" filter="url(#glow)"/>
 <circle cx="25" cy="40" r="2.5" fill="#FF7800"/>
 <path d="M42 96h44" stroke="#70D8FF" stroke-width="2" stroke-linecap="round" opacity=".8"/>
-<text x="64" y="113" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="800" letter-spacing="2" fill="#FFFFFF">MAYA</text>
+<text x="64" y="113" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="800" letter-spacing="2" fill="#FFFFFF">SIB</text>
 </svg>
