@@ -3255,7 +3255,7 @@ function drawPt(){const el=$("pr");if(!el)return;if(!can("pr")){el.innerHTML=noA
 // ---------- Paie
 function drawPa(){const el=$("pa");if(!el)return;if(!can("pa")){el.innerHTML=noAcc("paie");return}
  const bl=S.bl.filter(b=>b.m==PAM),r=S.set.rh||{},t=bl.map(bv),pay=bl.filter(b=>bst(b)=="Payé");
- el.innerHTML=`<h2>Paie</h2><div class="box" style="border-color:var(--ac);background:var(--ac2)"><b>Génération automatique activée</b><p class="sd" style="margin:6px 0 0">Maya prépare les bulletins du mois précédent le 1er de chaque mois à 06 h 15 (heure de Conakry), sans demande de confirmation. Les bulletins restent en brouillon : leur vérification, validation et paiement restent sous votre contrôle.</p></div>${(+r.cs||0)+(+r.cp||0)==0?nb("in","","Les taux de cotisation sont à 0 %. Renseignez-les selon la réglementation en vigueur pour que les bulletins les appliquent.",can("set")?{go:"set",label:"Paramètres"}:{}):""}${!S.emp.some(e=>e.st=="Actif")?nb("in","","Aucun employé actif : ajoutez des employés avant de générer la paie.",{go:"rh",label:"Employés"}):""}
+ el.innerHTML=`<h2>Paie</h2><div class="box" style="border-color:var(--ac);background:var(--ac2)"><b>Génération automatique activée</b><p class="sd" style="margin:6px 0 0">SIB prépare les bulletins du mois précédent le 1er de chaque mois à 06 h 15 (heure de Conakry), sans demande de confirmation. Les bulletins restent en brouillon : leur vérification, validation et paiement restent sous votre contrôle.</p></div>${(+r.cs||0)+(+r.cp||0)==0?nb("in","","Les taux de cotisation sont à 0 %. Renseignez-les selon la réglementation en vigueur pour que les bulletins les appliquent.",can("set")?{go:"set",label:"Paramètres"}:{}):""}${!S.emp.some(e=>e.st=="Actif")?nb("in","","Aucun employé actif : ajoutez des employés avant de générer la paie.",{go:"rh",label:"Employés"}):""}
  <div class="box"><div class="row" style="align-items:flex-end">${fld("pam","Mois de paie",PAM,"month")}<div style="flex:0 0 auto"><button class="p" data-a="pagen">Générer les bulletins du mois</button></div></div></div>
  <div class="row" style="margin-bottom:14px"><div class="k"><span>Net à payer (total)</span><b>${fm(sum(t.map(x=>x.net)))}</b></div><div class="k"><span>Coût employeur (total)</span><b>${fm(sum(t.map(x=>x.cout)))}</b></div><div class="k"><span>Déjà payé</span><b class="in">${fm(sum(pay.map(b=>bv(b).net)))}</b></div><div class="k"><span>Reste à payer</span><b class="out">${fm(sum(bl.filter(b=>bst(b)!="Payé"&&b.st=="Validé").map(b=>bv(b).net)))}</b></div></div>
  <div class="box">${bl.length?T(["Employé","Base","Primes","Retenues","Net à payer","Statut",""],bl.map(b=>{const c=bv(b),s=bst(b);return`<tr><td>${esc(eN(eById(b.emp)))}</td><td class="r">${fm(+b.base||0)}</td><td class="r">${fm(+b.pri||0)}</td><td class="r">${fm(c.ret+(+b.abs||0))}</td><td class="r"><b>${fm(c.net)}</b></td><td>${bdg(s,s=="Payé"?"ok":s=="Validé"?"wa":"mu")}</td><td>${s=="Brouillon"?`<button class="s" data-a="bedit" data-i="${b.id}">Modifier</button> <button class="s" data-a="bval" data-i="${b.id}">Valider</button>`:s=="Validé"?`<button class="s" data-a="bpay" data-i="${b.id}">Payer</button>`:""} <button class="s" data-a="bprint" data-i="${b.id}">Bulletin</button></td></tr>`})):nb("in","","Aucun bulletin pour "+mois(PAM)+". Utilisez « Générer les bulletins du mois » pour les créer.")}</div>${PB}`}
@@ -3392,7 +3392,7 @@ function section(){
  if(el("com"))return;
  const main=document.querySelector("main");if(!main)return;
  const s=document.createElement("section");s.id="com";s.className="hide";
- s.innerHTML=`<h2>Communication interne</h2><p style="color:var(--mu)">Messagerie, groupes, annonces, notifications et assistance Maya.</p>
+ s.innerHTML=`<h2>Communication interne</h2><p style="color:var(--mu)">Messagerie, groupes, annonces, notifications et assistance SIB.</p>
  <div class="sic-tabs" role="tablist"><button class="s active" data-sic-tab="messages">Messages</button><button class="s" data-sic-tab="announcements">Annonces</button><button class="s" data-sic-tab="notifications">Notifications <span id="sic-unread"></span></button><button class="s" data-sic-tab="audit">Journal d’audit</button></div>
  <div id="sic-status" class="box">Chargement de la communication interne…</div><div id="sic-content"></div>`;
  main.appendChild(s);
@@ -3512,9 +3512,9 @@ function render(){
  const unread=state.notifications.filter(n=>!n.read_at).length;el("sic-unread").textContent=unread?"("+unread+")":"";
  if(state.tab==="messages"){
  root.innerHTML=`<div class="sic-layout"><div class="box"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h3>Conversations</h3><button class="p" id="sic-new" ${state.members.filter(m=>m.user_id!==state.user.id).length?"":"disabled title=\"Aucun autre membre actif\""}>Nouveau groupe</button></div><div class="sic-list">${state.conversations.map(x=>`<button class="sic-item ${x.id===state.conversation?"active":""}" data-sic-conv="${esc(x.id)}"><b>${esc(x.title||"Conversation privée")}</b><div class="sic-muted">${x.conversation_type==="group"?"Groupe":"Conversation"} · ${new Date(x.updated_at||x.created_at).toLocaleString("fr-FR")}</div></button>`).join("")||'<p class="sic-muted">'+(state.members.filter(m=>m.user_id!==state.user.id).length?'Aucune conversation. Créez un groupe pour commencer.':'Aucun autre membre actif n’est disponible. Activez ou invitez un collaborateur dans Utilisateurs pour démarrer une conversation.')+'</p>'}</div></div>
- <div class="box"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h3>${esc(state.conversations.find(x=>x.id===state.conversation)?.title||"Messages")}</h3><button class="s" id="sic-refresh">Actualiser</button></div><div class="sic-chat" id="sic-chat">${state.messages.map(m=>`<div class="sic-msg ${m.sender_id===state.user.id?"mine":""}"><div class="sic-muted">${esc(name(m.sender_id))} · ${new Date(m.created_at).toLocaleString("fr-FR")}</div><div>${esc(m.body)}</div></div>`).join("")||'<p class="sic-muted">Sélectionnez une conversation ou créez un groupe.</p>'}</div><div class="sic-compose"><textarea id="sic-message" maxlength="10000" placeholder="Écrire un message…"></textarea><button class="s" id="sic-maya" type="button">Préparer avec Maya</button><button class="p" id="sic-send" ${state.conversation?"":"disabled"}>Envoyer</button></div><p class="sic-muted">Les messages sont visibles uniquement par les membres de la conversation.</p></div></div>`;
+ <div class="box"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h3>${esc(state.conversations.find(x=>x.id===state.conversation)?.title||"Messages")}</h3><button class="s" id="sic-refresh">Actualiser</button></div><div class="sic-chat" id="sic-chat">${state.messages.map(m=>`<div class="sic-msg ${m.sender_id===state.user.id?"mine":""}"><div class="sic-muted">${esc(name(m.sender_id))} · ${new Date(m.created_at).toLocaleString("fr-FR")}</div><div>${esc(m.body)}</div></div>`).join("")||'<p class="sic-muted">Sélectionnez une conversation ou créez un groupe.</p>'}</div><div class="sic-compose"><textarea id="sic-message" maxlength="10000" placeholder="Écrire un message…"></textarea><button class="s" id="sic-maya" type="button">Préparer avec SIB</button><button class="p" id="sic-send" ${state.conversation?"":"disabled"}>Envoyer</button></div><p class="sic-muted">Les messages sont visibles uniquement par les membres de la conversation.</p></div></div>`;
  root.querySelectorAll("[data-sic-conv]").forEach(b=>b.addEventListener("click",async()=>{state.conversation=b.dataset.sicConv;try{await loadMessages();render()}catch(e){showError(e)}}));
- el("sic-new")?.addEventListener("click",newGroup);el("sic-refresh")?.addEventListener("click",refresh);el("sic-send")?.addEventListener("click",sendMessage);el("sic-maya")?.addEventListener("click",draftWithMaya);
+ el("sic-new")?.addEventListener("click",newGroup);el("sic-refresh")?.addEventListener("click",refresh);el("sic-send")?.addEventListener("click",sendMessage);el("sic-maya")?.addEventListener("click",draftWithSIB);
  }else if(state.tab==="announcements"){
  root.innerHTML=`<div class="box"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h3>Annonces et notes de service</h3>${permittedAdmin()?'<button class="p" id="sic-ann-new">Nouvelle annonce</button>':""}</div><div class="sic-list">${state.announcements.map(a=>`<article class="sic-item"><b>${esc(a.title)}</b><div class="sic-muted">${a.published?"Publiée":"Brouillon"} · ${new Date(a.published_at||a.created_at).toLocaleString("fr-FR")}</div><p style="white-space:pre-wrap">${esc(a.body)}</p>${a.published?'<button class="s" data-sic-read="'+esc(a.id)+'">Marquer comme lue</button>':""}</article>`).join("")||'<p class="sic-muted">Aucune annonce.</p>'}</div></div>`;
  el("sic-ann-new")?.addEventListener("click",newAnnouncement);root.querySelectorAll("[data-sic-read]").forEach(b=>b.addEventListener("click",()=>markAnnouncement(b.dataset.sicRead)));
@@ -3531,10 +3531,10 @@ function render(){
  }
  status.textContent="Connecté · rôle : "+state.role+" · "+state.members.length+" membre(s) actif(s).";
 }
-async function draftWithMaya(){
+async function draftWithSIB(){
  const text=el("sic-message")?.value.trim();if(!text)return alert("Saisissez d’abord le sujet ou les informations du message.");
  const launch=el("sib-ai-launch"),input=el("sib-ai-input");
- if(!launch||!input){alert("L’assistant Maya n’est pas disponible sur cette page.");return;}
+ if(!launch||!input){alert("L’assistant SIB n’est pas disponible sur cette page.");return;}
  input.value="Aide-moi à rédiger un message interne professionnel à partir de ces éléments. Propose un texte à relire, sans l’envoyer automatiquement : "+text;
  launch.click();input.focus();
 }
@@ -3585,13 +3585,13 @@ async function markAnnouncement(id){
 }
 async function refresh(){try{await loadConversations();await loadAnnouncements();await loadNotifications();render()}catch(e){showError(e)}}
 function showError(e){const m=String(e?.message||e||"Erreur inconnue");console.error("SIB internal communication:",e);const status=el("sic-status");if(status)status.textContent="Erreur : "+m;toast(m,"er");}
-function renderMayaDraft(){
+function renderSIBDraft(){
  const area=el("sic-message");if(!area)return;
  const text=area.value;
  if(!text.trim())return toast("Saisissez d’abord le sujet ou les informations à communiquer.");
  const promptText="Aide-moi à rédiger un message interne professionnel pour SIB Gestion à partir de ces éléments. Ne l'envoie pas. Propose un objet et un texte concis : "+text;
  window.dispatchEvent(new CustomEvent("sib:maya-draft-request",{detail:{prompt:promptText}}));
- toast("Pour le moment, Maya peut préparer le texte dans son assistant habituel ; l’envoi reste manuel.");
+ toast("Pour le moment, SIB peut préparer le texte dans son assistant habituel ; l’envoi reste manuel.");
 }
 document.addEventListener("DOMContentLoaded",()=>{section();});
 // La navigation principale P/PM est dans une autre portée : ne pas y accéder depuis ce module.
