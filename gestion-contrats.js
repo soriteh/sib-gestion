@@ -128,8 +128,8 @@
         "Préavis : " + (root.querySelector("#sc-notice").value || "30") + " jours",
         "Détails propres au contrat : " + (detailsText.join("; ") || "Aucun détail supplémentaire")
       ].join("\n");
-      var message = "Rédige maintenant un projet complet de clauses contractuelles adapté au type de contrat ci-dessous. Fournis les clauses rédigées, numérotées et directement intégrables au contrat. Ne réponds pas par de simples conseils.\\n\\n" + context;
-      if (message.length > 5800) message = message.slice(0, 5800) + "\\n[Informations complémentaires tronquées : insérer [À PRÉCISER] si nécessaire.]";
+      var message = "Rédige maintenant un projet complet de clauses contractuelles adapté au type de contrat ci-dessous. Fournis les clauses rédigées, numérotées et directement intégrables au contrat. Ne réponds pas par de simples conseils.\n\n" + context;
+      if (message.length > 5800) message = message.slice(0, 5800) + "\n[Informations complémentaires tronquées : insérer [À PRÉCISER] si nécessaire.]";
       button.disabled = true; button.textContent = "Génération en cours…"; statusBox.textContent = "Maya prépare une proposition adaptée au contrat…";
       try {
         var result = await client.functions.invoke("sib-ai-agent", { body: { message: message, mode: "contract_draft" } });
