@@ -237,7 +237,7 @@
           lg("Réception fournisseur " + ref + " · " + line.name + " : +" + line.qty + " unité(s) · " + o.supplierName);
         });
       }
-      saveState(); render(); toastMsg("Réception enregistrée : le stock et le journal des mouvements ont été mis à jour.");
+      saveState(); render(); toastMsg("Réception enregistrée : le stock et le journal d’activité ont été mis à jour.");
     };
     var invoiceSave = $("sp-i-save");
     if (invoiceSave) invoiceSave.onclick = function () {
