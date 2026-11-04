@@ -2965,7 +2965,7 @@ async function boot(){applyLogo();loadSibPublicBranding();
  if(window.SIBCloud?.ready){
   cloudSessionReady=false;
   try{
-   const onlineData=await (async()=>{const current=await window.SIBCloud.currentUser();const remote=window.SIBCloud.isAdminRole(current.membership.role)?await window.SIBCloud.loadAppState():null;let dedicatedProfile=null;try{dedicatedProfile=await window.SIBCloud.loadUserProfile()}catch(profileLoadError){console.warn("SIB: profil dédié indisponible au démarrage; utilisation du profil central en cache.",profileLoadError)}return [current,remote,dedicatedProfile]})();const current=onlineData[0],remote=onlineData[1],dedicatedProfile=onlineData[2];
+   const onlineData=await Promise.race([(async()=>{const current=await window.SIBCloud.currentUser();const remote=window.SIBCloud.isAdminRole(current.membership.role)?await window.SIBCloud.loadAppState():null;let dedicatedProfile=null;try{dedicatedProfile=await window.SIBCloud.loadUserProfile()}catch(profileLoadError){console.warn("SIB: profil dédié indisponible au démarrage; utilisation du profil central en cache.",profileLoadError)}return [current,remote,dedicatedProfile]})(),new Promise((_,reject)=>setTimeout(()=>reject(new Error("Délai de connexion dépassé : Supabase ne répond pas assez vite. Vérifiez la connexion et l’API de données, puis réessayez.")),12000))]);const current=onlineData[0],remote=onlineData[1],dedicatedProfile=onlineData[2];
    let pendingCloud=null;try{pendingCloud=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null")}catch(_){}
    const currentIsAdmin=window.SIBCloud.isAdminRole(current.membership.role);
    // Never hydrate a restricted user's session from browser-wide cached JSON:
