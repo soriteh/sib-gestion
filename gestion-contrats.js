@@ -114,5 +114,6 @@
     window.nav = function (v) { var result = oldNav.apply(this, arguments); if (v === rootId) render(); return result; };
   }
   document.addEventListener("click", function (e) { var b = e.target.closest('#nv button[data-v="contracts"]'); if (b) setTimeout(render, 0); });
+  if (typeof mk === "function") mk();
   window.sibRenderContracts = render;
 })();
