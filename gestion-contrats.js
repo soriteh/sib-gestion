@@ -55,38 +55,63 @@
     var contractTypes = ["Prestation de services","Contrat de travail","Fourniture / vente","Maintenance informatique","Location / bail","Partenariat","Sous-traitance","Confidentialité (NDA)","Courtage / commission","Autre"];
     var states = ["Brouillon","À signer","Actif","Suspendu","Terminé","Résilié"];
     var detailFields = {
-      "Prestation de services":[["serviceScope","Périmètre des prestations","text"],["deliverables","Livrables attendus","textarea"],["serviceFrequency","Fréquence / calendrier","text"],["serviceLocation","Lieu d’exécution","text"]],
-      "Contrat de travail":[["jobTitle","Poste / fonction","text"],["workLocation","Lieu de travail","text"],["workSchedule","Horaires / durée du travail","text"],["salary","Rémunération mensuelle (GNF)","number"],["probation","Période d’essai","text"]],
-      "Fourniture / vente":[["goods","Produits / matériels concernés","textarea"],["quantity","Quantité / lots","text"],["deliveryDate","Date de livraison prévue","date"],["warranty","Garantie","text"],["deliveryLocation","Lieu de livraison","text"]],
-      "Maintenance informatique":[["equipment","Équipements / systèmes couverts","textarea"],["maintenanceScope","Préventif, correctif, assistance…","textarea"],["interventionTime","Délai d’intervention","text"],["maintenanceFrequency","Fréquence des visites","text"]],
-      "Location / bail":[["property","Bien / local loué","text"],["propertyAddress","Adresse du bien","text"],["rent","Loyer périodique (GNF)","number"],["deposit","Caution / dépôt (GNF)","number"],["charges","Charges et responsabilités","textarea"]],
-      "Partenariat":[["partnershipPurpose","Objet du partenariat","textarea"],["contributions","Contributions de chaque partie","textarea"],["revenueShare","Répartition des revenus / bénéfices","text"],["governance","Organisation et responsabilités","textarea"]],
-      "Sous-traitance":[["subcontractScope","Travaux / mission sous-traités","textarea"],["mainContract","Référence du marché principal","text"],["subcontractDeadline","Délai d’exécution","date"],["acceptance","Conditions de réception","textarea"]],
-      "Confidentialité (NDA)":[["confidentialInfo","Informations couvertes","textarea"],["authorizedUse","Usage autorisé","textarea"],["ndaDuration","Durée de confidentialité","text"],["exceptions","Exceptions / divulgations autorisées","textarea"]],
-      "Courtage / commission":[["brokerMission","Mission de courtage","textarea"],["commissionRate","Taux ou montant de commission","text"],["commissionTrigger","Fait générateur de la commission","text"],["exclusivity","Exclusivité","text"]],
+      "Prestation de services":[["serviceScope","Périmètre des prestations","text",true],["deliverables","Livrables attendus","textarea"],["serviceFrequency","Fréquence / calendrier","text",true],["serviceLocation","Lieu d’exécution","text"]],
+      "Contrat de travail":[["jobTitle","Poste / fonction","text",true],["workLocation","Lieu de travail","text",true],["workSchedule","Horaires / durée du travail","text",true],["salary","Rémunération mensuelle (GNF)","number",true],["probation","Période d’essai","text"]],
+      "Fourniture / vente":[["goods","Produits / matériels concernés","textarea",true],["quantity","Quantité / lots","text",true],["deliveryDate","Date de livraison prévue","date",true],["warranty","Garantie","text"],["deliveryLocation","Lieu de livraison","text"]],
+      "Maintenance informatique":[["equipment","Équipements / systèmes couverts","textarea",true],["maintenanceScope","Préventif, correctif, assistance…","textarea",true],["interventionTime","Délai d’intervention","text",true],["maintenanceFrequency","Fréquence des visites","text"]],
+      "Location / bail":[["property","Bien / local loué","text",true],["propertyAddress","Adresse du bien","text",true],["rent","Loyer périodique (GNF)","number",true],["deposit","Caution / dépôt (GNF)","number"],["charges","Charges et responsabilités","textarea"]],
+      "Partenariat":[["partnershipPurpose","Objet du partenariat","textarea",true],["contributions","Contributions de chaque partie","textarea",true],["revenueShare","Répartition des revenus / bénéfices","text"],["governance","Organisation et responsabilités","textarea"]],
+      "Sous-traitance":[["subcontractScope","Travaux / mission sous-traités","textarea",true],["mainContract","Référence du marché principal","text"],["subcontractDeadline","Délai d’exécution","date",true],["acceptance","Conditions de réception","textarea"]],
+      "Confidentialité (NDA)":[["confidentialInfo","Informations couvertes","textarea",true],["authorizedUse","Usage autorisé","textarea",true],["ndaDuration","Durée de confidentialité","text",true],["exceptions","Exceptions / divulgations autorisées","textarea"]],
+      "Courtage / commission":[["brokerMission","Mission de courtage","textarea",true],["commissionRate","Taux ou montant de commission","text",true],["commissionTrigger","Fait générateur de la commission","text",true],["exclusivity","Exclusivité","text"]],
       "Autre":[["specificTerms","Informations spécifiques au contrat","textarea"]]
     };
     var fieldMarkup = function (f, value) {
-      var tag = f[2] === "textarea" ? '<textarea data-detail="' + f[0] + '" rows="2">' + h(value || "") + '</textarea>' : '<input data-detail="' + f[0] + '" type="' + f[2] + '" value="' + h(value || "") + '">';
-      return '<div' + (f[2] === "textarea" ? ' class="wide"' : '') + '><label>' + h(f[1]) + '</label>' + tag + '</div>';
+      var required = f[3] ? " required" : "";
+      var tag = f[2] === "textarea" ? '<textarea data-detail="' + f[0] + '" rows="2"' + required + '>' + h(value || "") + '</textarea>' : '<input data-detail="' + f[0] + '" type="' + f[2] + '" value="' + h(value || "") + '"' + required + '>';
+      return '<div' + (f[2] === "textarea" ? ' class="wide"' : '') + '><label>' + h(f[1]) + (f[3] ? ' *' : '') + '</label>' + tag + '</div>';
     };
     var details = function (type) { return (detailFields[type] || detailFields["Autre"]).map(function (f) { return fieldMarkup(f, (x.typeDetails || {})[f[0]]); }).join(""); };
+    var profiles = {
+      "Prestation de services":{category:"Client",party:"Client / bénéficiaire",amount:"Montant total du contrat (GNF)",showAmount:true,showPayment:true,showRenew:true},
+      "Contrat de travail":{category:"Employé",party:"Employé / salarié",amount:"Rémunération définie dans les détails",showAmount:false,showPayment:false,showRenew:false},
+      "Fourniture / vente":{category:"Fournisseur",party:"Fournisseur / acheteur",amount:"Valeur totale de la fourniture (GNF)",showAmount:true,showPayment:true,showRenew:false},
+      "Maintenance informatique":{category:"Client",party:"Client bénéficiaire",amount:"Montant du contrat (GNF)",showAmount:true,showPayment:true,showRenew:true},
+      "Location / bail":{category:"Autre",party:"Bailleur / locataire",amount:"Loyer défini dans les détails",showAmount:false,showPayment:true,showRenew:true},
+      "Partenariat":{category:"Partenaire",party:"Partenaire contractuel",amount:"Valeur estimée de l’accord (GNF)",showAmount:true,showPayment:true,showRenew:false},
+      "Sous-traitance":{category:"Prestataire",party:"Sous-traitant / donneur d’ordre",amount:"Montant de la sous-traitance (GNF)",showAmount:true,showPayment:true,showRenew:false},
+      "Confidentialité (NDA)":{category:"Partenaire",party:"Partie signataire",amount:"Sans objet",showAmount:false,showPayment:false,showRenew:false},
+      "Courtage / commission":{category:"Client",party:"Client / mandant",amount:"Montant estimé de l’opération (GNF)",showAmount:true,showPayment:true,showRenew:false},
+      "Autre":{category:"Autre",party:"Partie concernée",amount:"Montant du contrat (GNF)",showAmount:true,showPayment:true,showRenew:true}
+    };
+    var applyProfile = function (type, setCategory) {
+      var p = profiles[type] || profiles.Autre;
+      var category = root.querySelector("#sc-category"), partyLabel = root.querySelector("#sc-party-label"), amountLabel = root.querySelector("#sc-amount-label");
+      if (setCategory && category) category.value = p.category;
+      if (partyLabel) partyLabel.textContent = p.party + " *";
+      if (amountLabel) amountLabel.textContent = p.amount;
+      ["sc-amount-wrap","sc-payment-wrap","sc-renew-wrap"].forEach(function (id, i) {
+        var el = root.querySelector("#" + id); if (el) el.hidden = ![p.showAmount,p.showPayment,p.showRenew][i];
+      });
+    };
     root.innerHTML = '<div class="box sc-form-box"><div class="sc-form-title"><h3>' + (x.id ? "Modifier le contrat" : "Nouveau contrat") + '</h3><span class="bd mu">' + h(x.reference || reference()) + '</span></div><div class="sc-form">' +
       '<div><label>Nature du contrat *</label><select id="sc-type">' + contractTypes.map(function (v) { return '<option' + ((x.contractType || "Prestation de services") === v ? " selected" : "") + '>' + v + '</option>'; }).join("") + '</select></div>' +
       '<div><label>Catégorie de la partie *</label><select id="sc-category">' + categories.map(function (v) { return '<option' + ((x.category || "Client") === v ? " selected" : "") + '>' + v + '</option>'; }).join("") + '</select></div>' +
-      '<div><label>Client / fournisseur / partie *</label><input id="sc-party" list="sc-parties" value="' + h(x.party || "") + '" placeholder="Nom de la partie"><datalist id="sc-parties">' + options + '</datalist></div>' +
+      '<div><label id="sc-party-label">Partie concernée *</label><input id="sc-party" list="sc-parties" value="' + h(x.party || "") + '" placeholder="Nom de la partie"><datalist id="sc-parties">' + options + '</datalist></div>' +
       '<div class="wide"><label>Objet du contrat *</label><input id="sc-title" value="' + h(x.title || "") + '" placeholder="Ex. Maintenance informatique annuelle"></div>' +
       '<div class="wide"><strong>Informations propres au contrat</strong></div><div id="sc-type-details" class="wide sc-type-details">' + details(x.contractType || "Prestation de services") + '</div>' +
       '<div><label>Date de signature</label><input id="sc-sign" type="date" value="' + h(x.signDate || "") + '"></div><div><label>Date de début *</label><input id="sc-start" type="date" value="' + h(x.startDate || today()) + '"></div><div><label>Date de fin</label><input id="sc-end" type="date" value="' + h(x.endDate || "") + '"></div>' +
-      '<div><label>Montant (GNF)</label><input id="sc-amount" type="number" min="0" step="1" value="' + h(x.amount == null ? 0 : x.amount) + '"></div><div><label>Statut</label><select id="sc-status">' + states.map(function (v) { return '<option' + ((x.status || "Brouillon") === v ? " selected" : "") + '>' + v + '</option>'; }).join("") + '</select></div><div><label>Préavis (jours)</label><input id="sc-notice" type="number" min="0" value="' + h(x.noticeDays == null ? 30 : x.noticeDays) + '"></div>' +
-      '<div><label>Renouvellement automatique</label><select id="sc-renew"><option value="non"' + (x.autoRenew ? "" : " selected") + '>Non</option><option value="oui"' + (x.autoRenew ? " selected" : "") + '>Oui</option></select></div><div><label>Modalités de paiement</label><input id="sc-payment" value="' + h(x.paymentTerms || "") + '" placeholder="Mensuel, à la livraison…"></div><div class="wide"><label>Lien du document signé (facultatif)</label><input id="sc-url" type="url" value="' + h(x.documentUrl || "") + '" placeholder="https://…"></div>' +
+      '<div id="sc-amount-wrap"><label id="sc-amount-label">Montant du contrat (GNF)</label><input id="sc-amount" type="number" min="0" step="1" value="' + h(x.amount == null ? 0 : x.amount) + '"></div><div><label>Statut</label><select id="sc-status">' + states.map(function (v) { return '<option' + ((x.status || "Brouillon") === v ? " selected" : "") + '>' + v + '</option>'; }).join("") + '</select></div><div><label>Préavis (jours)</label><input id="sc-notice" type="number" min="0" value="' + h(x.noticeDays == null ? 30 : x.noticeDays) + '"></div>' +
+      '<div id="sc-renew-wrap"><label>Renouvellement automatique</label><select id="sc-renew"><option value="non"' + (x.autoRenew ? "" : " selected") + '>Non</option><option value="oui"' + (x.autoRenew ? " selected" : "") + '>Oui</option></select></div><div id="sc-payment-wrap"><label>Modalités de paiement</label><input id="sc-payment" value="' + h(x.paymentTerms || "") + '" placeholder="Mensuel, à la livraison…"></div><div class="wide"><label>Lien du document signé (facultatif)</label><input id="sc-url" type="url" value="' + h(x.documentUrl || "") + '" placeholder="https://…"></div>' +
       '<div class="wide"><label>Description / clauses importantes</label><textarea id="sc-description" rows="4">' + h(x.description || "") + '</textarea></div><div class="wide"><label>Observations internes</label><textarea id="sc-notes" rows="3">' + h(x.notes || "") + '</textarea></div></div><div class="sc-form-actions"><button class="p" id="sc-save">Enregistrer le contrat</button><button class="s" id="sc-cancel">Annuler</button></div></div>';
     root.scrollIntoView({behavior:"smooth",block:"start"});
-    root.querySelector("#sc-type").onchange = function () { root.querySelector("#sc-type-details").innerHTML = details(this.value); };
+    applyProfile(x.contractType || "Prestation de services", false);
+    root.querySelector("#sc-type").onchange = function () { root.querySelector("#sc-type-details").innerHTML = details(this.value); applyProfile(this.value, true); };
     root.querySelector("#sc-cancel").onclick = function () { root.innerHTML = ""; };
     root.querySelector("#sc-save").onclick = function () {
       var party = root.querySelector("#sc-party").value.trim(), title = root.querySelector("#sc-title").value.trim();
-      var typeDetails = {}; root.querySelectorAll("[data-detail]").forEach(function (field) { typeDetails[field.dataset.detail] = field.value.trim(); });
+      var typeDetails = {}, missing = []; root.querySelectorAll("[data-detail]").forEach(function (field) { typeDetails[field.dataset.detail] = field.value.trim(); if (field.required && !field.value.trim()) missing.push(field.previousElementSibling ? field.previousElementSibling.textContent.replace(/\s*\*$/, "") : field.dataset.detail); });
+      if (missing.length) return say("Complétez les champs obligatoires pour ce type de contrat : " + missing.join(", ") + ".", "wa");
       var start = root.querySelector("#sc-start").value, end = root.querySelector("#sc-end").value, amount = Number(root.querySelector("#sc-amount").value || 0);
       if (!party || !title || !start) return say("Renseignez la partie concernée, l'objet et la date de début.", "wa");
       if (end && end < start) return say("La date de fin doit être postérieure ou égale à la date de début.", "wa");
