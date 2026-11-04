@@ -192,6 +192,7 @@
       var ref = $("sp-o-ref").value.trim();
       if (!ref || orders().some(function (o) { return o.ref === ref; })) return toastMsg("La référence est obligatoire et doit être unique.", "wa");
       orders().push({id:uid("po"),ref:ref,supplierId:supplier.id,supplierName:supplier.n,date:$("sp-o-date").value || today(),expectedDate:$("sp-o-expected").value,notes:$("sp-o-notes").value.trim(),lines:lines,status:"Envoyée",createdAt:new Date().toISOString()});
+      if (typeof lg === "function") lg("Commande fournisseur créée : " + ref + " · " + supplier.n + " · " + money(total(lines)));
       saveState(); render(); toastMsg("Commande fournisseur enregistrée.");
     };
     var orderSelect = $("sp-r-order");
@@ -231,7 +232,12 @@
         stock.q = (Number(stock.q) || 0) + l.qty;
       });
       receipts().push({id:uid("receipt"),ref:ref,orderId:o.id,orderRef:o.ref,supplierId:o.supplierId,supplierName:o.supplierName,date:$("sp-r-date").value || today(),lines:lines,createdAt:new Date().toISOString()});
-      saveState(); render(); toastMsg("Réception enregistrée : le stock a été mis à jour.");
+      if (typeof lg === "function") {
+        lines.forEach(function (line) {
+          lg("Réception fournisseur " + ref + " · " + line.name + " : +" + line.qty + " unité(s) · " + o.supplierName);
+        });
+      }
+      saveState(); render(); toastMsg("Réception enregistrée : le stock et le journal des mouvements ont été mis à jour.");
     };
     var invoiceSave = $("sp-i-save");
     if (invoiceSave) invoiceSave.onclick = function () {
@@ -243,6 +249,7 @@
       if (!Number.isFinite(amount) || amount <= 0) return toastMsg("Le montant de la facture doit être positif.", "wa");
       if (order && String(order.supplierId) !== String(supplier.id)) return toastMsg("Le fournisseur ne correspond pas à la commande sélectionnée.", "wa");
       invoices().push({id:uid("inv"),ref:ref,supplierId:supplier.id,supplierName:supplier.n,orderId:order ? order.id : "",orderRef:order ? order.ref : "",date:$("sp-i-date").value || today(),dueDate:$("sp-i-due").value,amount:Math.round(amount),status:"À payer",createdAt:new Date().toISOString()});
+      if (typeof lg === "function") lg("Facture fournisseur enregistrée : " + ref + " · " + supplier.n + " · " + money(amount));
       saveState(); render(); toastMsg("Facture fournisseur enregistrée.");
     };
     r.querySelectorAll("[data-sp-supplier-toggle]").forEach(function (b) {
