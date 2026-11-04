@@ -2526,6 +2526,23 @@ const stt=f=>{const p=paid(f),[t,c]=f.x?["Annulée","mu"]:p>=f.m?["Payée","ok"]
 function lg(a){S.jr.unshift({d:new Date().toISOString(),u:(CU?CU.nom+" · ":"")+RO,a});S.jr=S.jr.slice(0,300)}
 
 
+function renderInvoices(){
+ const section=$("fac");
+ if(!section)return;
+ const invoices=(Array.isArray(S.fa)?S.fa:[]).filter(f=>f&&typeof f==="object"&&!Array.isArray(f));
+ const openInvoices=invoices.filter(f=>!f.x&&(Number(f.m)||0)-paid(f)>0);
+ const rows=invoices.slice().reverse().map((f,i)=>{
+  const amount=Number(f.m)||0,payment=paid(f),due=Math.max(0,amount-payment);
+  const reference=esc(f.no||"—"),client=esc(cnm(f.c));
+  const date=f.d?dt(f.d):"—";
+  const status=stt(f);
+  return `<tr class="${f.x?"x":""}"><td>${i+1}</td><td>${date}</td><td><small>${reference}</small></td><td>${client}</td><td class="r">${fm(amount)}</td><td class="r">${fm(payment)}</td><td class="r">${fm(due)}</td><td>${status}</td><td><button class="s" data-a="pr" data-i="fac:${esc(f.id)}">Imprimer</button> ${!f.x&&!payment?`<button class="s dg" data-a="fcan" data-i="${esc(f.id)}">Annuler</button>`:""}</td></tr>`;
+ }).join("");
+ section.innerHTML=`<h2>Factures</h2><p style="color:var(--mu)">Liste des factures enregistrées, avec les montants payés, les soldes et les actions disponibles.</p>`
+ +bx("Enregistrer un règlement",F("fi","Facture","text",openInvoices.map(f=>(f.no||"Facture")+" · reste "+fm(Math.max(0,(Number(f.m)||0)-paid(f)))))+F("fa2","Montant ("+SY()+")","number")+F("fk","Encaissé sur","text",AC),`<button class="p" data-a="fpay">Encaisser</button>`)
+ +`<div class="box"><div class="tw"><table><thead><tr><th>N°</th><th>Date</th><th>Référence</th><th>Client</th><th>Total</th><th>Payé</th><th>Reste dû</th><th>Statut</th><th>Actions</th></tr></thead><tbody id="sib-invoice-rows">${rows||'<tr><td colspan="9" style="color:var(--mu);text-align:center;padding:18px">Aucune facture enregistrée pour l’instant.</td></tr>'}</tbody></table></div></div>`
+ +(PK=="fac"?PD:"");
+}
 function draw2(){
  renderInvoices();
  renderFormation();
