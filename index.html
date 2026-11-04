@@ -2737,7 +2737,7 @@ const IC={com:"M4 5h16v11H8l-4 4zM8 9h8M8 12h5",ia:"M12 3l1.9 5.8L20 11l-6.1 2.2
 const svg=i=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${IC[i]}"/></svg>`;
 function mk(){
  const restrictedCloudUser=!!(CU?.cloud&&window.SIBCloud?.ready&&!window.SIBCloud.isAdminRole(RO));
- const ok=restrictedCloudUser?["prof","com"]:(PM[RO]||P.map(p=>p[0])),nm=Object.fromEntries(P);
+ const ok=restrictedCloudUser?["prof","com","contracts"]:(PM[RO]||P.map(p=>p[0])),nm=Object.fromEntries(P);
  $("nv").innerHTML=GR.map(([g,ids])=>{const it=ids.filter(i=>ok.includes(i));return it.length?`<p class="gt">${g}</p>`+it.map(i=>`<button data-v="${i}" title="${nm[i]}">${svg(i)}<span>${nm[i]}</span></button>`).join(""):""}).join("");
  $("nv").querySelectorAll("button").forEach(b=>b.onclick=()=>nav(b.dataset.v));nav(ok[0])}
 function sibUpdateDateTime(){
