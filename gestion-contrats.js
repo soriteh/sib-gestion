@@ -128,13 +128,11 @@
         "Préavis : " + (root.querySelector("#sc-notice").value || "30") + " jours",
         "Détails propres au contrat : " + (detailsText.join("; ") || "Aucun détail supplémentaire")
       ].join("\n");
-      var contextForAI = context.length > 650 ? context.slice(0, 650) + "\\n[Informations complémentaires non transmises : vérifier les détails du contrat.]" : context;
-      var message = "Tu es Maya, assistante de rédaction contractuelle de SIB en Guinée. Rédige en français des clauses structurées à partir des seules informations ci-dessous.\\n\\n" + contextForAI + "\\n\\n" +
-        "CADRE JURIDIQUE : pour un contrat de travail, prends en compte le Code du travail guinéen (loi L/2014/072/CNT du 10 janvier 2014), sous réserve des textes modificatifs et réglementaires en vigueur. Pour les autres contrats, applique le droit guinéen pertinent à leur nature ; ne leur applique pas automatiquement le Code du travail. Ne cite un article, une durée légale ou un taux que si tu es certaine de son exactitude et de son applicabilité ; sinon écris [RÉFÉRENCE JURIDIQUE À VÉRIFIER]. N'invente jamais de référence.\\n" +
-        "Rédige uniquement les clauses pertinentes : objet, obligations, exécution/travail/livraison, durée, rémunération/paiement, temps de travail et congés uniquement pour un contrat de travail, confidentialité, responsabilité/garanties, résiliation et différends. N'invente aucun fait, identité, montant, date ou accord. Pour toute information essentielle absente, écris [À PRÉCISER]. Signale toute clause à faire vérifier. Ne garantis pas la conformité et ne te présente pas comme avocat. Termine par : « Projet généré par Maya IA — à faire vérifier par un professionnel du droit en Guinée avant signature. » Retourne uniquement les clauses.";
+      var message = "Rédige maintenant un projet complet de clauses contractuelles adapté au type de contrat ci-dessous. Fournis les clauses rédigées, numérotées et directement intégrables au contrat. Ne réponds pas par de simples conseils.\\n\\n" + context;
+      if (message.length > 5800) message = message.slice(0, 5800) + "\\n[Informations complémentaires tronquées : insérer [À PRÉCISER] si nécessaire.]";
       button.disabled = true; button.textContent = "Génération en cours…"; statusBox.textContent = "Maya prépare une proposition adaptée au contrat…";
       try {
-        var result = await client.functions.invoke("sib-ai-agent", { body: { message: message } });
+        var result = await client.functions.invoke("sib-ai-agent", { body: { message: message, mode: "contract_draft" } });
         if (result.error) {
           var detail = result.data && result.data.error;
           if (!detail && result.error.context && typeof result.error.context.clone === "function") { try { var payload = await result.error.context.clone().json(); detail = payload.error || payload.message; } catch (_) {} }
@@ -142,7 +140,8 @@
         }
         if (!result.data || result.data.ok !== true || typeof result.data.reply !== "string" || !result.data.reply.trim()) throw new Error((result.data && result.data.error) || "Réponse IA invalide.");
         description.value = result.data.reply.trim();
-        statusBox.textContent = "Proposition générée. Relisez les clauses et complétez les éléments [À PRÉCISER] avant l’enregistrement.";
+        description.focus();
+        statusBox.textContent = "Proposition générée (" + description.value.length.toLocaleString("fr-FR") + " caractères). Relisez les clauses et complétez les éléments [À PRÉCISER] avant l’enregistrement.";
         say("Proposition de clauses générée par Maya AI.", "ok");
       } catch (error) {
         statusBox.textContent = "Échec de la génération : " + (error && error.message ? error.message : "erreur inconnue");
