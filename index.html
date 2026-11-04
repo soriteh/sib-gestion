@@ -1861,6 +1861,23 @@ input,select,textarea,button{max-width:100%}
 #fac .box .tw table tbody td{display:table-cell!important;visibility:visible!important;opacity:1!important;color:var(--tx)!important;font-size:13px!important;line-height:1.45!important;text-indent:0!important;-webkit-text-fill-color:var(--tx)!important}
 #fac .box .tw table tbody td button{ -webkit-text-fill-color:inherit!important }
 </style>
+<style id="sib-invoice-grid-render-fix">
+#fac .sib-invoice-box{padding:18px 24px!important;overflow:hidden!important}
+#fac .sib-invoice-scroll{width:100%;overflow-x:auto!important;overscroll-behavior-x:contain}
+#fac .sib-invoice-table{min-width:1120px;width:100%;color:var(--tx)!important;font-size:13px!important}
+#fac .sib-invoice-head,#fac .sib-invoice-row{display:grid!important;grid-template-columns:48px 105px 145px minmax(160px,1.4fr) 120px 120px 125px 105px 190px!important;align-items:center!important;width:100%;box-sizing:border-box}
+#fac .sib-invoice-head{min-height:52px;background:#1a2941!important;color:#e8eef9!important;border:1px solid var(--ln);border-radius:10px 10px 0 0;font-weight:800!important;text-transform:uppercase;letter-spacing:.035em;font-size:11px!important}
+#fac .sib-invoice-row{min-height:62px;background:var(--sf)!important;color:var(--tx)!important;border-bottom:1px solid var(--ln)!important}
+#fac .sib-invoice-row:nth-child(odd){background:color-mix(in srgb,var(--sf) 88%,var(--ac2))!important}
+#fac .sib-invoice-cell{display:block!important;min-width:0!important;padding:13px 10px!important;box-sizing:border-box!important;color:var(--tx)!important;-webkit-text-fill-color:var(--tx)!important;font-size:13px!important;line-height:1.45!important;visibility:visible!important;opacity:1!important;white-space:normal!important;overflow-wrap:anywhere!important}
+#fac .sib-invoice-head .sib-invoice-cell{color:#e8eef9!important;-webkit-text-fill-color:#e8eef9!important;font-size:11px!important;white-space:nowrap!important}
+#fac .sib-invoice-cell.right{text-align:right!important;font-variant-numeric:tabular-nums}
+#fac .sib-invoice-cell.center{text-align:center!important}
+#fac .sib-invoice-cell.actions{white-space:nowrap!important}
+#fac .sib-invoice-cell.actions button{display:inline-flex!important;align-items:center!important;justify-content:center!important;margin:2px!important}
+#fac .sib-invoice-empty{padding:26px!important;text-align:center!important;color:var(--mu)!important;background:var(--sf)!important;border:1px solid var(--ln)!important}
+@media(max-width:700px){#fac .sib-invoice-box{padding:12px!important}}
+</style>
 </head><body>
 <div id="sib-startup" role="status" aria-live="polite"><div class="sib-startup-inner"><div class="sib-startup-logo" aria-hidden="true">SIB</div><div class="sib-startup-name">SIB Gestion</div><div class="sib-startup-label">Chargement de votre espace…</div><div class="sib-startup-track" aria-hidden="true"></div></div></div>
 <div class="app">
@@ -2541,16 +2558,19 @@ function renderInvoices(){
  if(!section)return;
  const invoices=(Array.isArray(S.fa)?S.fa:[]).filter(f=>f&&typeof f==="object"&&!Array.isArray(f));
  const openInvoices=invoices.filter(f=>!f.x&&(Number(f.m)||0)-paid(f)>0);
+ const columns=["N°","Date","Référence","Client","Total","Payé","Reste dû","Statut","Actions"];
+ const cell=(value,cls="")=>'<div class="sib-invoice-cell '+cls+'">'+value+'</div>';
  const rows=invoices.slice().reverse().map((f,i)=>{
   const amount=Number(f.m)||0,payment=paid(f),due=Math.max(0,amount-payment);
   const reference=esc(f.no||"—"),client=esc(cnm(f.c));
   const date=f.d?dt(f.d):"—";
   const status=stt(f);
-  return `<tr class="${f.x?"x":""}"><td>${i+1}</td><td>${date}</td><td><small>${reference}</small></td><td>${client}</td><td class="r">${fm(amount)}</td><td class="r">${fm(payment)}</td><td class="r">${fm(due)}</td><td>${status}</td><td><button class="s" data-a="pr" data-i="fac:${esc(f.id)}">Imprimer</button> ${!f.x&&!payment?`<button class="s dg" data-a="fcan" data-i="${esc(f.id)}">Annuler</button>`:""}</td></tr>`;
+  const actions='<button class="s" data-a="pr" data-i="fac:'+esc(f.id)+'">Imprimer</button> '+(!f.x&&!payment?'<button class="s dg" data-a="fcan" data-i="'+esc(f.id)+'">Annuler</button>':"");
+  return '<div class="sib-invoice-row" role="row">'+cell(String(i+1),"center")+cell(date)+cell('<b>'+reference+'</b>')+cell(client)+cell(fm(amount),"right")+cell(fm(payment),"right")+cell(fm(due),"right")+cell(status,"center")+cell(actions,"actions")+'</div>';
  }).join("");
- section.innerHTML=`<h2>Factures</h2><p style="color:var(--mu)">Liste des factures enregistrées, avec les montants payés, les soldes et les actions disponibles.</p>`
- +bx("Enregistrer un règlement",F("fi","Facture","text",openInvoices.map(f=>(f.no||"Facture")+" · reste "+fm(Math.max(0,(Number(f.m)||0)-paid(f)))))+F("fa2","Montant ("+SY()+")","number")+F("fk","Encaissé sur","text",AC),`<button class="p" data-a="fpay">Encaisser</button>`)
- +`<div class="box"><div class="tw"><table><thead><tr><th>N°</th><th>Date</th><th>Référence</th><th>Client</th><th>Total</th><th>Payé</th><th>Reste dû</th><th>Statut</th><th>Actions</th></tr></thead><tbody id="sib-invoice-rows">${rows||'<tr><td colspan="9" style="color:var(--mu);text-align:center;padding:18px">Aucune facture enregistrée pour l’instant.</td></tr>'}</tbody></table></div></div>`
+ section.innerHTML='<h2>Factures</h2><p style="color:var(--mu)">Liste des factures enregistrées, avec les montants payés, les soldes et les actions disponibles.</p>'
+ +bx("Enregistrer un règlement",F("fi","Facture","text",openInvoices.map(f=>(f.no||"Facture")+" · reste "+fm(Math.max(0,(Number(f.m)||0)-paid(f)))))+F("fa2","Montant ("+SY()+")","number")+F("fk","Encaissé sur","text",AC),'<button class="p" data-a="fpay">Encaisser</button>')
+ +'<div class="box sib-invoice-box"><div class="sib-invoice-scroll"><div class="sib-invoice-table" role="table" aria-label="Liste des factures"><div class="sib-invoice-head" role="row">'+columns.map(x=>cell(x)).join("")+'</div>'+(rows||'<div class="sib-invoice-empty">Aucune facture enregistrée pour l’instant.</div>')+'</div></div></div>'
  +(PK=="fac"?PD:"");
 }
 function draw2(){
