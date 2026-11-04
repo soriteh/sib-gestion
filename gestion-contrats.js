@@ -127,9 +127,15 @@
         "Renouvellement automatique : " + (root.querySelector("#sc-renew").value === "oui" ? "Oui" : "Non"),
         "Préavis : " + (root.querySelector("#sc-notice").value || "30") + " jours",
         "Détails propres au contrat : " + (detailsText.join("; ") || "Aucun détail supplémentaire")
-      ].join("\\n");
-      var message = "Rédige en français une proposition professionnelle de « Description / clauses importantes » pour ce contrat de Soritech Innov Business (SIB), selon le droit applicable en Guinée sans inventer de références d’articles.\\n" + context + "\\n\\nConsignes : rédige des clauses structurées et directement exploitables, adaptées au type de contrat : objet et périmètre, obligations respectives, modalités d’exécution/livraison ou de travail, paiement/rémunération si applicable, délais et durée, confidentialité et protection des informations si pertinentes, responsabilité/garanties, résiliation et règlement des différends. N’invente aucun nom, montant, date, engagement ou fait absent des données. Lorsqu’une information manque et est juridiquement importante, insère [À PRÉCISER] au lieu de la supposer. N’ajoute ni signatures ni faux conseil juridique. Termine par une courte mention invitant à une vérification juridique avant signature. Retourne uniquement le texte des clauses, sans introduction ni commentaire.";
-      if (message.length > 2000) message = message.slice(0, 1990) + "…";
+      ].join("\n");
+      var message = "Tu es Maya, assistante de rédaction contractuelle pour Soritech Innov Business (SIB), en Guinée. Rédige en français une proposition structurée de clauses à partir des seules informations ci-dessous.\n\n" + context + "\n\n" +
+        "RÈGLES JURIDIQUES IMPÉRATIVES : pour un contrat de travail, prends comme cadre le Code du travail de la République de Guinée (notamment la loi L/2014/072/CNT du 10 janvier 2014), sous réserve des textes modificatifs et réglementaires en vigueur. Pour les autres contrats, applique le droit guinéen pertinent à leur nature ; ne leur applique pas automatiquement le Code du travail. Ne cite un numéro d'article, une durée légale, un taux ou une règle précise que si tu es certaine de son exactitude et de son applicabilité. Sinon, indique [RÉFÉRENCE JURIDIQUE À VÉRIFIER] et ne fabrique jamais de citation.\n" +
+        "Rédige uniquement les clauses utiles au type de contrat : objet, périmètre, obligations de chaque partie, exécution/travail/livraison, durée, rémunération ou paiement, congés et temps de travail uniquement si contrat de travail, confidentialité, responsabilité/garanties, résiliation et règlement des différends. Respecte les règles impératives et signale toute clause qui nécessite une vérification juridique. N'invente aucun fait, identité, montant, date, accord ou référence. Pour toute information essentielle absente, écris [À PRÉCISER]. Ne présente jamais le texte comme une garantie de conformité ou un avis d'avocat. Termine par : « Projet généré par Maya IA — à faire vérifier par un professionnel du droit en Guinée avant signature. » Retourne uniquement les clauses, sans introduction ni commentaire.";
+      if (message.length > 2000) {
+        var fixedPrompt = message.slice(0, message.indexOf(context));
+        var available = Math.max(0, 2000 - fixedPrompt.length - 80);
+        message = fixedPrompt + context.slice(0, available) + "\\n[Contexte tronqué : vérifier les informations du contrat avant génération.]";
+      }
       button.disabled = true; button.textContent = "Génération en cours…"; statusBox.textContent = "Maya prépare une proposition adaptée au contrat…";
       try {
         var result = await client.functions.invoke("sib-ai-agent", { body: { message: message } });
