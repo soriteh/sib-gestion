@@ -45,9 +45,15 @@
     if (!session?.user?.id) return false;
     const now = Date.now();
     let policy = readSessionPolicy();
-    if (freshLogin || !policy || policy.userId !== session.user.id) {
+    // A policy may only be created by an explicit successful password login.
+    // Never recreate it during session restoration: doing so would let a page
+    // refresh bypass the inactivity timeout after Supabase restores its token.
+    if (freshLogin) {
       policy = { userId: session.user.id, startedAt: now, lastActivityAt: now };
       writeSessionPolicy(policy);
+    } else if (!policy || policy.userId !== session.user.id) {
+      clearSessionPolicy();
+      return false;
     }
     if (sessionPolicyExpired(policy, now)) {
       clearSessionPolicy();
