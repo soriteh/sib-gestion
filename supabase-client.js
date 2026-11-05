@@ -117,6 +117,11 @@
         clearSessionPolicy();
         return;
       }
+      // signInWithPassword emits SIGNED_IN before its promise resolves.
+      // signIn() creates the fresh policy immediately after that resolution.
+      // Do not validate (or sign out) that new session in this callback.
+      if (event === "SIGNED_IN") return;
+      // Restored sessions and token refreshes must retain an existing policy.
       if (session && !initializeSessionPolicy(session, false)) {
         window.setTimeout(() => {
           client.auth.signOut({ scope: "local" }).catch(() => {});
