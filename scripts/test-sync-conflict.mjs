@@ -25,7 +25,7 @@ assert.match(boot, /Données centrales sont actives\. Une copie de sécurité/,
   "The user must be informed that central data is active and a recovery copy exists");
 
 const retryStart = html.indexOf("async function retryPendingCloudSave()");
-const retryEnd = html.indexOf("window.addEventListener("online"", retryStart);
+const retryEnd = html.indexOf("window.addEventListener("online", retryStart);
 assert.ok(retryStart >= 0 && retryEnd > retryStart, "Pending cloud retry handler must exist");
 const retry = html.slice(retryStart, retryEnd);
 assert.match(retry, /current\.savedAt===pending\.savedAt/,
