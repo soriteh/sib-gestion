@@ -2088,9 +2088,10 @@ let sibPendingRetryTimer=null,sibPendingRetryDelay=10000,sibPendingRetryBusy=fal
 let sibConflictBackupDownloaded=false;
 function downloadPendingCloudBackup(){
  let pending;try{pending=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null")}catch(_){pending=null}
- if(!pending?.state){toast("Aucune sauvegarde locale en attente n’a été trouvée. Le conflit reste bloqué jusqu’à résolution.","wa");return}
+ if(!pending?.state){try{pending=JSON.parse(localStorage.getItem("sib-conflict-backup-v1")||"null")}catch(_){pending=null}}
+ if(!pending?.state){toast("Aucune copie de sécurité locale n’a été trouvée.","wa");return}
  try{
-  const blob=new Blob([JSON.stringify({app:"SIB Gestion",exportedAt:new Date().toISOString(),warning:"Sauvegarde locale en conflit avec les données centrales. Fichier potentiellement sensible.",state:pending.state},null,2)],{type:"application/json;charset=utf-8"});
+  const blob=new Blob([JSON.stringify({app:"SIB Gestion",exportedAt:new Date().toISOString(),warning:"Copie de sécurité locale antérieure. Les données centrales Supabase restent la version active.",state:pending.state},null,2)],{type:"application/json;charset=utf-8"});
   const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="SIB-Gestion-sauvegarde-locale-"+new Date().toISOString().replace(/[:.]/g,"-")+".json";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
   sibConflictBackupDownloaded=true;
   toast("Sauvegarde locale téléchargée. Choisissez maintenant quelle version conserver. Restaurer la version locale remplacera l’état central complet et peut écraser les changements faits sur les autres appareils.","wa",{sticky:true,act:{label:"Résoudre le conflit",fn:resolveCloudConflict}});
@@ -2974,29 +2975,27 @@ async function boot(){applyLogo();loadSibPublicBranding();
     sibPendingConflict=false;
     S=D0();
    }else{
-   // Online-first policy: when central state is reachable, it is the source of truth.
-   // Preserve a conflicting local snapshot as a separate recovery export, then remove it
-   // from the automatic sync queue so stale offline data cannot overwrite the cloud.
+   // Online-first policy: Supabase is the single source of truth.
+   // A different local snapshot is preserved as a recovery archive, then removed
+   // from the retry queue so it can never overwrite the central state on reload.
    if(remote?.state){
     sibPendingConflict=false;
     if(pendingCloud?.state){
      try{
       const sameAsCentral=sameCloudSnapshot(pendingCloud.state,remote.state);
       if(sameAsCentral){
-       // The exact pending snapshot is already central: it is safe to clear the queue.
        localStorage.removeItem(SIB_PENDING_KEY);
       }else{
-       // A pending snapshot may contain the most recent edit whose request was
-       // interrupted by refresh. Archive a recovery copy, but NEVER discard the
-       // pending record or silently treat the central snapshot as a full resolution.
-       localStorage.setItem("sib-conflict-backup-v1-"+String(pendingCloud.savedAt||Date.now()),JSON.stringify({savedAt:pendingCloud.savedAt||Date.now(),archivedAt:Date.now(),reason:"État local en attente différent de l’état central. Copie conservée; aucune synchronisation automatique.",state:pendingCloud.state}));
-       sibPendingConflict=true;
-       console.warn("SIB: état central chargé, mais une sauvegarde locale différente reste en attente; aucune donnée locale n’est supprimée.");
-       setTimeout(()=>{if(typeof toast==="function")toast("Données centrales chargées. Une sauvegarde locale différente est conservée : téléchargez-la et rapprochez les données avant de continuer les modifications.","wa",{sticky:true,act:{label:"Télécharger la sauvegarde",fn:downloadPendingCloudBackup}});},500);
+       const archive={savedAt:pendingCloud.savedAt||Date.now(),archivedAt:Date.now(),reason:"Sauvegarde locale différente archivée. Supabase reste la source de vérité.",state:pendingCloud.state};
+       // Write the recovery copy first. Only clear the retry queue after archive succeeds.
+       localStorage.setItem("sib-conflict-backup-v1",JSON.stringify(archive));
+       localStorage.removeItem(SIB_PENDING_KEY);
+       console.warn("SIB: une ancienne sauvegarde locale différente a été archivée; les données centrales sont utilisées.");
+       setTimeout(()=>{if(typeof toast==="function")toast("Les données centrales sont actives. Une copie de sécurité de l’ancienne sauvegarde locale a été conservée.","wa",{ms:9000,act:{label:"Télécharger la copie",fn:downloadPendingCloudBackup}});},500);
       }
      }catch(archiveError){
       sibPendingConflict=true;
-      console.error("SIB: impossible de vérifier ou d’archiver la sauvegarde locale; blocage conservé pour protéger les données.",archiveError);
+      console.error("SIB: impossible d’archiver la sauvegarde locale; blocage conservé pour protéger les données.",archiveError);
      }
     }
     S={...D0(),...remote.state};S.set={...D0().set,...S.set};S.set.pre={...D0().set.pre,...S.set.pre};S.set.rh={...D0().set.rh,...S.set.rh};
