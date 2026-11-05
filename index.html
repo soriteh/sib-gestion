@@ -2099,7 +2099,7 @@ function downloadPendingCloudBackup(){
 }
 async function resolveCloudConflict(){
  if(!sibPendingConflict)return;
- if(!sibConflictBackupDownloaded){toast("Téléchargez d’abord la sauvegarde locale avant de résoudre le conflit.","wa",{sticky:true,act:{label:"Télécharger la sauvegarde",fn:downloadPendingCloudBackup}});return}
+ if(!sibConflictBackupDownloaded){toast("Rechargez l’application pour récupérer la dernière version centrale depuis Supabase.","wa",{sticky:true});return}
  if(!window.SIBCloud?.ready||!cloudSessionReady||!window.SIBCloud.isAdminRole(RO)){toast("Seul un administrateur connecté peut résoudre ce conflit.","er",{sticky:true});return}
  let pending;try{pending=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null")}catch(_){}
  if(!pending?.state){toast("La sauvegarde locale en attente est introuvable. Aucun changement n’a été appliqué.","er",{sticky:true});return}
@@ -2150,7 +2150,7 @@ function stopForCloudConflict(snapshot,error){
  }catch(_){}
  if(!pendingIsValid&&snapshot)storePendingCloudSnapshot(snapshot);
  console.error("SIB synchronization conflict; automatic overwrite stopped:",error);
- if(typeof toast==="function")toast("Conflit de synchronisation : les données centrales ont changé sur un autre appareil. La sauvegarde locale est conservée ; téléchargez-la avant toute résolution.", "wa", {sticky:true,act:{label:"Télécharger la sauvegarde",fn:downloadPendingCloudBackup}});
+ if(typeof toast==="function")toast("Conflit de synchronisation : les données centrales ont changé sur un autre appareil. Rechargez l’application pour récupérer la dernière version depuis Supabase. Aucune restauration locale n’est proposée.", "wa", {sticky:true,act:{label:"Télécharger la sauvegarde",fn:downloadPendingCloudBackup}});
 }
 function schedulePendingCloudRetry(delay){
  if(sibPendingRetryTimer)clearTimeout(sibPendingRetryTimer);
@@ -3017,7 +3017,7 @@ async function boot(){applyLogo();loadSibPublicBranding();
   }catch(err){
   console.warn("SIB cloud session unavailable:",err);
   const offlineNetworkFailure = navigator.onLine === false || /Délai de connexion dépassé|PGRST002|PGRST003|schema cache|Timed out acquiring connection|HTTP 5\d\d|status.?5\d\d|Failed to fetch|NetworkError|fetch failed|Load failed|Network request failed|CORS|cross-origin/i.test(String(err && err.message || err || ""));
-  if(offlineNetworkFailure){LNOTE="Connexion Internet requise : SIB Gestion ne fonctionne pas hors ligne. Les modifications locales antérieures en attente sont conservées pour éviter toute perte."; }
+  if(offlineNetworkFailure){LNOTE="Connexion Internet requise : SIB Gestion fonctionne uniquement avec Supabase en ligne. Aucune donnée métier locale ne sera utilisée."; }
  }
   document.body.classList.add("lo");lgv("login");return;
  }
