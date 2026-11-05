@@ -2174,8 +2174,9 @@ function sameCloudSnapshot(localState,remoteState){
   return JSON.stringify(stableCloudValue(local))===JSON.stringify(stableCloudValue(remote));
  }catch(err){console.warn("SIB snapshot comparison failed:",err);return false}
 }
-function storePendingCloudSnapshot(snapshot){try{localStorage.setItem(SIB_PENDING_KEY,JSON.stringify({savedAt:Date.now(),state:snapshot}));return true}catch(err){console.error("SIB pending backup failed:",err);return false}}
-async function retryPendingCloudSave(){
+function storePendingCloudSnapshot(){return false}
+async function retryPendingCloudSave(){return;} /* Mode strictement en ligne : aucune reprise depuis le stockage local. */
+async function legacyRetryPendingCloudSave(){
  if(sibPendingRetryBusy||sibPendingConflict||!navigator.onLine||!window.SIBCloud?.ready||!cloudSessionReady)return;
  if(cloudWriteRunning){schedulePendingCloudRetry(sibPendingRetryDelay);return;}
  let pending;try{pending=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null")}catch(_){return}
@@ -2235,13 +2236,9 @@ async function drainCloudWrites(){
      if(/NetworkError|Failed to fetch|fetch failed|Load failed/i.test(detail)){
       detail="connexion réseau vers Supabase impossible. Vérifiez Internet, l'URL du projet et les règles réseau du navigateur";
      }
-     const localNotice=stored?" Une copie temporaire des modifications est conservée sur cet appareil ; une nouvelle tentative automatique sera effectuée.":" Impossible de conserver une copie temporaire sur cet appareil.";
-     if(typeof toast==="function")toast("ÉCHEC DE SAUVEGARDE SUPABASE : "+detail+"."+localNotice,"er",{sticky:true});
+     if(typeof toast==="function")toast("ÉCHEC DE SAUVEGARDE SUPABASE : "+detail+". Aucune copie locale n’a été enregistrée. Vérifiez la connexion puis recommencez l’opération.","er",{sticky:true});
     }
-    if(!cloudQueuedSnapshot){
-     sibPendingRetryDelay=Math.min(Math.round(sibPendingRetryDelay*1.8),120000);
-     schedulePendingCloudRetry(sibPendingRetryDelay);
-    }
+    // Pas de reprise automatique depuis un stockage local en mode en ligne strict.
    }
   }
  }finally{
@@ -2268,10 +2265,8 @@ function save(){
   if(typeof toast==="function")toast("Connexion Internet requise : aucune modification hors ligne n’est enregistrée. Reconnectez-vous puis recommencez.","er",{sticky:true});
   return;
  }
- // Le cliché temporaire sert uniquement à protéger une sauvegarde cloud en cours,
- // pas à autoriser la modification ou la consultation hors ligne.
- storePendingCloudSnapshot(snapshot);
- cloudQueuedSnapshot=snapshot;
+ // Mode strictement en ligne : aucun cliché métier n’est persisté dans le navigateur.
+  cloudQueuedSnapshot=snapshot;
  if(!cloudWriteRunning&&!sibPendingRetryBusy)cloudSaveChain=drainCloudWrites();
 }
 const TI={ok:"M20 6L9 17l-5-5",er:"M12 8v5M12 16h.01M12 2a10 10 0 100 20 10 10 0 000-20z",wa:"M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z",in:"M12 16v-4M12 8h.01M12 2a10 10 0 100 20 10 10 0 000-20z"};
@@ -2967,7 +2962,8 @@ async function boot(){applyLogo();loadSibPublicBranding();
   cloudSessionReady=false;
   try{
    const onlineData=await Promise.race([(async()=>{const current=await window.SIBCloud.currentUser();const remote=window.SIBCloud.isAdminRole(current.membership.role)?await window.SIBCloud.loadAppState():null;let dedicatedProfile=null;try{dedicatedProfile=await window.SIBCloud.loadUserProfile()}catch(profileLoadError){console.warn("SIB: profil dédié indisponible au démarrage; utilisation du profil central en cache.",profileLoadError)}return [current,remote,dedicatedProfile]})(),new Promise((_,reject)=>setTimeout(()=>reject(new Error("Délai de connexion dépassé : Supabase ne répond pas assez vite. Vérifiez la connexion et l’API de données, puis réessayez.")),12000))]);const current=onlineData[0],remote=onlineData[1],dedicatedProfile=onlineData[2];
-   let pendingCloud=null;try{pendingCloud=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null")}catch(_){}
+   try{localStorage.removeItem(SIB_PENDING_KEY);localStorage.removeItem("sib-conflict-backup-v1")}catch(_){}
+    let pendingCloud=null;
    const currentIsAdmin=window.SIBCloud.isAdminRole(current.membership.role);
    // Never hydrate a restricted user's session from browser-wide cached JSON:
    // the same browser may previously have been used by an administrator.
@@ -3336,14 +3332,14 @@ $("lgc").addEventListener("keydown",e=>{if(e.key=="Enter")doGo()});
  document.body.appendChild(field);
 })();
 
-if(window.SIBCloud?.ready){try{const authClient=window.SIBCloud.client();authClient?.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT"&&CU?.cloud&&!CU?.offline){out(true,true);}});}catch(authWatchError){console.warn("SIB Auth state listener:",authWatchError);}}
+if(window.SIBCloud?.ready){try{const authClient=window.SIBCloud.client();authClient?.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT"&&CU?.cloud){out(true,true);}});}catch(authWatchError){console.warn("SIB Auth state listener:",authWatchError);}}
 
  // Révoquer rapidement l’interface si un administrateur désactive l’appartenance.
  // Les erreurs réseau transitoires ne déconnectent pas l’utilisateur : le mode hors ligne reste possible.
  if(window.SIBCloud?.ready){
   let sibMembershipCheckRunning=false;
   const checkSibMembership=async()=>{
-   if(sibMembershipCheckRunning||!CU?.cloud||CU?.offline||!cloudSessionReady||SIBInvitationPending||!navigator.onLine)return;
+   if(sibMembershipCheckRunning||!CU?.cloud||!cloudSessionReady||SIBInvitationPending||!navigator.onLine)return;
    const userId=CU.id;const orgId=window.SIB_SUPABASE_CONFIG?.organizationId;
    if(!userId||!orgId)return;
    sibMembershipCheckRunning=true;
