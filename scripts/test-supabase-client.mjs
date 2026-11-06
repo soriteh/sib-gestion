@@ -89,10 +89,11 @@ function makeHarness({ membershipError = null, stateError = null, bootstrapError
     }
   };
 
+  const storage = new Map();
   const localStorage = {
-    getItem() { return null; },
-    setItem() {},
-    removeItem() {}
+    getItem(key) { return storage.has(key) ? storage.get(key) : null; },
+    setItem(key, value) { storage.set(key, String(value)); },
+    removeItem(key) { storage.delete(key); }
   };
   vm.runInNewContext(clientSource, { window, localStorage, console, Promise, String, Number, Error });
   return { cloud: window.SIBCloud, upsertCalls, get signOutCalls() { return signOutCalls; } };
