@@ -38,3 +38,7 @@ jobs:
         run: node scripts/test-multi-user-access.mjs
       - name: Test role-scoped business module policies
         run: node scripts/test-role-scoped-module-access.mjs
+      - name: Test RLS performance migration
+        run: node scripts/test-rls-performance.mjs
+      - name: Test email edge function authentication and validation
+        run: node scripts/test-email-edge-function.mjs

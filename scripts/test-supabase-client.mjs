@@ -9,8 +9,12 @@ function makeHarness({ membershipError = null, stateError = null, bootstrapError
   let signOutCalls = 0;
   const upsertCalls = [];
   const auth = {
+    onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),
     signInWithPassword: async () => ({
-      data: { user: { id: "user-1", email: "admin@example.test" } },
+      data: {
+        user: { id: "user-1", email: "admin@example.test" },
+        session: { user: { id: "user-1" } }
+      },
       error: null
     }),
     signUp: async () => ({
@@ -45,6 +49,7 @@ function makeHarness({ membershipError = null, stateError = null, bootstrapError
           if (stateError) return { data: null, error: stateError };
           return { data: { state: {}, version: 1, updated_at: "2026-01-01T00:00:00Z" }, error: null };
         }
+        if (table === "sib_user_profiles") return { data: null, error: null };
         throw new Error("Unexpected maybeSingle query: " + table);
       },
       then(resolve, reject) {
@@ -65,6 +70,10 @@ function makeHarness({ membershipError = null, stateError = null, bootstrapError
   }
 
   const window = {
+    addEventListener() {},
+    removeEventListener() {},
+    setTimeout() { return 1; },
+    clearTimeout() {},
     SIB_SUPABASE_CONFIG: {
       url: "https://example-project.supabase.co",
       publishableKey: "test-publishable-key",
@@ -84,7 +93,13 @@ function makeHarness({ membershipError = null, stateError = null, bootstrapError
     }
   };
 
-  vm.runInNewContext(clientSource, { window, console, Promise, String, Number, Error });
+  const storage = new Map();
+  const localStorage = {
+    getItem(key) { return storage.has(key) ? storage.get(key) : null; },
+    setItem(key, value) { storage.set(key, String(value)); },
+    removeItem(key) { storage.delete(key); }
+  };
+  vm.runInNewContext(clientSource, { window, localStorage, console, Promise, String, Number, Error });
   return { cloud: window.SIBCloud, upsertCalls, get signOutCalls() { return signOutCalls; } };
 }
 

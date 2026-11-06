@@ -2098,10 +2098,11 @@ function downloadPendingCloudBackup(){
  }catch(err){console.error("SIB backup export failed:",err);toast("Téléchargement impossible. La sauvegarde locale est conservée sur cet appareil.","er",{sticky:true})}
 }
 async function resolveCloudConflict(){
- if(!sibPendingConflict)return;
- if(!sibConflictBackupDownloaded){toast("Rechargez l’application pour récupérer la dernière version centrale depuis Supabase.","wa",{sticky:true});return}
- if(!window.SIBCloud?.ready||!cloudSessionReady||!window.SIBCloud.isAdminRole(RO)){toast("Seul un administrateur connecté peut résoudre ce conflit.","er",{sticky:true});return}
  let pending;try{pending=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null")}catch(_){}
+ if(!pending?.state){try{pending=JSON.parse(localStorage.getItem("sib-conflict-backup-v1")||"null")}catch(_){}}
+ if(!sibPendingConflict&&!pending?.state)return;
+ if(!sibConflictBackupDownloaded){toast("Téléchargez d’abord la sauvegarde de récupération avant de choisir une version.","wa",{sticky:true});return}
+ if(!window.SIBCloud?.ready||!cloudSessionReady||!window.SIBCloud.isAdminRole(RO)){toast("Seul un administrateur connecté peut résoudre ce conflit.","er",{sticky:true});return}
  if(!pending?.state){toast("La sauvegarde locale en attente est introuvable. Aucun changement n’a été appliqué.","er",{sticky:true});return}
  const choice=window.prompt("RÉSOLUTION DU CONFLIT SIB GESTION\n\nTapez CLOUD pour conserver les données centrales et abandonner la copie locale en attente.\n\nTapez LOCAL pour restaurer la copie locale téléchargée vers le cloud. Cette opération remplace l’état central complet et peut écraser les changements d’autres appareils.\n\nAucune modification ne sera faite si vous annulez.");
  if(choice===null)return;
@@ -2110,7 +2111,7 @@ async function resolveCloudConflict(){
  if(mode==="LOCAL"&&!window.confirm("CONFIRMATION FINALE\nVous allez remplacer l’état central complet par la sauvegarde locale. Vérifiez que le fichier téléchargé est conservé et que cette version contient bien les données à garder. Continuer ?"))return;
  try{
   const latest=await window.SIBCloud.loadAppState();
-  if(!latest?.state)throw new Error("Impossible de lire l’état central actuel.");
+  if(mode==="CLOUD"&&!latest?.state)throw new Error("Aucune version centrale n’est disponible. Choisissez LOCAL pour restaurer la sauvegarde.");
   if(mode==="LOCAL"){
    await window.SIBCloud.saveAppState(pending.state);
    S=repairState(pending.state);
@@ -2124,6 +2125,7 @@ async function resolveCloudConflict(){
    S.set={...D0().set,...S.set};S.set.pre={...D0().set.pre,...S.set.pre};S.set.rh={...D0().set.rh,...S.set.rh};
   }
   localStorage.removeItem(SIB_PENDING_KEY);
+  localStorage.removeItem("sib-conflict-backup-v1");
   sibPendingConflict=false;sibConflictBackupDownloaded=false;cloudQueuedSnapshot=null;cloudRealtimeRefreshQueued=false;
   applyLogo();
   if(typeof nav==="function"&&CUR)nav(CUR);else if(typeof draw==="function")draw();
@@ -2174,13 +2176,23 @@ function sameCloudSnapshot(localState,remoteState){
   return JSON.stringify(stableCloudValue(local))===JSON.stringify(stableCloudValue(remote));
  }catch(err){console.warn("SIB snapshot comparison failed:",err);return false}
 }
-function storePendingCloudSnapshot(){return false}
-async function retryPendingCloudSave(){return;} /* Mode strictement en ligne : aucune reprise depuis le stockage local. */
-async function legacyRetryPendingCloudSave(){
+function storePendingCloudSnapshot(snapshot){
+ if(!snapshot||typeof snapshot!=="object"||Array.isArray(snapshot))return false;
+ try{
+  const pending={savedAt:Date.now(),baseVersion:Number(window.SIBCloud?.appStateVersion||0),state:snapshot};
+  localStorage.setItem(SIB_PENDING_KEY,JSON.stringify(pending));
+  const stored=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null");
+  return !!(stored&&stored.savedAt===pending.savedAt&&stored.state);
+ }catch(err){
+  console.error("SIB recovery snapshot could not be stored:",err);
+  return false;
+ }
+}
+async function retryPendingCloudSave(){
  if(sibPendingRetryBusy||sibPendingConflict||!navigator.onLine||!window.SIBCloud?.ready||!cloudSessionReady)return;
  if(cloudWriteRunning){schedulePendingCloudRetry(sibPendingRetryDelay);return;}
  let pending;try{pending=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null")}catch(_){return}
- if(!pending?.state)return;
+ if(!pending?.state||typeof pending.state!=="object")return;
  sibPendingRetryBusy=true;
  let savedThisSnapshot=false;
  let newerSnapshotPending=false;
@@ -2192,8 +2204,6 @@ async function legacyRetryPendingCloudSave(){
    savedThisSnapshot=true;
    sibPendingRetryDelay=10000;
   }else if(current?.state){
-   // A newer edit arrived while this network request was in flight.
-   // Keep it and schedule another write instead of leaving it stranded locally.
    newerSnapshotPending=true;
   }
   if(savedThisSnapshot&&typeof toast==="function")toast("Connexion rétablie : les modifications en attente ont été synchronisées.","ok",{ms:4500});
@@ -2205,7 +2215,11 @@ async function legacyRetryPendingCloudSave(){
    sibPendingRetryDelay=Math.min(Math.round(sibPendingRetryDelay*1.8),120000);
    schedulePendingCloudRetry(sibPendingRetryDelay);
   }
- }finally{sibPendingRetryBusy=false;if(newerSnapshotPending&&!sibPendingConflict)schedulePendingCloudRetry(500);if(cloudQueuedSnapshot&&cloudSessionReady&&!cloudWriteRunning&&!sibPendingConflict)cloudSaveChain=drainCloudWrites()}
+ }finally{
+  sibPendingRetryBusy=false;
+  if(newerSnapshotPending&&!sibPendingConflict)schedulePendingCloudRetry(500);
+  if(cloudQueuedSnapshot&&cloudSessionReady&&!cloudWriteRunning&&!sibPendingConflict)cloudSaveChain=drainCloudWrites();
+ }
 }
 window.addEventListener("online",()=>{sibPendingRetryDelay=10000;schedulePendingCloudRetry(1500)});
 async function drainCloudWrites(){
@@ -2236,9 +2250,12 @@ async function drainCloudWrites(){
      if(/NetworkError|Failed to fetch|fetch failed|Load failed/i.test(detail)){
       detail="connexion réseau vers Supabase impossible. Vérifiez Internet, l'URL du projet et les règles réseau du navigateur";
      }
-     if(typeof toast==="function")toast("ÉCHEC DE SAUVEGARDE SUPABASE : "+detail+". Aucune copie locale n’a été enregistrée. Vérifiez la connexion puis recommencez l’opération.","er",{sticky:true});
+     if(typeof toast==="function")toast("ÉCHEC DE SAUVEGARDE SUPABASE : "+detail+(stored?". Une copie de récupération est conservée sur cet appareil et sera renvoyée dès que la connexion sera rétablie.":". La copie de récupération n’a pas pu être créée : exportez immédiatement vos données ou réessayez."),"er",{sticky:true});
     }
-    // Pas de reprise automatique depuis un stockage local en mode en ligne strict.
+    if(stored&&!isCloudVersionConflict(err)){
+     sibPendingRetryDelay=Math.min(Math.round(sibPendingRetryDelay*1.8),120000);
+     schedulePendingCloudRetry(sibPendingRetryDelay);
+    }
    }
   }
  }finally{
@@ -2265,8 +2282,11 @@ function save(){
   if(typeof toast==="function")toast("Connexion Internet requise : aucune modification hors ligne n’est enregistrée. Reconnectez-vous puis recommencez.","er",{sticky:true});
   return;
  }
- // Mode strictement en ligne : aucun cliché métier n’est persisté dans le navigateur.
-  cloudQueuedSnapshot=snapshot;
+ // Write-ahead recovery only: the application remains online-only, but a failed
+ // network write must never discard the exact business snapshot being submitted.
+ const recoveryStored=storePendingCloudSnapshot(snapshot);
+ if(!recoveryStored&&typeof toast==="function")toast("Attention : impossible de créer une copie de récupération avant la sauvegarde. Vérifiez l’espace de stockage du navigateur.","er",{sticky:true});
+ cloudQueuedSnapshot=snapshot;
  if(!cloudWriteRunning&&!sibPendingRetryBusy)cloudSaveChain=drainCloudWrites();
 }
 const TI={ok:"M20 6L9 17l-5-5",er:"M12 8v5M12 16h.01M12 2a10 10 0 100 20 10 10 0 000-20z",wa:"M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z",in:"M12 16v-4M12 8h.01M12 2a10 10 0 100 20 10 10 0 000-20z"};
@@ -3015,8 +3035,8 @@ async function boot(){applyLogo();loadSibPublicBranding();
   cloudSessionReady=false;
   try{
    const onlineData=await Promise.race([(async()=>{const current=await window.SIBCloud.currentUser();const remote=window.SIBCloud.isAdminRole(current.membership.role)?await window.SIBCloud.loadAppState():null;let dedicatedProfile=null;try{dedicatedProfile=await window.SIBCloud.loadUserProfile()}catch(profileLoadError){console.warn("SIB: profil dédié indisponible au démarrage; utilisation du profil central en cache.",profileLoadError)}return [current,remote,dedicatedProfile]})(),new Promise((_,reject)=>setTimeout(()=>reject(new Error("Délai de connexion dépassé : Supabase ne répond pas assez vite. Vérifiez la connexion et l’API de données, puis réessayez.")),12000))]);const current=onlineData[0],remote=onlineData[1],dedicatedProfile=onlineData[2];
-   try{localStorage.removeItem(SIB_PENDING_KEY);localStorage.removeItem("sib-conflict-backup-v1")}catch(_){}
-    let pendingCloud=null;
+   let pendingCloud=null;
+   try{pendingCloud=JSON.parse(localStorage.getItem(SIB_PENDING_KEY)||"null")}catch(_){pendingCloud=null}
    const currentIsAdmin=window.SIBCloud.isAdminRole(current.membership.role);
    // Never hydrate a restricted user's session from browser-wide cached JSON:
    // the same browser may previously have been used by an administrator.
@@ -3028,6 +3048,7 @@ async function boot(){applyLogo();loadSibPublicBranding();
    // A different local snapshot is preserved as a recovery archive, then removed
    // from the retry queue so it can never overwrite the central state on reload.
    if(remote?.state){
+    // Online-first policy: Supabase is the single source of truth.
     sibPendingConflict=false;
     if(pendingCloud?.state){
      try{
@@ -3049,8 +3070,11 @@ async function boot(){applyLogo();loadSibPublicBranding();
     }
     S={...D0(),...remote.state};S.set={...D0().set,...S.set};S.set.pre={...D0().set.pre,...S.set.pre};S.set.rh={...D0().set.rh,...S.set.rh};
    }else if(pendingCloud?.state){
-    // No central snapshot is available: keep local data, but do not claim cloud priority.
-    S={...D0(),...pendingCloud.state};S.set={...D0().set,...S.set};S.set.pre={...D0().set.pre,...S.set.pre};S.set.rh={...D0().set.rh,...S.set.rh};
+    // Never hydrate the business workspace from an unconfirmed local snapshot.
+    // Keep it as a recovery artifact and require an explicit administrator choice.
+    S=D0();
+    sibPendingConflict=true;
+    setTimeout(()=>{if(typeof toast==="function")toast("Aucune donnée centrale n’a été confirmée. Une sauvegarde de récupération est conservée sur cet appareil. Téléchargez-la avant de choisir une restauration.","wa",{sticky:true,act:{label:"Télécharger la sauvegarde",fn:downloadPendingCloudBackup}})},500);
    }else{S=D0();}
    }
    const email=current.user.email||"",parts=(email.split("@")[0]||"Administrateur").split(/[._-]+/).filter(Boolean);
