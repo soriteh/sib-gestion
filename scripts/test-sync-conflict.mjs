@@ -11,6 +11,13 @@ assert.match(backup, /sib-conflict-backup-v1/,
 assert.doesNotMatch(backup, /localStorage\.removeItem\(SIB_PENDING_KEY\)/,
   "Downloading a backup must not delete pending data");
 
+assert.match(html, /function storePendingCloudSnapshot\(snapshot\)[\s\S]*localStorage\.setItem\(SIB_PENDING_KEY/,
+  "Failed online writes must preserve a recovery snapshot");
+assert.doesNotMatch(html, /function storePendingCloudSnapshot\(\)\{return false\}/,
+  "Recovery snapshot storage must not be disabled");
+assert.match(html, /const recoveryStored=storePendingCloudSnapshot\(snapshot\)/,
+  "The snapshot must be stored before its cloud write starts");
+
 const bootStart = html.indexOf("async function boot(){");
 const bootEnd = html.indexOf("const info=", bootStart);
 assert.ok(bootStart >= 0 && bootEnd > bootStart, "Boot flow must exist");
