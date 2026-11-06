@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 
 const source = readFileSync("supabase/functions/sib-email-send/index.ts", "utf8");
 const config = readFileSync("supabase/config.toml", "utf8");
+const whatsapp = readFileSync("supabase/functions/sib-whatsapp-send/index.ts", "utf8");
 
 assert.ok(source.includes("const token = auth.replace(/^Bearer\\s+/i, \"\")"),
   "Manual email requests must correctly extract the bearer token");
@@ -24,5 +25,7 @@ assert.equal(source.includes("\\\\n\\\\nNous"), false,
   "Scheduled reminder messages must not contain literal backslash-n text");
 assert.ok(config.includes("[functions.sib-email-send]") && config.includes("verify_jwt = false"),
   "The function must be configured for its explicit bearer/cron authentication checks");
+assert.ok(whatsapp.includes('"Administrateur", "Super Administrateur", "Direction"'),
+  "The Super Administrateur role must be authorized by the WhatsApp edge function");
 
 console.log("Email edge function authentication and validation tests passed.");
