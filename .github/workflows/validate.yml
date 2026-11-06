@@ -46,3 +46,5 @@ jobs:
         run: node scripts/test-private-security-definer-helpers.mjs
       - name: Test AI agent role instructions
         run: node scripts/test-ai-agent-prompt.mjs
+      - name: Test site-admin client denial policy
+        run: node scripts/test-site-admin-access.mjs
