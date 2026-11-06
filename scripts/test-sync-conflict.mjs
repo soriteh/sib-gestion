@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 
 const html = readFileSync("index.html", "utf8");
 const backupStart = html.indexOf("function downloadPendingCloudBackup()");
-const backupEnd = html.indexOf("function isCloudVersionConflict", backupStart);
+const backupEnd = html.indexOf("async function resolveCloudConflict", backupStart);
 assert.ok(backupStart >= 0 && backupEnd > backupStart, "Backup download handler must exist");
 const backup = html.slice(backupStart, backupEnd);
 assert.match(backup, /sib-conflict-backup-v1/,
