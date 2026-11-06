@@ -4,7 +4,7 @@
 
 ## État constaté
 
-- 36 migrations sont enregistrées dans l'historique Supabase.
+- 37 migrations sont enregistrées dans l'historique Supabase.
 - Les fichiers des migrations déjà présentes dans le dépôt ont été renommés pour reprendre exactement leur version enregistrée dans Supabase.
 - Les noms de fichiers dupliqués ou dont l'horodatage ne correspondait pas à l'historique ont ainsi été corrigés.
 - 15 migrations appliquées n'ont toujours pas leur fichier source historique dans le dépôt. Leur contenu exact ne peut pas être reconstitué à partir du seul nom de migration.
