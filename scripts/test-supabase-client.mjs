@@ -9,6 +9,7 @@ function makeHarness({ membershipError = null, stateError = null, bootstrapError
   let signOutCalls = 0;
   const upsertCalls = [];
   const auth = {
+    onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),
     signInWithPassword: async () => ({
       data: { user: { id: "user-1", email: "admin@example.test" } },
       error: null
