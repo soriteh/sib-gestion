@@ -88,7 +88,12 @@ function makeHarness({ membershipError = null, stateError = null, bootstrapError
     }
   };
 
-  vm.runInNewContext(clientSource, { window, console, Promise, String, Number, Error });
+  const localStorage = {
+    getItem() { return null; },
+    setItem() {},
+    removeItem() {}
+  };
+  vm.runInNewContext(clientSource, { window, localStorage, console, Promise, String, Number, Error });
   return { cloud: window.SIBCloud, upsertCalls, get signOutCalls() { return signOutCalls; } };
 }
 
