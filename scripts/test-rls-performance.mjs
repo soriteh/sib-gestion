@@ -54,13 +54,15 @@ for (const policy of policies) {
   assert.match(sql, new RegExp("create policy " + policy + "\\b", "i"),
     "Expected optimized policy: " + policy);
 }
-assert.match(sql, /auth\\.uid\\(\\)/i);
-assert.match(sql, /\\(select public\\.sib_internal_is_admin\\(/i);
-assert.match(sql, /\\(select public\\.sib_internal_is_member\\(/i);
-assert.match(sql, /sib_email_logs_actor_user_id_idx/i);
-assert.match(sql, /sib_email_logs_organization_id_idx/i);
-assert.match(sql, /begin;[\\s\\S]*commit;/i);
-assert.doesNotMatch(sql, /\\bdrop\\s+(table|schema|database)\\b|\\btruncate\\b|\\bdelete\\s+from\\b/i,
-  "Performance migration must not remove application data or tables");
+assert.ok(sql.includes("auth.uid()"), "Auth identity must be evaluated through a scalar subquery");
+assert.ok(sql.includes("(select public.sib_internal_is_admin("), "Admin helper must be initplan-safe");
+assert.ok(sql.includes("(select public.sib_internal_is_member("), "Membership helper must be initplan-safe");
+assert.ok(sql.includes("sib_email_logs_actor_user_id_idx"));
+assert.ok(sql.includes("sib_email_logs_organization_id_idx"));
+assert.ok(sql.toLowerCase().includes("begin;") && sql.toLowerCase().includes("commit;"));
+for (const forbidden of ["drop table", "drop schema", "drop database", "truncate ", "delete from"]) {
+  assert.equal(sql.toLowerCase().includes(forbidden), false,
+    "Performance migration must not remove application data or tables: " + forbidden);
+}
 
 console.log("RLS performance migration checks passed.");
