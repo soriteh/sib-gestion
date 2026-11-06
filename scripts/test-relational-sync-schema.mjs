@@ -48,7 +48,7 @@ assert.match(client, /from\("sib_user_profiles"\)\.upsert/);
 assert.match(client, /await saveUserProfile\(state\.profile\)/);
 console.log("Dedicated user profile persistence checks passed.");
 
-const pushMigration = readFileSync("supabase/migrations/20261025013000_push_notification_subscriptions.sql", "utf8");
+const pushMigration = readFileSync("supabase/migrations/20261025013352_push_notification_subscriptions.sql", "utf8");
 const serviceWorker = readFileSync("service-worker.js", "utf8");
 const app = readFileSync("index.html", "utf8");
 assert.match(app, /if\(window\.SIBCloud\.relationalSyncError\)\{toast\(/,

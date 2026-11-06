@@ -5,7 +5,7 @@ Le centre de communication utilise `sib_internal_notifications`. Les annonces pu
 
 ## Web Push en arrière-plan
 
-1. Appliquer `supabase/migrations/20261025013000_push_notification_subscriptions.sql` (déjà appliquée sur le projet Supabase configuré lors de la mise en place).
+1. Appliquer `supabase/migrations/20261025013352_push_notification_subscriptions.sql` (déjà appliquée sur le projet Supabase configuré lors de la mise en place).
 2. Générer une paire VAPID avec un outil fiable côté développeur. Ne jamais committer la clé privée.
 3. Configurer le secret public côté client `window.SIB_PUSH_PUBLIC_KEY` dans la configuration de déploiement, sans clé privée.
 4. Déployer la fonction `sib-push-send`.
