@@ -71,7 +71,7 @@ Ne déclarer l'application « opérationnelle » qu'après avoir coché les test
 
 ## Corrections de sécurité appliquées le 26 octobre 2026
 
-- [x] La migration `20261026010000_role_scoped_sensitive_data_policies.sql` limite la lecture/écriture des profils au profil propre de l'utilisateur, restreint l'administration des dossiers employés et des présences à Admin/RH/Direction, autorise un employé à lire uniquement ses propres données de présence, et réserve la lecture du journal d'audit à Admin/Direction. Les clients ne peuvent plus modifier ni supprimer les lignes d'audit.
+- [x] La migration `20261026011936_role_scoped_sensitive_data_policies.sql` limite la lecture/écriture des profils au profil propre de l'utilisateur, restreint l'administration des dossiers employés et des présences à Admin/RH/Direction, autorise un employé à lire uniquement ses propres données de présence, et réserve la lecture du journal d'audit à Admin/Direction. Les clients ne peuvent plus modifier ni supprimer les lignes d'audit.
 - [x] Migration appliquée sur le projet Supabase connecté ; règles actives et privilèges du journal vérifiés par requête SQL.
 - [x] Le test `scripts/test-role-data-security.mjs` est intégré à GitHub Actions ; l'exécution `40253664375` est réussie : https://github.com/soriteh/sib-gestion/actions/runs/40253664375.
 

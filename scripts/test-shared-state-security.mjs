@@ -3,11 +3,11 @@ import { readFileSync } from "node:fs";
 
 const migration = readFileSync("supabase/06_secure_shared_app_state.sql", "utf8");
 const latestHardening = readFileSync(
-  "supabase/migrations/20261025060000_restrict_shared_state_writes_to_admins.sql",
+  "supabase/migrations/20261025150916_restrict_shared_state_writes_to_admins.sql",
   "utf8"
 );
 const messagingHardening = readFileSync(
-  "supabase/migrations/20261025070000_fix_internal_message_membership_policy.sql",
+  "supabase/migrations/20261025150958_fix_internal_message_membership_policy.sql",
   "utf8"
 );
 assert.match(migration, /create policy sib_app_state_admin_read/i);

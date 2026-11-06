@@ -11,9 +11,9 @@ Projet Supabase : `czixjpeceofdtaqoqtva`
 L'application présente réellement une architecture web monopage HTML/CSS/JavaScript avec un client Supabase, un service worker, des scripts Node.js de validation et des migrations SQL. Aucun `package.json`, pipeline React/TypeScript, lint applicatif ou test navigateur n'a été trouvé dans le dépôt. Il serait incorrect d'affirmer que des contrôles React/TypeScript ou un build npm ont été exécutés.
 
 Trois migrations additives ont été appliquées à Supabase. Elles ne suppriment ni tables ni lignes :
-- `20261026020000_role_scoped_module_access.sql`
-- `20261026030000_financial_write_integrity.sql`
-- `20261026040000_index_uncovered_foreign_keys.sql`
+- `20261026081355_role_scoped_module_access.sql`
+- `20261026081613_financial_write_integrity.sql`
+- `20261026081655_index_uncovered_foreign_keys.sql`
 
 ## Corrections effectuées
 

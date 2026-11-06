@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const migration = readFileSync(
-  "supabase/migrations/20261026010000_role_scoped_sensitive_data_policies.sql",
+  "supabase/migrations/20261026011936_role_scoped_sensitive_data_policies.sql",
   "utf8"
 );
 

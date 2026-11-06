@@ -29,7 +29,7 @@ SIB Gestion est une application web monopage déployée sur GitHub Pages, avec u
 - `supabase/04_shared_app_state.sql` et `supabase/06_secure_shared_app_state.sql` : état central et lecture limitée aux administrateurs.
 - `supabase/07_align_relational_sync.sql` : compatibilité de synchronisation Clients/Services.
 - `supabase/08_user_profiles.sql` et `supabase/09_fix_avatar_data_url.sql` : stockage des profils utilisateur et correctif de colonne photo.
-- `supabase/migrations/20261026010000_role_scoped_sensitive_data_policies.sql` : règles RLS renforcées pour profils, RH, présences et journal d'audit. Migration appliquée sur le projet Supabase connecté.
+- `supabase/migrations/20261026011936_role_scoped_sensitive_data_policies.sql` : règles RLS renforcées pour profils, RH, présences et journal d'audit. Migration appliquée sur le projet Supabase connecté.
 
 La présence d'un script dans GitHub ne signifie pas à elle seule qu'il a été exécuté dans Supabase. Pour cette dernière migration, l'exécution et les politiques actives ont été vérifiées sur le projet cible. Ne jamais exposer de clé `service_role`, mot de passe ou jeton dans le frontend.
 

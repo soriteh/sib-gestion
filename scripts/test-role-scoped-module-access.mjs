@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-const path = new URL("../supabase/migrations/20261026020000_role_scoped_module_access.sql", import.meta.url);
+const path = new URL("../supabase/migrations/20261026081355_role_scoped_module_access.sql", import.meta.url);
 const sql = readFileSync(path, "utf8");
 
 assert.match(sql, /^-- Role-scoped access/m);
@@ -62,7 +62,7 @@ for (const policy of broadPolicies) {
 }
 
 
-const integrityPath = new URL("../supabase/migrations/20261026030000_financial_write_integrity.sql", import.meta.url);
+const integrityPath = new URL("../supabase/migrations/20261026081613_financial_write_integrity.sql", import.meta.url);
 const integritySql = readFileSync(integrityPath, "utf8");
 assert.match(integritySql, /\bbegin\s*;/i);
 assert.match(integritySql, /\bcommit\s*;/i);
@@ -84,7 +84,7 @@ for (const table of ["sib_payments", "sib_expenses", "sib_financial_accounts", "
 }
 
 
-const indexPath = new URL("../supabase/migrations/20261026040000_index_uncovered_foreign_keys.sql", import.meta.url);
+const indexPath = new URL("../supabase/migrations/20261026081655_index_uncovered_foreign_keys.sql", import.meta.url);
 const indexSql = readFileSync(indexPath, "utf8");
 assert.match(indexSql, /\bbegin\s*;/i);
 assert.match(indexSql, /\bcommit\s*;/i);
