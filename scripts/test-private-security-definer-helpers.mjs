@@ -30,6 +30,7 @@ assert.equal((sql.match(/security invoker/gi) || []).length, 9,
   "Every public compatibility wrapper must be SECURITY INVOKER");
 assert.ok(sql.includes("revoke all on schema private from public, anon"));
 assert.ok(sql.includes("grant usage on schema private to authenticated, service_role"));
+assert.ok(sql.includes("revoke all on table public.sib_site_admins from public, anon, authenticated"));
 assert.ok(sql.toLowerCase().includes("begin;") && sql.toLowerCase().includes("commit;"));
 for (const forbidden of ["drop table", "drop schema", "drop database", "truncate ", "delete from"]) {
   assert.equal(sql.toLowerCase().includes(forbidden), false,
