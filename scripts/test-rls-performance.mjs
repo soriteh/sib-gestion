@@ -59,6 +59,10 @@ assert.ok(sql.includes("(select public.sib_internal_is_admin("), "Admin helper m
 assert.ok(sql.includes("(select public.sib_internal_is_member("), "Membership helper must be initplan-safe");
 assert.ok(sql.includes("sib_email_logs_actor_user_id_idx"));
 assert.ok(sql.includes("sib_email_logs_organization_id_idx"));
+assert.match(sql, /create or replace function public\\.sib_internal_is_admin/i);
+assert.ok(sql.includes("'super administrateur'"), "Super Administrateur role alias must be recognized");
+assert.match(sql, /create policy sib_whatsapp_contacts_manage/i);
+assert.match(sql, /create policy sib_whatsapp_logs_read/i);
 assert.ok(sql.toLowerCase().includes("begin;") && sql.toLowerCase().includes("commit;"));
 for (const forbidden of ["drop table", "drop schema", "drop database", "truncate ", "delete from"]) {
   assert.equal(sql.toLowerCase().includes(forbidden), false,
