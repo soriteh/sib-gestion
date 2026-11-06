@@ -42,3 +42,5 @@ jobs:
         run: node scripts/test-rls-performance.mjs
       - name: Test email edge function authentication and validation
         run: node scripts/test-email-edge-function.mjs
+      - name: Test private SECURITY DEFINER helpers
+        run: node scripts/test-private-security-definer-helpers.mjs
