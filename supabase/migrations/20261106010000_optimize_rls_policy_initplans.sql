@@ -1,4 +1,79 @@
 -- SIB Gestion: avoid per-row re-evaluation of auth context in RLS policies.
+-- Keep the Super Administrateur role aligned with the administrator checks.
+-- The role exists in production memberships and must have the same internal
+-- communication and attendance administration privileges as other admins.
+create or replace function public.sib_internal_is_admin(p_org uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $function$
+  select exists (
+    select 1
+    from public.organization_memberships m
+    where m.organization_id = p_org
+      and m.user_id = (select auth.uid())
+      and m.active = true
+      and lower(trim(coalesce(m.role,''))) = any(array[
+        'administrateur','admin','direction',
+        'super_admin','super admin','super administrateur'
+      ]::text[])
+  );
+$function$;
+
+drop policy if exists sib_whatsapp_contacts_manage on public.sib_whatsapp_contacts;
+create policy sib_whatsapp_contacts_manage
+on public.sib_whatsapp_contacts
+for all to authenticated
+using (
+  organization_id = '6070dc4b-5c5e-402c-911b-735cb754d241'::uuid
+  and exists (
+    select 1
+    from public.organization_memberships m
+    where m.user_id = (select auth.uid())
+      and m.organization_id = sib_whatsapp_contacts.organization_id
+      and m.active = true
+      and lower(trim(coalesce(m.role,''))) = any(array[
+        'administrateur','admin','direction','rh',
+        'super_admin','super admin','super administrateur'
+      ]::text[])
+  )
+)
+with check (
+  organization_id = '6070dc4b-5c5e-402c-911b-735cb754d241'::uuid
+  and exists (
+    select 1
+    from public.organization_memberships m
+    where m.user_id = (select auth.uid())
+      and m.organization_id = sib_whatsapp_contacts.organization_id
+      and m.active = true
+      and lower(trim(coalesce(m.role,''))) = any(array[
+        'administrateur','admin','direction','rh',
+        'super_admin','super admin','super administrateur'
+      ]::text[])
+  )
+);
+
+drop policy if exists sib_whatsapp_logs_read on public.sib_whatsapp_message_log;
+create policy sib_whatsapp_logs_read
+on public.sib_whatsapp_message_log
+for select to authenticated
+using (
+  organization_id = '6070dc4b-5c5e-402c-911b-735cb754d241'::uuid
+  and exists (
+    select 1
+    from public.organization_memberships m
+    where m.user_id = (select auth.uid())
+      and m.organization_id = sib_whatsapp_message_log.organization_id
+      and m.active = true
+      and lower(trim(coalesce(m.role,''))) = any(array[
+        'administrateur','admin','direction','rh','comptable',
+        'super_admin','super admin','super administrateur'
+      ]::text[])
+  )
+);
+
 -- This migration changes policy expressions only; it preserves the existing role
 -- boundaries and all rows. It also adds indexes for the two uncovered email-log FKs.
 begin;
