@@ -3047,7 +3047,8 @@ async function boot(){applyLogo();loadSibPublicBranding();
    // Online-first policy: Supabase is the single source of truth.
    // A different local snapshot is preserved as a recovery archive, then removed
    // from the retry queue so it can never overwrite the central state on reload.
-   // Online-first policy: Supabase is the single source of truth.\n   if(remote?.state){
+   // Online-first policy: Supabase is the single source of truth.
+   if(remote?.state){
     sibPendingConflict=false;
     if(pendingCloud?.state){
      try{
