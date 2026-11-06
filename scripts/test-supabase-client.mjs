@@ -11,7 +11,10 @@ function makeHarness({ membershipError = null, stateError = null, bootstrapError
   const auth = {
     onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),
     signInWithPassword: async () => ({
-      data: { user: { id: "user-1", email: "admin@example.test" } },
+      data: {
+        user: { id: "user-1", email: "admin@example.test" },
+        session: { user: { id: "user-1" } }
+      },
       error: null
     }),
     signUp: async () => ({
