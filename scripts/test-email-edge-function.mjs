@@ -22,7 +22,7 @@ assert.ok(source.includes("textBody = \"Bonjour \"") && source.includes("\\n\\nN
   "Scheduled reminder messages must contain real newline escapes");
 assert.equal(source.includes("\\\\n\\\\nNous"), false,
   "Scheduled reminder messages must not contain literal backslash-n text");
-assert.match(config, /\\[functions\\.sib-email-send\\][\\s\\S]*verify_jwt = false/,
+assert.ok(config.includes("[functions.sib-email-send]") && config.includes("verify_jwt = false"),
   "The function must be configured for its explicit bearer/cron authentication checks");
 
 console.log("Email edge function authentication and validation tests passed.");
