@@ -65,6 +65,10 @@ function makeHarness({ membershipError = null, stateError = null, bootstrapError
   }
 
   const window = {
+    addEventListener() {},
+    removeEventListener() {},
+    setTimeout() { return 1; },
+    clearTimeout() {},
     SIB_SUPABASE_CONFIG: {
       url: "https://example-project.supabase.co",
       publishableKey: "test-publishable-key",
