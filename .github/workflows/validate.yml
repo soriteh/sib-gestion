@@ -44,3 +44,5 @@ jobs:
         run: node scripts/test-email-edge-function.mjs
       - name: Test private SECURITY DEFINER helpers
         run: node scripts/test-private-security-definer-helpers.mjs
+      - name: Test AI agent role instructions
+        run: node scripts/test-ai-agent-prompt.mjs
