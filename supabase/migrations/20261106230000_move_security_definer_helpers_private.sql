@@ -6,6 +6,7 @@ begin;
 create schema if not exists private;
 revoke all on schema private from public, anon;
 grant usage on schema private to authenticated, service_role;
+revoke all on table public.sib_site_admins from public, anon, authenticated;
 
 alter function public.sib_internal_can_add_conversation_member(uuid, uuid) set schema private;
 alter function public.sib_internal_can_manage_conversation(uuid) set schema private;
