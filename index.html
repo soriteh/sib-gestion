@@ -1987,6 +1987,7 @@ function montantEnLettresAvecDevise(value){
 }
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let cloudSessionReady=false,cloudSaveChain=Promise.resolve(),cloudSaveErrorAt=0,cloudQueuedSnapshot=null,cloudWriteRunning=false;
+function isMissingCloudSessionError(error){return /session absente|session.*(?:expir|missing)|auth session missing/i.test(String(error?.message||error||""));}
 let cloudChannel=null,cloudRealtimeRefreshBusy=false,cloudRealtimeRefreshQueued=false;
 function cloudHasActiveEdit(){
  const active=document.activeElement;
@@ -2243,14 +2244,19 @@ async function drainCloudWrites(){
      stopForCloudConflict(snapshot,err);
      break;
     }
+    if(isMissingCloudSessionError(err)){
+     cloudSessionReady=false;
+     const now=Date.now();
+     if(now-cloudSaveErrorAt>3000){
+      cloudSaveErrorAt=now;
+      if(typeof toast==="function")toast("Votre session doit être rétablie. Reconnectez-vous puis recommencez l’opération.","wa",{ms:6000});
+     }
+     break;
+    }
     const now=Date.now();
     if(now-cloudSaveErrorAt>3000){
      cloudSaveErrorAt=now;
-     let detail=err?.message||"Erreur inconnue";
-     if(/NetworkError|Failed to fetch|fetch failed|Load failed/i.test(detail)){
-      detail="connexion réseau vers Supabase impossible. Vérifiez Internet, l'URL du projet et les règles réseau du navigateur";
-     }
-     if(typeof toast==="function")toast("ÉCHEC DE SAUVEGARDE SUPABASE : "+detail+(stored?". Une copie de récupération est conservée sur cet appareil et sera renvoyée dès que la connexion sera rétablie.":". La copie de récupération n’a pas pu être créée : exportez immédiatement vos données ou réessayez."),"er",{sticky:true});
+     if(typeof toast==="function")toast("La synchronisation est momentanément indisponible. Vérifiez votre connexion puis réessayez.","wa",{ms:6000});
     }
     if(stored&&!isCloudVersionConflict(err)){
      sibPendingRetryDelay=Math.min(Math.round(sibPendingRetryDelay*1.8),120000);
@@ -2269,7 +2275,7 @@ function save(){
   return;
  }
  if(!window.SIBCloud?.ready||!cloudSessionReady){
-  if(typeof toast==="function")toast("Sauvegarde refusée : aucune session Supabase active. Reconnectez-vous avant de modifier les données.","er");
+  if(typeof toast==="function")toast("Votre session doit être rétablie pour synchroniser les modifications.","wa",{ms:6000});
   return;
  }
  if(CU?.cloud&&!window.SIBCloud.isAdminRole(RO)){
