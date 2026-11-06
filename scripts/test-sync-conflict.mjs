@@ -26,8 +26,16 @@ assert.match(boot, /if\(remote\?\.state\)[\s\S]*Supabase is the single source of
   "Central Supabase state must be authoritative when available");
 assert.match(boot, /localStorage\.setItem\("sib-conflict-backup-v1",JSON\.stringify\(archive\)\)[\s\S]*localStorage\.removeItem\(SIB_PENDING_KEY\)/,
   "A differing local snapshot must be archived before it is removed from the automatic retry queue");
-assert.doesNotMatch(boot, /sibPendingConflict=true/,
+const remoteBranch = boot.slice(boot.indexOf("if(remote?.state)"), boot.indexOf("}else if(pendingCloud?.state)"));
+assert.doesNotMatch(remoteBranch, /sibPendingConflict=true/,
   "An archived stale snapshot must not keep the application blocked");
+const noRemoteBranch = boot.slice(boot.indexOf("}else if(pendingCloud?.state)"), boot.indexOf("}else{S=D0();}"));
+assert.match(noRemoteBranch, /S=D0\(\)/,
+  "Unconfirmed local business data must never hydrate the online workspace");
+assert.match(noRemoteBranch, /sibPendingConflict=true/,
+  "A recovery snapshot without a central state must require explicit administrator resolution");
+assert.doesNotMatch(noRemoteBranch, /S=\{\.\.\.D0\(\),\.\.\.pendingCloud\.state\}/,
+  "Unconfirmed local data must not be silently treated as canonical");
 assert.match(boot, /Les données centrales sont actives\. Une copie de sécurité/,
   "The user must be informed that central data is active and a recovery copy exists");
 
