@@ -3,6 +3,7 @@
 -- boundaries and all rows. It also adds indexes for the two uncovered email-log FKs.
 begin;
 
+drop policy if exists sib_attendance_checkins_admin_read on public.sib_attendance_checkins;
 drop policy if exists sib_attendance_checkins_read_self on public.sib_attendance_checkins;
 create policy sib_attendance_checkins_read_self
 on public.sib_attendance_checkins
