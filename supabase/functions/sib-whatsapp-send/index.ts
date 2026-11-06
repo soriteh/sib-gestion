@@ -51,7 +51,7 @@ Deno.serve(async (req: Request) => {
     .select("role,active").eq("organization_id", organizationId).eq("user_id", auth.user.id).eq("active", true).limit(1);
   if (membershipError) return json(500, { error: "Vérification des autorisations impossible." });
   const membership = memberships?.[0];
-  if (!membership || !["Administrateur", "Direction", "RH", "Comptable", "Commercial"].includes(membership.role)) {
+  if (!membership || !["Administrateur", "Super Administrateur", "Direction", "RH", "Comptable", "Commercial"].includes(membership.role)) {
     return json(403, { error: "Votre rôle SIB n’est pas autorisé à envoyer des messages WhatsApp." });
   }
 
