@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const sql = readFileSync(
-  "supabase/migrations/20261106010000_optimize_rls_policy_initplans.sql",
+  "supabase/migrations/20261106215425_optimize_rls_policy_initplans.sql",
   "utf8"
 );
 const policies = [
