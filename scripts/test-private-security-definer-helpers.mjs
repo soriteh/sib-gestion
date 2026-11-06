@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const sql = readFileSync(
-  "supabase/migrations/20261106230000_move_security_definer_helpers_private.sql",
+  "supabase/migrations/20261106220051_move_security_definer_helpers_private.sql",
   "utf8"
 );
 const names = [
