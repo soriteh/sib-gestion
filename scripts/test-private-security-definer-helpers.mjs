@@ -26,7 +26,7 @@ for (const name of names) {
   assert.ok(sql.includes("grant execute on function public." + name + "("),
     "Expected authenticated compatibility wrapper grant for " + name);
 }
-assert.equal((sql.match(/security invoker/gi) || []).length, 9,
+assert.equal((sql.match(/language sql stable security invoker/gi) || []).length, 9,
   "Every public compatibility wrapper must be SECURITY INVOKER");
 assert.ok(sql.includes("revoke all on schema private from public, anon"));
 assert.ok(sql.includes("grant usage on schema private to authenticated, service_role"));
