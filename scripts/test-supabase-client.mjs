@@ -49,6 +49,7 @@ function makeHarness({ membershipError = null, stateError = null, bootstrapError
           if (stateError) return { data: null, error: stateError };
           return { data: { state: {}, version: 1, updated_at: "2026-01-01T00:00:00Z" }, error: null };
         }
+        if (table === "sib_user_profiles") return { data: null, error: null };
         throw new Error("Unexpected maybeSingle query: " + table);
       },
       then(resolve, reject) {
