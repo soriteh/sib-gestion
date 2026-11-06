@@ -17,6 +17,12 @@ assert.doesNotMatch(html, /function storePendingCloudSnapshot\(\)\{return false\
   "Recovery snapshot storage must not be disabled");
 assert.match(html, /const recoveryStored=storePendingCloudSnapshot\(snapshot\)/,
   "The snapshot must be stored before its cloud write starts");
+assert.doesNotMatch(html, /ÉCHEC DE SAUVEGARDE SUPABASE|Session absente\. Connectez-vous avec votre compte SIB|Aucune copie locale n’a été enregistrée/,
+  "Internal Supabase/session errors must never be shown to the end user");
+assert.match(html, /Votre session doit être rétablie\. Reconnectez-vous puis recommencez l’opération\./,
+  "A missing session must produce a short user-friendly recovery message");
+assert.match(html, /if\(isMissingCloudSessionError\(err\)\)[\s\S]*cloudSessionReady=false[\s\S]*break;/,
+  "A missing Auth session must stop the write queue instead of repeatedly showing technical errors");
 
 const bootStart = html.indexOf("async function boot(){");
 const bootEnd = html.indexOf("const info=", bootStart);
