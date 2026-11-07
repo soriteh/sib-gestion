@@ -611,8 +611,13 @@ table thead th{font-size:10px}
 header.top{padding-top:10px;padding-bottom:10px}
 header.top h1{font-size:clamp(17px,1.8vw,21px)}
 /* Barre supérieure persistante : le contenu défile indépendamment */
-header.top{position:fixed!important;top:env(safe-area-inset-top,0px)!important;left:var(--sw)!important;right:0!important;z-index:100!important;width:auto!important}
+header.top{position:fixed!important;top:env(safe-area-inset-top,0px)!important;left:264px!important;right:0!important;z-index:100!important;width:auto!important}
+body.col2 header.top{left:78px!important}
 .col{padding-top:92px}
+@media(max-width:900px) and (min-width:721px){
+ header.top{left:250px!important}
+ body.col2 header.top{left:78px!important}
+}
 @media(max-width:720px){
  header.top{left:0!important;right:0!important}
  .col{padding-top:78px}
