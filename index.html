@@ -1890,11 +1890,36 @@ input,select,textarea,button{max-width:100%}
 #fac .sib-invoice-empty{padding:26px!important;text-align:center!important;color:var(--mu)!important;background:var(--sf)!important;border:1px solid var(--ln)!important}
 @media(max-width:700px){#fac .sib-invoice-box{padding:12px!important}}
 </style>
+
+<style id="sib-global-search-style">
+.sib-global-search{position:relative;display:flex;align-items:center;gap:9px;width:clamp(190px,25vw,330px);height:38px;min-width:160px;padding:0 10px;border:1px solid var(--ln);border-radius:11px;background:var(--sf);color:var(--mu);flex:none;transition:border-color .2s,box-shadow .2s,background .2s}
+.sib-global-search:focus-within{border-color:var(--ac);box-shadow:0 0 0 3px color-mix(in srgb,var(--ac) 14%,transparent)}
+.sib-global-search>svg{width:17px;height:17px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round}
+.sib-global-search input{width:100%;min-width:0;height:100%;padding:0!important;border:0!important;outline:0!important;background:transparent!important;color:var(--tx)!important;font:inherit;font-size:12px!important;box-shadow:none!important}
+.sib-global-search input::placeholder{color:var(--mu);opacity:.9}
+.sib-global-search kbd{flex:none;padding:2px 5px;border:1px solid var(--ln);border-radius:5px;color:var(--mu);font-size:10px;white-space:nowrap}
+.sib-global-search-results{position:absolute;z-index:10000;top:calc(100% + 9px);left:0;width:min(420px,calc(100vw - 30px));max-height:min(65vh,460px);overflow:auto;padding:6px;border:1px solid var(--ln);border-radius:13px;background:var(--sf);color:var(--tx);box-shadow:0 16px 42px rgba(0,0,0,.2)}
+.sib-global-search-results.hide{display:none!important}
+.sib-global-search-result{display:flex;flex-direction:column;gap:3px;width:100%;padding:10px 11px;border:0;border-radius:8px;background:transparent;color:var(--tx);text-align:left;cursor:pointer}
+.sib-global-search-result:hover,.sib-global-search-result:focus{outline:0;background:var(--ac2)}
+.sib-global-search-result strong{font-size:12px;font-weight:700}
+.sib-global-search-result small{font-size:11px;color:var(--mu);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sib-global-search-empty{padding:15px 12px;color:var(--mu);font-size:12px}
+@media(max-width:900px){.sib-global-search{width:clamp(155px,23vw,230px)}.sib-global-search kbd{display:none}}
+@media(max-width:720px){.sib-global-search{width:36px;min-width:36px;height:36px;padding:0;justify-content:center;border-radius:10px}.sib-global-search>svg{width:18px;height:18px}.sib-global-search input{position:absolute;left:0;top:calc(100% + 9px);z-index:10001;display:none;width:min(280px,calc(100vw - 28px));height:40px;padding:0 12px!important;border:1px solid var(--ln)!important;border-radius:10px;background:var(--sf)!important;box-shadow:0 10px 30px rgba(0,0,0,.16)!important}.sib-global-search:focus-within input{display:block}.sib-global-search kbd{display:none}.sib-global-search-results{top:calc(100% + 56px);left:auto;right:0;width:min(340px,calc(100vw - 28px))}.sib-global-search:focus-within{border-color:var(--ac)}}
+@media(max-width:420px){.top{gap:5px}.sib-global-search{width:34px;min-width:34px;height:34px}}
+</style>
 </head><body>
 <div id="sib-startup" role="status" aria-live="polite"><div class="sib-startup-inner"><div class="sib-startup-logo" aria-hidden="true">SIB</div><div class="sib-startup-name">SIB Gestion</div><div class="sib-startup-label">Chargement de votre espace…</div><div class="sib-startup-track" aria-hidden="true"></div></div></div>
 <div class="app">
 <nav aria-label="Menu principal"><div class="br"><div class="mk">SIB</div><div><b id="bnm">SIB Gestion</b><small>Innover • Connecter • Développer</small></div></div><div id="nv"></div><div class="ft"><div class="me" data-go="prof" title="Mon profil"><span class="av2" id="unm0"></span><div><b id="unm"></b><small id="urr"></small></div></div><button class="lob" data-u="out">Se déconnecter</button></div></nav>
-<div class="col"><header class="top"><button id="mb" aria-label="Ouvrir le menu"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button><button id="cbt" class="ib" aria-label="Réduire ou agrandir le menu"><svg viewBox="0 0 24 24"><path d="M11 17l-5-5 5-5M18 17l-5-5 5-5"/></svg></button><h1 id="pt"></h1><span class="sp"></span><span id="dd" aria-live="off"></span><button class="ib" id="rfb" aria-label="Actualiser"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 11-3-6.7L21 8M21 3v5h-5"/></svg></button><button class="theme-manual" id="themeModeButton" type="button" aria-label="Changer le mode du thème" title="Mode automatique selon l’heure"></button><span class="rel"><button class="ib" id="blb" aria-label="Notifications"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0"/></svg><i class="bg hide" id="bcn"></i></button><div class="pp hide" id="npp"></div></span><span class="rel"><button class="av" id="avb" aria-label="Profil utilisateur"></button><div class="pp hide" id="amm"></div></span></header><main>
+<div class="col"><header class="top"><button id="mb" aria-label="Ouvrir le menu"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button><button id="cbt" class="ib" aria-label="Réduire ou agrandir le menu"><svg viewBox="0 0 24 24"><path d="M11 17l-5-5 5-5M18 17l-5-5 5-5"/></svg></button><h1 id="pt"></h1><span class="sp"></span><div class="sib-global-search" id="sib-global-search-wrap">
+ <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.2 4.2"/></svg>
+ <input id="sib-global-search" type="search" placeholder="Rechercher dans SIB Gestion…" autocomplete="off" aria-label="Recherche globale" aria-controls="sib-global-search-results" aria-expanded="false">
+ <kbd>Ctrl K</kbd>
+ <div id="sib-global-search-results" class="sib-global-search-results hide" role="listbox" aria-label="Résultats de recherche"></div>
+</div>
+<span id="dd" aria-live="off"></span><button class="ib" id="rfb" aria-label="Actualiser"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 11-3-6.7L21 8M21 3v5h-5"/></svg></button><button class="theme-manual" id="themeModeButton" type="button" aria-label="Changer le mode du thème" title="Mode automatique selon l’heure"></button><span class="rel"><button class="ib" id="blb" aria-label="Notifications"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0"/></svg><i class="bg hide" id="bcn"></i></button><div class="pp hide" id="npp"></div></span><span class="rel"><button class="av" id="avb" aria-label="Profil utilisateur"></button><div class="pp hide" id="amm"></div></span></header><main>
 <section id="dash"></section>
 <section id="relance" class="hide"></section>
 <section id="sale" class="hide">
@@ -2457,7 +2482,96 @@ function printSibDocument(source,kind){
  const css='*{box-sizing:border-box}body{margin:0;padding:18px;background:#fff;color:#111;font:12px/1.45 Arial,sans-serif}.paper{max-width:190mm;margin:0 auto}.sib-doc-head{display:flex;gap:12px;align-items:center;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #d8deea}.sib-doc-head img{display:block;max-height:52px;max-width:125px;object-fit:contain}.sib-doc-head b{font-size:14px}.sib-doc-head small{font-size:10px;color:#333}.box{display:block;width:100%;margin:0;padding:0;border:0;border-radius:0;box-shadow:none;background:#fff;color:#111;overflow:visible}.tw{display:block;overflow:visible}table{width:100%;border-collapse:collapse;font-size:11px;margin:10px 0}thead{display:table-header-group}tr{break-inside:avoid}td,th{padding:7px 5px;border-bottom:1px solid #ddd;text-align:left;color:#111}th{font-weight:bold;background:#f4f6f8}.r{text-align:right}.tot{margin-top:12px;padding-top:8px;border-top:2px solid #111;text-align:right;font-size:14px;font-weight:bold;color:#111}.noprint,button{display:none!important}h2{font-size:17px;color:#111;margin:0 0 12px}p{margin:8px 0;color:#111}';
  const isPayroll=kind==="payroll";const pageCss=isPayroll?'@page{size:A4 portrait;margin:10mm}.paper{width:190mm;max-width:100%;margin:0 auto}.paper>.print-doc{width:100%;position:relative;isolation:isolate;overflow:hidden;min-height:255mm;padding:0}.paper .payroll-watermark{position:absolute;z-index:0;left:50%;top:50%;transform:translate(-50%,-50%);width:118mm;height:118mm;object-fit:contain;opacity:.09;pointer-events:none;print-color-adjust:exact;-webkit-print-color-adjust:exact}.paper .payroll-content{position:relative;z-index:1}.paper table{width:100%;font-size:11px}.paper td,.paper th{padding:7px 8px}.paper .payroll-amount-words{margin-top:10px;padding:9px 11px;border:1px solid #cbd5e1;border-radius:5px;font-size:11px;position:relative;background:rgba(255,255,255,.72)}.paper .tot{font-size:15px}':(isReceipt||isThermal)?'@page{size:80mm auto;margin:3mm}.paper{width:74mm;max-width:74mm;margin:0}.paper>.print-doc{width:100%;min-height:0;display:block}.paper .row{display:block!important}.paper .row>div{display:block;width:100%;margin-bottom:5px}.paper table{width:100%;table-layout:fixed;font-size:9px;margin:6px 0}.paper th,.paper td{padding:3px 1px;overflow-wrap:anywhere}.paper .print-doc th:nth-child(1),.paper .print-doc td:nth-child(1){width:8%}.paper .print-doc th:nth-child(2),.paper .print-doc td:nth-child(2){width:38%}.paper .print-doc th:nth-child(3),.paper .print-doc td:nth-child(3){width:10%}.paper .print-doc th:nth-child(4),.paper .print-doc td:nth-child(4){width:21%}.paper .print-doc th:nth-child(5),.paper .print-doc td:nth-child(5){width:23%}body{padding:0;font-size:10px}.sib-doc-head img{max-height:14mm;max-width:25mm}.sib-doc-head{gap:3mm;padding-bottom:3mm;margin-bottom:3mm}h2{font-size:14px}.tot{font-size:12px}.doc-footer{margin-top:6px;padding-top:4px;font-size:8px}.signature-block{display:none!important}':'@page{size:A5 portrait;margin:8mm}.paper{display:block;width:132mm;max-width:100%;min-height:0;margin:0 auto}.paper>.print-doc{display:block;width:100%;min-height:0;max-width:100%;overflow:visible}.paper .row{display:flex;flex-direction:row;align-items:flex-start;gap:12px;width:100%}.paper .row>div{flex:1 1 0;min-width:0;overflow-wrap:anywhere}.paper table{width:100%;table-layout:auto}.signature-block{margin-top:18px!important}.doc-footer{margin-top:14px;padding-top:5mm;border-top:1px solid #cbd5e1;text-align:center;font-size:9px;line-height:1.5;color:#475569}.doc-footer strong{font-size:10px;color:#172033}.doc-footer span{font-style:italic}';
  w.document.open();
- w.document.write('<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>'+ (isReceipt?'Reçu de caisse SIB':'Document SIB')+'</title><style>'+css+pageCss+sibPrintWatermarkCss+'</style></head><body>'+sibPrintWatermark()+'<div class="paper">'+content+'</div><script>window.addEventListener("load",function(){setTimeout(function(){window.focus();window.print()},300)});window.addEventListener("afterprint",function(){setTimeout(function(){window.close()},300)});<\/script><script src="./documents-administratifs.js"><\/script></body></html>');
+ w.document.write('<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>'+ (isReceipt?'Reçu de caisse SIB':'Document SIB')+'</title><style>'+css+pageCss+sibPrintWatermarkCss+'</style></head><body>'+sibPrintWatermark()+'<div class="paper">'+content+'</div><script>window.addEventListener("load",function(){setTimeout(function(){window.focus();window.print()},300)});window.addEventListener("afterprint",function(){setTimeout(function(){window.close()},300)});<\/script><script src="./documents-administratifs.js"><\/script>
+<script id="sib-global-search-script">
+(function(){
+ "use strict";
+ function initSibGlobalSearch(){
+  const input=document.getElementById("sib-global-search");
+  const wrap=document.getElementById("sib-global-search-wrap");
+  const panel=document.getElementById("sib-global-search-results");
+  if(!input||!wrap||!panel||wrap.dataset.ready==="1")return;
+  wrap.dataset.ready="1";
+  let matches=[];
+  const norm=v=>String(v||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLowerCase().trim();
+  const sectionName=id=>{
+   const active=document.querySelector('#nv button[data-v="'+CSS.escape(id)+'"]');
+   if(active)return (active.innerText||active.textContent||"").trim();
+   const title=document.querySelector("#"+CSS.escape(id)+" h2");
+   return title?(title.innerText||title.textContent||"").trim():id;
+  };
+  function close(){panel.classList.add("hide");input.setAttribute("aria-expanded","false");matches=[]}
+  function addResult(label,detail,section,el,score){
+   matches.push({label,detail,section,el,score});
+  }
+  function search(q){
+   panel.innerHTML="";matches=[];
+   const needle=norm(q);
+   if(needle.length<2){close();return}
+   document.querySelectorAll("main section[id]").forEach(section=>{
+    const sid=section.id;
+    if(["lgn"].includes(sid))return;
+    const candidates=section.querySelectorAll("tr,.box,.k,.card,.panel,article,h2,h3,h4,[data-search]");
+    const seen=new Set();
+    candidates.forEach(el=>{
+     if(seen.size>=8)return;
+     if(el.closest("#sib-global-search-results"))return;
+     const txt=(el.innerText||el.textContent||"").replace(/\\s+/g," ").trim();
+     const n=norm(txt);
+     if(!txt||txt.length>900||!n.includes(needle))return;
+     let parent=el.parentElement;
+     while(parent&&parent!==section&&parent.matches("tr,.box,.k,.card,.panel,article")&&norm(parent.innerText||"").includes(needle)&&((parent.innerText||"").length<900)) {el=parent;parent=el.parentElement}
+     const key=sid+"|"+norm((el.innerText||el.textContent||"").slice(0,180));
+     if(seen.has(key))return;seen.add(key);
+     const excerpt=(el.innerText||el.textContent||"").replace(/\\s+/g," ").trim();
+     const idx=norm(excerpt).indexOf(needle);
+     const label=excerpt.length>95?excerpt.slice(Math.max(0,idx-30),Math.min(excerpt.length,idx+65)):excerpt;
+     addResult(label,sectionName(sid),sid,el,el.tagName==="TR"?0:1);
+    });
+   });
+   const navButtons=[...document.querySelectorAll("#nv button[data-v]")];
+   navButtons.forEach(b=>{
+    const label=(b.innerText||b.textContent||"").trim();
+    if(norm(label).includes(needle))addResult(label,"Ouvrir le module",b.dataset.v,b,2);
+   });
+   matches.sort((a,b)=>a.score-b.score);
+   matches=matches.slice(0,12);
+   if(!matches.length){
+    panel.innerHTML='<div class="sib-global-search-empty">Aucun résultat trouvé. Essayez un autre terme.</div>';
+   }else{
+    matches.forEach((m,i)=>{
+     const btn=document.createElement("button");btn.type="button";btn.className="sib-global-search-result";btn.setAttribute("role","option");
+     const strong=document.createElement("strong");strong.textContent=m.label;
+     const small=document.createElement("small");small.textContent=m.detail;
+     btn.append(strong,small);
+     btn.addEventListener("click",()=>{
+      if(typeof window.nav==="function")window.nav(m.section);
+      else {const b=document.querySelector('#nv button[data-v="'+CSS.escape(m.section)+'"]');if(b)b.click()}
+      close();input.value="";
+      if(m.el&&m.el.isConnected){m.el.scrollIntoView({behavior:"smooth",block:"center"});m.el.classList.add("sib-search-hit");setTimeout(()=>m.el&&m.el.classList.remove("sib-search-hit"),1800)}
+     });
+     panel.appendChild(btn);
+    });
+   }
+   panel.classList.remove("hide");input.setAttribute("aria-expanded","true");
+  }
+  input.addEventListener("input",()=>search(input.value));
+  input.addEventListener("keydown",e=>{
+   if(e.key==="Escape"){close();input.blur()}
+   if(e.key==="Enter"&&matches.length){e.preventDefault();panel.querySelector("button")?.click()}
+   if(e.key==="ArrowDown"){e.preventDefault();panel.querySelector("button")?.focus()}
+  });
+  document.addEventListener("click",e=>{if(!wrap.contains(e.target))close()});
+  document.addEventListener("keydown",e=>{
+   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"){e.preventDefault();input.focus();input.select()}
+  });
+ }
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",initSibGlobalSearch,{once:true});
+ else initSibGlobalSearch();
+})();
+</script>
+<style id="sib-global-search-hit-style">.sib-search-hit{outline:2px solid var(--ac)!important;outline-offset:3px!important;border-radius:8px!important;transition:outline-color .3s}</style>
+</body></html>');
  w.document.close();
 }
 function printSibDocumentA4(source){
