@@ -3104,8 +3104,13 @@ async function boot(){applyLogo();loadSibPublicBranding();
    applyLogo();activateCloudRealtime();enter(true);if(!remote)await cloudSaveChain;return;
   }catch(err){
   console.warn("SIB cloud session unavailable:",err);
-  const offlineNetworkFailure = navigator.onLine === false || /Délai de connexion dépassé|PGRST002|PGRST003|schema cache|Timed out acquiring connection|HTTP 5\d\d|status.?5\d\d|Failed to fetch|NetworkError|fetch failed|Load failed|Network request failed|CORS|cross-origin/i.test(String(err && err.message || err || ""));
-  if(offlineNetworkFailure){LNOTE="Connexion Internet requise : SIB Gestion fonctionne uniquement en ligne. Aucune donnée métier locale ne sera utilisée."; }
+  if(navigator.onLine === false){
+   LNOTE="Connexion Internet requise : SIB Gestion fonctionne uniquement en ligne. Aucune donnée métier locale ne sera utilisée.";
+  }else{
+   // A browser with an active network connection may still encounter a
+   // temporary cloud/API/database failure. Never label that as offline.
+   LNOTE="Le service de connexion SIB est momentanément indisponible. Réessayez dans quelques instants.";
+  }
  }
   document.body.classList.add("lo");lgv("login");return;
  }
