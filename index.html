@@ -610,6 +610,13 @@ table th,table td{padding:9px 11px}
 table thead th{font-size:10px}
 header.top{padding-top:10px;padding-bottom:10px}
 header.top h1{font-size:clamp(17px,1.8vw,21px)}
+/* Barre supérieure persistante : le contenu défile indépendamment */
+header.top{position:fixed!important;top:env(safe-area-inset-top,0px)!important;left:var(--sw)!important;right:0!important;z-index:100!important;width:auto!important}
+.col{padding-top:92px}
+@media(max-width:720px){
+ header.top{left:0!important;right:0!important}
+ .col{padding-top:78px}
+}
 #nv button{font-size:12px;min-height:38px;padding:8px 10px;gap:10px}
 #nv button svg{width:17px;height:17px;flex-basis:17px}
 nav .br{padding-top:9px;padding-bottom:15px;margin-bottom:10px}
