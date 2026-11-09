@@ -2051,6 +2051,57 @@ input,select,textarea,button{max-width:100%}
 }
 </style>
 
+
+<style id="sib-sidebar-grid-layout">
+/* Layout desktop en grille : le panneau de contenu occupe réellement la colonne restante. */
+@media screen and (min-width:721px){
+  body{--sib-sidebar-current:264px}
+  body.col2{--sib-sidebar-current:78px}
+  body .app{
+    display:grid!important;
+    grid-template-columns:var(--sib-sidebar-current) minmax(0,1fr)!important;
+    grid-template-rows:minmax(100vh,auto)!important;
+    align-items:stretch!important;
+    width:100%!important;min-width:0!important;max-width:100%!important;
+    gap:0!important;
+  }
+  body .app>nav{
+    grid-column:1!important;grid-row:1!important;
+    position:sticky!important;top:0!important;left:auto!important;
+    width:var(--sib-sidebar-current)!important;
+    min-width:0!important;max-width:none!important;
+    height:100vh!important;min-height:100vh!important;
+    box-sizing:border-box!important;
+    align-self:start!important;
+  }
+  body .app>.col{
+    grid-column:2!important;grid-row:1!important;
+    position:relative!important;left:auto!important;right:auto!important;
+    display:block!important;float:none!important;
+    width:100%!important;min-width:0!important;max-width:100%!important;
+    margin:0!important;padding:92px 0 0!important;
+    box-sizing:border-box!important;transform:none!important;
+  }
+  body .app>.col>header.top{
+    position:fixed!important;top:0!important;
+    left:var(--sib-sidebar-current)!important;right:0!important;
+    width:auto!important;max-width:none!important;
+    margin:0!important;box-sizing:border-box!important;
+  }
+  body .app>.col>main{
+    width:100%!important;min-width:0!important;max-width:none!important;
+    margin:0!important;box-sizing:border-box!important;
+    container-type:inline-size!important;container-name:mc!important;
+  }
+}
+@media screen and (max-width:720px){
+  body .app{display:block!important}
+  body .app>nav{position:fixed!important}
+  body .app>.col{width:100%!important;max-width:100%!important;margin:0!important;padding-top:78px!important}
+  body .app>.col>header.top{left:0!important;right:0!important;width:auto!important}
+}
+</style>
+
 </head><body>
 <div id="sib-startup" role="status" aria-live="polite"><div class="sib-startup-inner"><div class="sib-startup-logo" aria-hidden="true">SIB</div><div class="sib-startup-name">SIB Gestion</div><div class="sib-startup-label">Chargement de votre espace…</div><div class="sib-startup-track" aria-hidden="true"></div></div></div>
 <div class="app">
