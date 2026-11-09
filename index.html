@@ -1909,6 +1909,59 @@ input,select,textarea,button{max-width:100%}
 @media(max-width:720px){.sib-global-search{width:36px;min-width:36px;height:36px;padding:0;justify-content:center;border-radius:10px}.sib-global-search>svg{width:18px;height:18px}.sib-global-search input{position:absolute;left:0;top:calc(100% + 9px);z-index:10001;display:none;width:min(280px,calc(100vw - 28px));height:40px;padding:0 12px!important;border:1px solid var(--ln)!important;border-radius:10px;background:var(--sf)!important;box-shadow:0 10px 30px rgba(0,0,0,.16)!important}.sib-global-search.sib-search-open input{display:block}.sib-global-search kbd{display:none}.sib-global-search-results{top:calc(100% + 56px);left:auto;right:0;width:min(340px,calc(100vw - 28px))}.sib-global-search:focus-within,.sib-global-search.sib-search-open{border-color:var(--ac)}}
 @media(max-width:420px){.top{gap:5px}.sib-global-search{width:34px;min-width:34px;height:34px}}
 </style>
+
+<style id="sib-sidebar-reflow-fix">
+/* Reflow global piloté par la largeur réelle du menu latéral. */
+@media (min-width:721px){
+  body{--sw:264px}
+  body.col2{--sw:78px}
+  .app{display:block!important;min-width:0}
+  nav{width:var(--sw)!important;min-width:var(--sw)!important;max-width:var(--sw)!important}
+  .col{
+    display:block;box-sizing:border-box;min-width:0!important;width:auto!important;max-width:none!important;
+    margin-left:var(--sw)!important;
+    transition:margin-left .28s cubic-bezier(.2,.7,.2,1),width .28s ease;
+  }
+  header.top{left:var(--sw)!important;right:0!important;width:auto!important}
+  main{
+    display:block;box-sizing:border-box;width:100%!important;max-width:none!important;
+    min-width:0!important;margin:0!important;
+    container-type:inline-size;container-name:mc;
+  }
+  main>section,main section,.gd,.row,.box,.k,.tw{min-width:0;max-width:100%}
+  .gd{grid-template-columns:repeat(12,minmax(0,1fr))}
+  .row{width:100%;flex-wrap:wrap}
+  .row>*{min-width:0}
+  .tw{width:100%;overflow-x:auto;overscroll-behavior-x:contain}
+}
+@media (min-width:721px) and (max-width:900px){
+  body{--sw:250px}
+  body.col2{--sw:78px}
+}
+@container mc (max-width:1100px){
+  .s3,.s4,.s5,.s6,.s7,.s8{grid-column:span 6}
+  .gd{gap:12px}
+}
+@container mc (max-width:760px){
+  .s3,.s4,.s5,.s6,.s7,.s8{grid-column:1/-1}
+  .gd{gap:10px}
+  .row{gap:10px}
+  .row>*{flex:1 1 220px;min-width:0}
+  .flt{max-width:100%}
+  .flt input,.flt select{max-width:100%;min-width:0}
+}
+@container mc (max-width:480px){
+  .box{padding:12px}
+  .row>*{flex-basis:100%}
+  .gd{gap:9px}
+}
+@media(max-width:720px){
+  .col{margin-left:0!important;width:100%!important;max-width:100%!important}
+  header.top{left:0!important;right:0!important;width:auto!important}
+  main{width:100%!important;max-width:100%!important;margin:0!important;min-width:0!important}
+}
+</style>
+
 </head><body>
 <div id="sib-startup" role="status" aria-live="polite"><div class="sib-startup-inner"><div class="sib-startup-logo" aria-hidden="true">SIB</div><div class="sib-startup-name">SIB Gestion</div><div class="sib-startup-label">Chargement de votre espace…</div><div class="sib-startup-track" aria-hidden="true"></div></div></div>
 <div class="app">
