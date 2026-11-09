@@ -1,6 +1,8 @@
 (function () {
   "use strict";
   if (window.__SIB_CONTRACTS_LOADED) return;
+  var S = window.S;
+  if (!S || typeof S !== "object") { console.warn("SIB Contrats : état global indisponible, initialisation différée."); return; }
   window.__SIB_CONTRACTS_LOADED = true;
   var rootId = "contracts";
   var h = function (v) { return String(v == null ? "" : v).replace(/[&<>"']/g, function (c) { return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); };
