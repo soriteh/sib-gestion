@@ -1962,6 +1962,54 @@ input,select,textarea,button{max-width:100%}
 }
 </style>
 
+
+<style id="sib-sidebar-reflow-fix-v2">
+/* Correction du grand vide à droite du menu replié. */
+@media (min-width:721px){
+  html body{--sib-sidebar-width:264px}
+  html body.col2{--sib-sidebar-width:100px}
+  html body:not(.col2){--sib-sidebar-width:264px}
+  html body .app{display:block!important;min-width:0!important;width:100%!important}
+  html body nav{
+    box-sizing:border-box!important;
+    width:var(--sib-sidebar-width)!important;
+    min-width:var(--sib-sidebar-width)!important;
+    max-width:var(--sib-sidebar-width)!important;
+  }
+  html body .app>.col,
+  html body .col{
+    box-sizing:border-box!important;
+    display:block!important;
+    width:auto!important;
+    min-width:0!important;
+    max-width:none!important;
+    margin-left:var(--sib-sidebar-width)!important;
+    padding-top:92px!important;
+  }
+  html body header.top{
+    box-sizing:border-box!important;
+    position:fixed!important;
+    left:var(--sib-sidebar-width)!important;
+    right:0!important;
+    width:auto!important;
+    max-width:none!important;
+  }
+  html body main{
+    box-sizing:border-box!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+    margin:0!important;
+    padding-left:clamp(12px,2vw,26px)!important;
+    padding-right:clamp(12px,2vw,26px)!important;
+  }
+}
+@media(max-width:720px){
+  html body .col{margin-left:0!important;width:100%!important}
+  html body header.top{left:0!important;right:0!important;width:100%!important}
+}
+</style>
+
 </head><body>
 <div id="sib-startup" role="status" aria-live="polite"><div class="sib-startup-inner"><div class="sib-startup-logo" aria-hidden="true">SIB</div><div class="sib-startup-name">SIB Gestion</div><div class="sib-startup-label">Chargement de votre espace…</div><div class="sib-startup-track" aria-hidden="true"></div></div></div>
 <div class="app">
