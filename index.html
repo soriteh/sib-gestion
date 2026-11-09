@@ -2483,95 +2483,7 @@ function printSibDocument(source,kind){
  const isPayroll=kind==="payroll";const pageCss=isPayroll?'@page{size:A4 portrait;margin:10mm}.paper{width:190mm;max-width:100%;margin:0 auto}.paper>.print-doc{width:100%;position:relative;isolation:isolate;overflow:hidden;min-height:255mm;padding:0}.paper .payroll-watermark{position:absolute;z-index:0;left:50%;top:50%;transform:translate(-50%,-50%);width:118mm;height:118mm;object-fit:contain;opacity:.09;pointer-events:none;print-color-adjust:exact;-webkit-print-color-adjust:exact}.paper .payroll-content{position:relative;z-index:1}.paper table{width:100%;font-size:11px}.paper td,.paper th{padding:7px 8px}.paper .payroll-amount-words{margin-top:10px;padding:9px 11px;border:1px solid #cbd5e1;border-radius:5px;font-size:11px;position:relative;background:rgba(255,255,255,.72)}.paper .tot{font-size:15px}':(isReceipt||isThermal)?'@page{size:80mm auto;margin:3mm}.paper{width:74mm;max-width:74mm;margin:0}.paper>.print-doc{width:100%;min-height:0;display:block}.paper .row{display:block!important}.paper .row>div{display:block;width:100%;margin-bottom:5px}.paper table{width:100%;table-layout:fixed;font-size:9px;margin:6px 0}.paper th,.paper td{padding:3px 1px;overflow-wrap:anywhere}.paper .print-doc th:nth-child(1),.paper .print-doc td:nth-child(1){width:8%}.paper .print-doc th:nth-child(2),.paper .print-doc td:nth-child(2){width:38%}.paper .print-doc th:nth-child(3),.paper .print-doc td:nth-child(3){width:10%}.paper .print-doc th:nth-child(4),.paper .print-doc td:nth-child(4){width:21%}.paper .print-doc th:nth-child(5),.paper .print-doc td:nth-child(5){width:23%}body{padding:0;font-size:10px}.sib-doc-head img{max-height:14mm;max-width:25mm}.sib-doc-head{gap:3mm;padding-bottom:3mm;margin-bottom:3mm}h2{font-size:14px}.tot{font-size:12px}.doc-footer{margin-top:6px;padding-top:4px;font-size:8px}.signature-block{display:none!important}':'@page{size:A5 portrait;margin:8mm}.paper{display:block;width:132mm;max-width:100%;min-height:0;margin:0 auto}.paper>.print-doc{display:block;width:100%;min-height:0;max-width:100%;overflow:visible}.paper .row{display:flex;flex-direction:row;align-items:flex-start;gap:12px;width:100%}.paper .row>div{flex:1 1 0;min-width:0;overflow-wrap:anywhere}.paper table{width:100%;table-layout:auto}.signature-block{margin-top:18px!important}.doc-footer{margin-top:14px;padding-top:5mm;border-top:1px solid #cbd5e1;text-align:center;font-size:9px;line-height:1.5;color:#475569}.doc-footer strong{font-size:10px;color:#172033}.doc-footer span{font-style:italic}';
  w.document.open();
  w.document.write('<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>'+ (isReceipt?'Reçu de caisse SIB':'Document SIB')+'</title><style>'+css+pageCss+sibPrintWatermarkCss+'</style></head><body>'+sibPrintWatermark()+'<div class="paper">'+content+'</div><script>window.addEventListener("load",function(){setTimeout(function(){window.focus();window.print()},300)});window.addEventListener("afterprint",function(){setTimeout(function(){window.close()},300)});<\/script><script src="./documents-administratifs.js"><\/script>
-<script id="sib-global-search-script">
-(function(){
- "use strict";
- function initSibGlobalSearch(){
-  const input=document.getElementById("sib-global-search");
-  const wrap=document.getElementById("sib-global-search-wrap");
-  const panel=document.getElementById("sib-global-search-results");
-  if(!input||!wrap||!panel||wrap.dataset.ready==="1")return;
-  wrap.dataset.ready="1";
-  let matches=[];
-  const norm=v=>String(v||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLowerCase().trim();
-  const sectionName=id=>{
-   const active=document.querySelector('#nv button[data-v="'+CSS.escape(id)+'"]');
-   if(active)return (active.innerText||active.textContent||"").trim();
-   const title=document.querySelector("#"+CSS.escape(id)+" h2");
-   return title?(title.innerText||title.textContent||"").trim():id;
-  };
-  function close(){panel.classList.add("hide");input.setAttribute("aria-expanded","false");matches=[];wrap.classList.remove("sib-search-open")}
-  function addResult(label,detail,section,el,score){
-   matches.push({label,detail,section,el,score});
-  }
-  function search(q){
-   panel.innerHTML="";matches=[];
-   const needle=norm(q);
-   if(needle.length<2){close();return}
-   document.querySelectorAll("main section[id]").forEach(section=>{
-    const sid=section.id;
-    if(["lgn"].includes(sid))return;
-    const candidates=section.querySelectorAll("tr,.box,.k,.card,.panel,article,h2,h3,h4,[data-search]");
-    const seen=new Set();
-    candidates.forEach(el=>{
-     if(seen.size>=8)return;
-     if(el.closest("#sib-global-search-results"))return;
-     const txt=(el.innerText||el.textContent||"").replace(/\\s+/g," ").trim();
-     const n=norm(txt);
-     if(!txt||txt.length>900||!n.includes(needle))return;
-     let parent=el.parentElement;
-     while(parent&&parent!==section&&parent.matches("tr,.box,.k,.card,.panel,article")&&norm(parent.innerText||"").includes(needle)&&((parent.innerText||"").length<900)) {el=parent;parent=el.parentElement}
-     const key=sid+"|"+norm((el.innerText||el.textContent||"").slice(0,180));
-     if(seen.has(key))return;seen.add(key);
-     const excerpt=(el.innerText||el.textContent||"").replace(/\\s+/g," ").trim();
-     const idx=norm(excerpt).indexOf(needle);
-     const label=excerpt.length>95?excerpt.slice(Math.max(0,idx-30),Math.min(excerpt.length,idx+65)):excerpt;
-     addResult(label,sectionName(sid),sid,el,el.tagName==="TR"?0:1);
-    });
-   });
-   const navButtons=[...document.querySelectorAll("#nv button[data-v]")];
-   navButtons.forEach(b=>{
-    const label=(b.innerText||b.textContent||"").trim();
-    if(norm(label).includes(needle))addResult(label,"Ouvrir le module",b.dataset.v,b,2);
-   });
-   matches.sort((a,b)=>a.score-b.score);
-   matches=matches.slice(0,12);
-   if(!matches.length){
-    panel.innerHTML='<div class="sib-global-search-empty">Aucun résultat trouvé. Essayez un autre terme.</div>';
-   }else{
-    matches.forEach((m,i)=>{
-     const btn=document.createElement("button");btn.type="button";btn.className="sib-global-search-result";btn.setAttribute("role","option");
-     const strong=document.createElement("strong");strong.textContent=m.label;
-     const small=document.createElement("small");small.textContent=m.detail;
-     btn.append(strong,small);
-     btn.addEventListener("click",()=>{
-      if(typeof window.nav==="function")window.nav(m.section);
-      else {const b=document.querySelector('#nv button[data-v="'+CSS.escape(m.section)+'"]');if(b)b.click()}
-      close();input.value="";
-      if(m.el&&m.el.isConnected){m.el.scrollIntoView({behavior:"smooth",block:"center"});m.el.classList.add("sib-search-hit");setTimeout(()=>m.el&&m.el.classList.remove("sib-search-hit"),1800)}
-     });
-     panel.appendChild(btn);
-    });
-   }
-   panel.classList.remove("hide");input.setAttribute("aria-expanded","true");
-  }
-  wrap.addEventListener("click",e=>{if(window.matchMedia&&window.matchMedia("(max-width: 720px)").matches&&!wrap.classList.contains("sib-search-open")){e.preventDefault();wrap.classList.add("sib-search-open");input.focus()}});
-  input.addEventListener("input",()=>search(input.value));
-  input.addEventListener("keydown",e=>{
-   if(e.key==="Escape"){close();input.blur()}
-   if(e.key==="Enter"&&matches.length){e.preventDefault();panel.querySelector("button")?.click()}
-   if(e.key==="ArrowDown"){e.preventDefault();panel.querySelector("button")?.focus()}
-  });
-  document.addEventListener("click",e=>{if(!wrap.contains(e.target))close()});
-  document.addEventListener("keydown",e=>{
-   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"){e.preventDefault();input.focus();input.select()}
-  });
- }
- if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",initSibGlobalSearch,{once:true});
- else initSibGlobalSearch();
-})();
-</script>
-<style id="sib-global-search-hit-style">.sib-search-hit{outline:2px solid var(--ac)!important;outline-offset:3px!important;border-radius:8px!important;transition:outline-color .3s}</style>
+
 </body></html>');
  w.document.close();
 }
@@ -4268,6 +4180,95 @@ h1,h2,h3,h4,h5,h6,
 <script src="./achats-fournisseurs.js?v=20261105-bold-document-headings-1"></script>
 <script src="./gestion-contrats.js?v=20261105-signature-same-line-8"></script>
 
+<script id="sib-global-search-script">
+(function(){
+ "use strict";
+ function initSibGlobalSearch(){
+  const input=document.getElementById("sib-global-search");
+  const wrap=document.getElementById("sib-global-search-wrap");
+  const panel=document.getElementById("sib-global-search-results");
+  if(!input||!wrap||!panel||wrap.dataset.ready==="1")return;
+  wrap.dataset.ready="1";
+  let matches=[];
+  const norm=v=>String(v||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLowerCase().trim();
+  const sectionName=id=>{
+   const active=document.querySelector('#nv button[data-v="'+CSS.escape(id)+'"]');
+   if(active)return (active.innerText||active.textContent||"").trim();
+   const title=document.querySelector("#"+CSS.escape(id)+" h2");
+   return title?(title.innerText||title.textContent||"").trim():id;
+  };
+  function close(){panel.classList.add("hide");input.setAttribute("aria-expanded","false");matches=[];wrap.classList.remove("sib-search-open")}
+  function addResult(label,detail,section,el,score){
+   matches.push({label,detail,section,el,score});
+  }
+  function search(q){
+   panel.innerHTML="";matches=[];
+   const needle=norm(q);
+   if(needle.length<2){close();return}
+   document.querySelectorAll("main section[id]").forEach(section=>{
+    const sid=section.id;
+    if(["lgn"].includes(sid))return;
+    const candidates=section.querySelectorAll("tr,.box,.k,.card,.panel,article,h2,h3,h4,[data-search]");
+    const seen=new Set();
+    candidates.forEach(el=>{
+     if(seen.size>=8)return;
+     if(el.closest("#sib-global-search-results"))return;
+     const txt=(el.innerText||el.textContent||"").replace(/\\s+/g," ").trim();
+     const n=norm(txt);
+     if(!txt||txt.length>900||!n.includes(needle))return;
+     let parent=el.parentElement;
+     while(parent&&parent!==section&&parent.matches("tr,.box,.k,.card,.panel,article")&&norm(parent.innerText||"").includes(needle)&&((parent.innerText||"").length<900)) {el=parent;parent=el.parentElement}
+     const key=sid+"|"+norm((el.innerText||el.textContent||"").slice(0,180));
+     if(seen.has(key))return;seen.add(key);
+     const excerpt=(el.innerText||el.textContent||"").replace(/\\s+/g," ").trim();
+     const idx=norm(excerpt).indexOf(needle);
+     const label=excerpt.length>95?excerpt.slice(Math.max(0,idx-30),Math.min(excerpt.length,idx+65)):excerpt;
+     addResult(label,sectionName(sid),sid,el,el.tagName==="TR"?0:1);
+    });
+   });
+   const navButtons=[...document.querySelectorAll("#nv button[data-v]")];
+   navButtons.forEach(b=>{
+    const label=(b.innerText||b.textContent||"").trim();
+    if(norm(label).includes(needle))addResult(label,"Ouvrir le module",b.dataset.v,b,2);
+   });
+   matches.sort((a,b)=>a.score-b.score);
+   matches=matches.slice(0,12);
+   if(!matches.length){
+    panel.innerHTML='<div class="sib-global-search-empty">Aucun résultat trouvé. Essayez un autre terme.</div>';
+   }else{
+    matches.forEach((m,i)=>{
+     const btn=document.createElement("button");btn.type="button";btn.className="sib-global-search-result";btn.setAttribute("role","option");
+     const strong=document.createElement("strong");strong.textContent=m.label;
+     const small=document.createElement("small");small.textContent=m.detail;
+     btn.append(strong,small);
+     btn.addEventListener("click",()=>{
+      if(typeof window.nav==="function")window.nav(m.section);
+      else {const b=document.querySelector('#nv button[data-v="'+CSS.escape(m.section)+'"]');if(b)b.click()}
+      close();input.value="";
+      if(m.el&&m.el.isConnected){m.el.scrollIntoView({behavior:"smooth",block:"center"});m.el.classList.add("sib-search-hit");setTimeout(()=>m.el&&m.el.classList.remove("sib-search-hit"),1800)}
+     });
+     panel.appendChild(btn);
+    });
+   }
+   panel.classList.remove("hide");input.setAttribute("aria-expanded","true");
+  }
+  wrap.addEventListener("click",e=>{if(window.matchMedia&&window.matchMedia("(max-width: 720px)").matches&&!wrap.classList.contains("sib-search-open")){e.preventDefault();wrap.classList.add("sib-search-open");input.focus()}});
+  input.addEventListener("input",()=>search(input.value));
+  input.addEventListener("keydown",e=>{
+   if(e.key==="Escape"){close();input.blur()}
+   if(e.key==="Enter"&&matches.length){e.preventDefault();panel.querySelector("button")?.click()}
+   if(e.key==="ArrowDown"){e.preventDefault();panel.querySelector("button")?.focus()}
+  });
+  document.addEventListener("click",e=>{if(!wrap.contains(e.target))close()});
+  document.addEventListener("keydown",e=>{
+   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"){e.preventDefault();input.focus();input.select()}
+  });
+ }
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",initSibGlobalSearch,{once:true});
+ else initSibGlobalSearch();
+})();
+</script>
+<style id="sib-global-search-hit-style">.sib-search-hit{outline:2px solid var(--ac)!important;outline-offset:3px!important;border-radius:8px!important;transition:outline-color .3s}</style>
 </body>
 </html>
 
