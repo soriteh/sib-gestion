@@ -52,8 +52,13 @@
       policy = { userId: session.user.id, startedAt: now, lastActivityAt: now };
       writeSessionPolicy(policy);
     } else if (!policy || policy.userId !== session.user.id) {
-      clearSessionPolicy();
-      return false;
+      // Compatibilité avec les sessions Supabase déjà ouvertes avant l'ajout
+      // de cette politique, ou dont le stockage local a été nettoyé.
+      // La session Supabase persistante reste l'autorité d'authentification :
+      // on initialise une politique à la restauration au lieu de déconnecter
+      // l'utilisateur au simple rechargement de la page.
+      policy = { userId: session.user.id, startedAt: now, lastActivityAt: now };
+      writeSessionPolicy(policy);
     }
     if (sessionPolicyExpired(policy, now)) {
       clearSessionPolicy();
