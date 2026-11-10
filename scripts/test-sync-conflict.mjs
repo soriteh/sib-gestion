@@ -7,6 +7,8 @@ assert.doesNotMatch(html,/localStorage\.setItem\(SIB_PENDING_KEY/,"No pending bu
 assert.doesNotMatch(html,/localStorage\.setItem\("sib-conflict-backup-v1"/,"No conflict business backup may be written locally");
 assert.match(html,/async function retryPendingCloudSave\(\)\{return false\}/,"Local pending retry must be disabled");
 assert.match(html,/await window\.SIBCloud\.saveAppState\(snapshot\)/,"Business state must be sent to Supabase");
+assert.match(html,/if\(t==="ok"&&cloudCommitPending\)\{cloudSuccessMessages\.push\(\[m,o\]\);return/,"Success confirmations must wait while Supabase is saving");
+assert.match(html,/if\(!cloudCommitFailed&&!sibPendingConflict&&cloudSuccessMessages\.length\)flushCloudSuccessMessages\(\)/,"Success confirmations must be displayed only after a confirmed cloud save");
 assert.match(html,/Aucune donnée métier n’a été conservée dans le navigateur/,"Save failures must explain no local copy exists");
 assert.match(html,/S=currentIsAdmin&&remote\?\.state\?repairState\(remote\.state\):D0\(\)/,"Boot must hydrate business state only from Supabase");
 console.log("SIB online-only persistence regression tests passed.");
