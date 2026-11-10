@@ -42,7 +42,7 @@ serve(async (req) => {
     if (body?.action === "generate_monthly_payroll") {
       const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
       if (!serviceKey) return fail(503, "La génération de paie par SIB nécessite SUPABASE_SERVICE_ROLE_KEY dans les secrets Supabase.");
-      const membershipRes = await fetch(url + "/rest/v1/organization_memberships?user_id=eq." + encodeURIComponent(authUser.id) + "&active=eq.true&select=organization_id,role", {
+      const membershipRes = await fetch(url + "/rest/v1/organization_memberships?user_id=eq." + encodeURIComponent(authUser.id) + "&organization_id=eq.6070dc4b-5c5e-402c-911b-735cb754d241&active=eq.true&select=organization_id,role", {
         headers: { apikey: serviceKey, Authorization: "Bearer " + serviceKey }
       });
       if (!membershipRes.ok) return fail(500, "Impossible de vérifier les autorisations de paie.");
