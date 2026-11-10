@@ -2031,6 +2031,8 @@ function montantEnLettresAvecDevise(value){
 }
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let cloudSessionReady=false,cloudSaveChain=Promise.resolve(),cloudSaveErrorAt=0,cloudQueuedSnapshot=null,cloudWriteRunning=false;
+let cloudCommitPending=false,cloudCommitFailed=false,cloudSuccessMessages=[];
+function flushCloudSuccessMessages(){const messages=cloudSuccessMessages.splice(0);messages.forEach(([message,options])=>toast(message,"ok",options||{}));}
 function isMissingCloudSessionError(error){return /session absente|session.*(?:expir|missing)|auth session missing/i.test(String(error?.message||error||""));}
 let cloudChannel=null,cloudRealtimeRefreshBusy=false,cloudRealtimeRefreshQueued=false;
 function cloudHasActiveEdit(){
@@ -2130,29 +2132,34 @@ async function retryPendingCloudSave(){return false}
 window.addEventListener("online",reconcileSibCloudOnForeground);
 async function drainCloudWrites(){
  if(cloudWriteRunning)return cloudSaveChain;
- cloudWriteRunning=true;
+ cloudWriteRunning=true;cloudCommitPending=true;cloudCommitFailed=false;
  try{while(cloudQueuedSnapshot&&cloudSessionReady&&!sibPendingConflict){
   const snapshot=cloudQueuedSnapshot;cloudQueuedSnapshot=null;
   try{await window.SIBCloud.saveAppState(snapshot);sibPendingRetryDelay=10000}
-  catch(err){console.error("SIB Supabase save failed:",err);
+  catch(err){cloudCommitFailed=true;cloudSuccessMessages=[];console.error("SIB Supabase save failed:",err);
    if(isCloudVersionConflict(err)){stopForCloudConflict(snapshot,err);break}
    if(isMissingCloudSessionError(err)){cloudSessionReady=false;if(typeof toast==="function")toast("Votre session doit être rétablie. Reconnectez-vous puis recommencez l’opération.","wa",{ms:6000});break}
    if(typeof toast==="function")toast("Échec de l’enregistrement dans Supabase. Aucune donnée métier n’a été conservée dans le navigateur. Vérifiez la connexion puis recommencez l’opération.","er",{sticky:true});
   }
- }}finally{cloudWriteRunning=false;if(cloudQueuedSnapshot&&cloudSessionReady&&!sibPendingConflict)cloudSaveChain=drainCloudWrites()}
+ }}finally{
+  cloudWriteRunning=false;cloudCommitPending=false;
+  if(!cloudCommitFailed&&!sibPendingConflict&&cloudSuccessMessages.length)flushCloudSuccessMessages();
+  else cloudSuccessMessages=[];
+  if(cloudQueuedSnapshot&&cloudSessionReady&&!sibPendingConflict)cloudSaveChain=drainCloudWrites();
+ }
 }
 function save(){
  if(sibPendingConflict){if(typeof toast==="function")toast("Un conflit de synchronisation doit être résolu. Rechargez les données centrales avant de continuer.","wa",{sticky:true});return cloudSaveChain}
  if(!window.SIBCloud?.ready||!cloudSessionReady){if(typeof toast==="function")toast("Votre session doit être rétablie pour synchroniser les modifications.","wa",{ms:6000});return Promise.resolve(false)}
  if(CU?.cloud&&!window.SIBCloud.isAdminRole(RO))return Promise.resolve(false);
  if(!navigator.onLine){if(typeof toast==="function")toast("Connexion Internet requise : aucune modification hors ligne n’est enregistrée. Reconnectez-vous puis recommencez.","er",{sticky:true});return Promise.resolve(false)}
- cloudQueuedSnapshot=cloudSnapshot();if(!cloudWriteRunning)cloudSaveChain=drainCloudWrites();return cloudSaveChain;
+ cloudQueuedSnapshot=cloudSnapshot();if(!cloudWriteRunning){cloudSuccessMessages=[];cloudSaveChain=drainCloudWrites()}return cloudSaveChain;
 }
 const TI={ok:"M20 6L9 17l-5-5",er:"M12 8v5M12 16h.01M12 2a10 10 0 100 20 10 10 0 000-20z",wa:"M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z",in:"M12 16v-4M12 8h.01M12 2a10 10 0 100 20 10 10 0 000-20z"};
 const ic=t=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${TI[t]}"/></svg>`;
 function kind(m){if(/requis|renseign|^(Aucun|Ajoutez|Choisissez|Saisissez)/i.test(m))return"wa";if(/enregistr|créé|créée|ajouté|ajoutée|modifié|mis à jour|supprimé|annulé|annulée|réinitialis|activé|inscrit|changé|retiré|soldée|approuvé|généré|payé|refusée|marqué|réintégré|validé|effacé|désactivé/i.test(m)&&!/impossible|invalide|pas /i.test(m))return"ok";return"er"}
 let TD={};
-function toast(m,t,o={}){t=t||kind(m);const n=Date.now();if(TD[m]>n)return;TD[m]=n+2500;const c=$("tst"),e=document.createElement("div");e.className="tt "+(t=="in"?"inf":t);e.setAttribute("role",t=="er"?"alert":"status");
+function toast(m,t,o={}){t=t||kind(m);if(t==="ok"&&cloudCommitPending){cloudSuccessMessages.push([m,o]);return ()=>{};}const n=Date.now();if(TD[m]>n)return;TD[m]=n+2500;const c=$("tst"),e=document.createElement("div");e.className="tt "+(t=="in"?"inf":t);e.setAttribute("role",t=="er"?"alert":"status");
  e.innerHTML=`${ic(t)}<div class="tx">${esc(m)}</div>${o.act?`<button class="s">${esc(o.act.label)}</button>`:""}<button class="cl" aria-label="Fermer">×</button>`;
  const rm=()=>{if(!e.isConnected)return;e.classList.add("out");setTimeout(()=>e.remove(),220)};e.querySelector(".cl").onclick=rm;if(o.act)e.querySelector(".s").onclick=()=>{rm();o.act.fn()};
  c.appendChild(e);while(c.children.length>4)c.firstChild.remove();if(!o.sticky)setTimeout(rm,o.ms||{ok:3200,in:4800,wa:7000,er:7000}[t]);return rm}
