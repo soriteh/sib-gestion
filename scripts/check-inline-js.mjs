@@ -55,7 +55,7 @@ try {
   checkHtmlScripts("index.html");
   checkHtmlScripts("formation/index.html");
 
-  for (const file of ["supabase-config.js", "supabase-client.js", "offline-register.js", "service-worker.js", "achats-fournisseurs.js"]) {
+  for (const file of ["supabase-config.js", "supabase-client.js", "offline-register.js", "service-worker.js", "achats-fournisseurs.js", "ai-agent.js", "documents-administratifs.js", "gestion-contrats.js", "bons-commande-livraison.js"]) {
     check(readFileSync(resolve(root, file), "utf8"), file);
   }
 
