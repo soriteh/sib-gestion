@@ -2143,9 +2143,9 @@ async function drainCloudWrites(){
 }
 function save(){
  if(sibPendingConflict){if(typeof toast==="function")toast("Un conflit de synchronisation doit être résolu. Rechargez les données centrales avant de continuer.","wa",{sticky:true});return cloudSaveChain}
- if(!window.SIBCloud?.ready||!cloudSessionReady){if(typeof toast==="function")toast("Votre session doit être rétablie pour synchroniser les modifications.","wa",{ms:6000});return Promise.reject(new Error("Session SIB absente."))}
+ if(!window.SIBCloud?.ready||!cloudSessionReady){if(typeof toast==="function")toast("Votre session doit être rétablie pour synchroniser les modifications.","wa",{ms:6000});return Promise.resolve(false)}
  if(CU?.cloud&&!window.SIBCloud.isAdminRole(RO))return Promise.resolve(false);
- if(!navigator.onLine){if(typeof toast==="function")toast("Connexion Internet requise : aucune modification hors ligne n’est enregistrée. Reconnectez-vous puis recommencez.","er",{sticky:true});return Promise.reject(new Error("Connexion Internet absente."))}
+ if(!navigator.onLine){if(typeof toast==="function")toast("Connexion Internet requise : aucune modification hors ligne n’est enregistrée. Reconnectez-vous puis recommencez.","er",{sticky:true});return Promise.resolve(false)}
  cloudQueuedSnapshot=cloudSnapshot();if(!cloudWriteRunning)cloudSaveChain=drainCloudWrites();return cloudSaveChain;
 }
 const TI={ok:"M20 6L9 17l-5-5",er:"M12 8v5M12 16h.01M12 2a10 10 0 100 20 10 10 0 000-20z",wa:"M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z",in:"M12 16v-4M12 8h.01M12 2a10 10 0 100 20 10 10 0 000-20z"};
