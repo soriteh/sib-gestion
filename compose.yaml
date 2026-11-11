@@ -1,0 +1,23 @@
+services:
+  sib-gestion:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: sib-gestion:local
+    container_name: sib-gestion
+    ports:
+      - "${SIB_HTTP_PORT:-8080}:8080"
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=32m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
