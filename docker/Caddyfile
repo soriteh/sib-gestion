@@ -1,5 +1,5 @@
 {
-    email {$ACME_EMAIL:admin@example.com}
+    email {$ACME_EMAIL}
 }
 
 {$SIB_DOMAIN} {
@@ -7,6 +7,6 @@
     reverse_proxy sib-gestion:8080
     header {
         -Server
-        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        Strict-Transport-Security "max-age=31536000"
     }
 }
