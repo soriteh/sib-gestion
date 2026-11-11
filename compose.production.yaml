@@ -32,6 +32,7 @@ services:
         condition: service_healthy
     environment:
       SIB_DOMAIN: ${SIB_DOMAIN:?Définir SIB_DOMAIN dans .env}
+      ACME_EMAIL: ${ACME_EMAIL:?Définir ACME_EMAIL dans .env}
     ports:
       - "80:80"
       - "443:443"
