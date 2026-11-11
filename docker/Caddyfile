@@ -1,0 +1,12 @@
+{
+    email {$ACME_EMAIL:admin@example.com}
+}
+
+{$SIB_DOMAIN} {
+    encode zstd gzip
+    reverse_proxy sib-gestion:8080
+    header {
+        -Server
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    }
+}
