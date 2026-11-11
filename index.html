@@ -2188,7 +2188,7 @@ function nextClientReference(){
  const year=new Date().getFullYear();
  const refs=(Array.isArray(S.c)?S.c:[]).map(c=>String(c?.code||"")).filter(x=>x.startsWith("REFC-"));
  let max=0;
- refs.forEach(ref=>{const m=ref.match(/^REFC-(?:\\d{4}-)?(\\d+)$/);if(m)max=Math.max(max,Number(m[1])||0);});
+ refs.forEach(ref=>{const m=ref.match(/^REFC-(?:[0-9]{4}-)?([0-9]+)$/);if(m)max=Math.max(max,Number(m[1])||0);});
  return "REFC-"+year+"-"+String(max+1).padStart(6,"0");
 }
 function ensureClientReferences(){
