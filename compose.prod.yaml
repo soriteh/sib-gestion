@@ -1,0 +1,8 @@
+services:
+  sib-gestion:
+    image: sib-gestion:production
+    container_name: sib-gestion
+    ports:
+      # Keep the app private on the server; terminate HTTPS at a reverse proxy.
+      - "127.0.0.1:8080:8080"
+    restart: always
