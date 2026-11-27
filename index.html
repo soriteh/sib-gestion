@@ -2139,7 +2139,7 @@ async function drainCloudWrites(){
   catch(err){cloudCommitFailed=true;cloudSuccessMessages=[];console.error("SIB Supabase save failed:",err);
    if(isCloudVersionConflict(err)){stopForCloudConflict(snapshot,err);break}
    if(isMissingCloudSessionError(err)){cloudSessionReady=false;if(typeof toast==="function")toast("Votre session doit être rétablie. Reconnectez-vous puis recommencez l’opération.","wa",{ms:6000});break}
-   if(typeof toast==="function")toast("Échec de l’enregistrement dans Supabase. Aucune donnée métier n’a été conservée dans le navigateur. Vérifiez la connexion puis recommencez l’opération.","er",{sticky:true});
+   if(typeof toast==="function")toast("Enregistrement impossible. Vérifiez votre connexion Internet puis réessayez.","er",{sticky:true});
   }
  }}finally{
   cloudWriteRunning=false;cloudCommitPending=false;
