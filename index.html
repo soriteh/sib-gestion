@@ -2126,7 +2126,7 @@ let sibConflictBackupDownloaded=false;
 function downloadPendingCloudBackup(){toast("Les sauvegardes locales sont désactivées. Les données doivent être récupérées depuis Supabase.","wa")}
 async function resolveCloudConflict(){toast("Conflit de synchronisation : rechargez les données centrales depuis Supabase avant de reprendre.","wa",{sticky:true})}
 function isCloudVersionConflict(error){const code=String(error?.code||error?.status||""),message=String(error?.message||error||"");return code==="40001"||/conflit de synchronisation|données ont changé sur un autre appareil|version.*(changed|mismatch|conflict)|serialization failure/i.test(message)}
-function stopForCloudConflict(snapshot,error){sibPendingConflict=true;cloudQueuedSnapshot=null;console.error("SIB synchronization conflict; no local copy is retained:",error);if(typeof toast==="function")toast("Conflit de synchronisation : les données ont changé sur un autre appareil. Rechargez l’application pour récupérer la version centrale. Aucune copie métier locale n’est conservée.","wa",{sticky:true})}
+function stopForCloudConflict(snapshot,error){sibPendingConflict=true;cloudQueuedSnapshot=null;console.error("SIB synchronization conflict; no local copy is retained:",error);if(typeof toast==="function")toast("Conflit de synchronisation. Rechargez les données depuis Supabase avant de continuer.","wa",{sticky:true})}
 function cloudSnapshot(){const x=JSON.parse(JSON.stringify(S));delete x.us;return x}
 async function retryPendingCloudSave(){return false}
 window.addEventListener("online",reconcileSibCloudOnForeground);
@@ -2139,7 +2139,7 @@ async function drainCloudWrites(){
   catch(err){cloudCommitFailed=true;cloudSuccessMessages=[];console.error("SIB Supabase save failed:",err);
    if(isCloudVersionConflict(err)){stopForCloudConflict(snapshot,err);break}
    if(isMissingCloudSessionError(err)){cloudSessionReady=false;if(typeof toast==="function")toast("Votre session doit être rétablie. Reconnectez-vous puis recommencez l’opération.","wa",{ms:6000});break}
-   if(typeof toast==="function")toast("Enregistrement impossible. Vérifiez votre connexion Internet puis réessayez.","er",{sticky:true});
+   if(typeof toast==="function")toast("Échec de l’enregistrement. Réessayez dans quelques instants.","er");
   }
  }}finally{
   cloudWriteRunning=false;cloudCommitPending=false;
