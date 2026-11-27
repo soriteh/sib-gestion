@@ -3,7 +3,9 @@
 --   1) read published training courses (RLS limits rows to published=true)
 --   2) submit a public training inquiry (RLS validates the public form contract)
 -- Authenticated CRUD grants are retained; only structural table privileges are removed.
--- New objects created by postgres or supabase_admin require explicit API grants.
+-- New objects created by postgres require explicit API grants.
+-- Supabase-managed objects owned by supabase_admin are not altered here:
+-- the migration role postgres is neither superuser nor a member of supabase_admin.
 
 begin;
 
@@ -34,21 +36,6 @@ alter default privileges for role postgres in schema public
 -- This global default is revoked; future functions (including private RLS
 -- helpers) must receive explicit EXECUTE grants for their intended callers.
 alter default privileges for role postgres
-  revoke execute on functions from public;
-
--- Supabase-managed objects in public can also be created by supabase_admin.
--- Apply the same API least-privilege defaults to that owner, without touching
--- Supabase's internal schemas or objects in other schemas.
-alter default privileges for role supabase_admin in schema public
-  revoke all on tables from anon, authenticated, service_role;
-
-alter default privileges for role supabase_admin in schema public
-  revoke all on sequences from anon, authenticated, service_role;
-
-alter default privileges for role supabase_admin in schema public
-  revoke all on functions from anon, authenticated, service_role;
-
-alter default privileges for role supabase_admin
   revoke execute on functions from public;
 
 -- Fail the migration if an unexpected anonymous table grant remains.
